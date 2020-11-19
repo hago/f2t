@@ -29,6 +29,7 @@ public class FileParser {
     private final FileInfo fileInfo;
     private final List<ParseObserver> observers = new ArrayList<>();
     private long rowCountToInferType = -1;
+    private Reader reader;
 
     public long getRowCountToInferType() {
         return rowCountToInferType;
@@ -56,14 +57,24 @@ public class FileParser {
     }
 
     public void run() {
+        run(new FileParserOption());
+    }
+
+    public void run(FileParserOption option) {
         try (Reader reader = ReaderFactory.getReader(fileInfo)) {
             notifyObserver("onParseStart");
             ParseResult result = new ParseResult();
             reader.open(fileInfo);
             List<ColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);
+            if (!option.isInferColumnTypes()) {
+                return;
+            }
             List<ColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
             notifyObserver("onColumnTypeDetermined", definitions);
+            if (!option.isReadData()) {
+                return;
+            }
             long rowNo = 0;
             while (reader.hasNext()) {
                 try {
