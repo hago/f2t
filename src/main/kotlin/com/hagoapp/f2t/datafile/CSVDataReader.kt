@@ -13,7 +13,6 @@ import org.apache.commons.csv.CSVParser
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.sql.JDBCType
 
 class CSVDataReader : Reader {
 
@@ -21,10 +20,8 @@ class CSVDataReader : Reader {
     private var loaded = false
     private lateinit var format: CSVFormat
     private var currentRow = 0
-    private var guessedTypes: Map<Int, Pair<String, List<JDBCType>>>? = null
-    private val data = mutableListOf<DataRow>()
-    private lateinit var columns: List<ColumnDefinition>
-    private lateinit var parser: CSVParser
+    private val data = mutableListOf<List<String>>()
+    private lateinit var columns: Map<Int, ColumnDefinition>
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -66,27 +63,24 @@ class CSVDataReader : Reader {
         }
     }
 
-    override fun findColumns(): List<ColumnDefinition> {
-        if (this::columns.isInitialized) {
-            columns = parser.headerMap.entries.map {
-                ColumnDefinition(it.value, it.key)
-            }
+    private fun checkLoad() {
+        if (!loaded) {
+            throw F2TException("file not opened")
         }
-        return columns
+    }
+
+    override fun findColumns(): List<ColumnDefinition> {
+        checkLoad()
+        return columns.values.sortedBy { it.index }
     }
 
     override fun inferColumnTypes(sampleRowCount: Long): List<ColumnDefinition> {
-
+        checkLoad()
+        return columns.values.toList().sortedBy { it.index }
     }
 
     override fun close() {
-        try {
-            if (this::parser.isInitialized) {
-                parser.close()
-            }
-        } catch (e: Throwable) {
-            //
-        }
+        data.clear()
     }
 
     override fun hasNext(): Boolean {
@@ -97,9 +91,12 @@ class CSVDataReader : Reader {
         if (!hasNext()) {
             throw F2TException("No more line")
         }
-        val line = data[currentRow]
-        currentRow++
-        return line
+        return DataRow(
+            currentRow.toLong(),
+            data[currentRow].mapIndexed { i, cell ->
+                DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).inferredType!!), i)
+            }
+        )
     }
 
     override fun remove() {
@@ -118,28 +115,28 @@ class CSVDataReader : Reader {
     }
 
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
-        parser = CSVParser.parse(ist, charset, format)
         CSVParser.parse(ist, charset, format).use { parser ->
-            val colCount = parser.headerMap.size
-            val typeMap: MutableMap<Int, Pair<String, List<JDBCType>>> = mutableMapOf()
-            parser.headerMap.forEach { (name, i) ->
-                typeMap[i] = Pair(name, listOf())
-            }
-            columns =
-                parser.forEachIndexed { i, csvRecord ->
-                    if (csvRecord.size() != colCount) {
-                        throw Exception("format error found in ${fileInfo.filename}")
-                    }
-                    csvRecord.forEachIndexed { j, cell ->
-                        val possibleTypes = JDBCTypeUtils.guessTypes(cell.trim())
-                        val existTypes = typeMap[j]!!.second
-                        typeMap[j] =
-                            Pair(typeMap[j]!!.first, JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes))
-                    }
-                    data.add(csvRecord.map { cell -> cell.trim() })
+            columns = parser.headerMap.entries.map {
+                Pair(it.value, ColumnDefinition(it.value, it.key))
+            }.toMap()
+            parser.forEachIndexed { i, record ->
+                if (record.size() != columns.size) {
+                    throw F2TException("format error found in line $i of ${fileInfo.filename}")
                 }
-            guessedTypes = typeMap
-            //logger.debug("Data type detected as: $typeMap")
+                val row = mutableListOf<String>()
+                record.forEachIndexed { j, item ->
+                    val cell = item.trim()
+                    row.add(cell)
+                    val possibleTypes = JDBCTypeUtils.guessTypes(cell)
+                    val existTypes = columns.getValue(j).possibleTypes
+                    columns.getValue(j).possibleTypes =
+                        JDBCTypeUtils.combinePossibleTypes(existTypes.toList(), possibleTypes).toMutableSet()
+                }
+                data.add(row)
+            }
+            columns.values.forEach { column ->
+                column.inferredType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+            }
         }
     }
 }
