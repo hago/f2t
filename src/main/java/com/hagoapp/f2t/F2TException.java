@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t;
 
+/**
+ * The custom exception for f2t. It's meant to used for errors thrown by f2t itself.
+ *
+ * @author Chaojun Sun
+ * @since 1.0
+ */
 public class F2TException extends Exception {
     public F2TException(String message) {
         super(message);
