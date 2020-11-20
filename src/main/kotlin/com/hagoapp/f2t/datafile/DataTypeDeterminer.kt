@@ -4,10 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.datafile;
+package com.hagoapp.f2t.datafile
 
-public class FileInfoExcel extends FileInfo {
-    public FileInfoExcel(String name) {
-        super(name);
-    }
+import java.sql.JDBCType
+
+interface DataTypeDeterminer {
+    fun determineTypes(types: Set<JDBCType>): JDBCType
 }
