@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t.datafile
 
-data class DataCell<T>(
-    var data: T? = null,
+data class DataCell(
+    var data: Any? = null,
     var index: Int = 0
 )

@@ -8,5 +8,5 @@ package com.hagoapp.f2t.datafile
 
 data class DataRow (
     var rowNo: Long = 0,
-    val cells: MutableList<DataCell<*>> = mutableListOf()
+    val cells: List<DataCell>
 )
