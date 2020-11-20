@@ -6,12 +6,7 @@
 
 package com.hagoapp.f2t.datafile
 
-class DataCell<T> {
-    var data: T? = null
-        private set
-    var index = 0
-
-    fun setData(data: T?) {
-        this.data = data
-    }
-}
+data class DataCell<T>(
+    var data: T? = null,
+    var index: Int = 0
+)
