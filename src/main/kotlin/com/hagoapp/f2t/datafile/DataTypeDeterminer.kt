@@ -4,11 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.datafile;
+package com.hagoapp.f2t.datafile
 
-import java.sql.JDBCType;
-import java.util.Set;
+import java.sql.JDBCType
 
-public interface DataTypeDeterminer {
-    JDBCType determineTypes(Set<JDBCType> types);
+interface DataTypeDeterminer {
+    fun determineTypes(types: Set<JDBCType>): JDBCType
 }
