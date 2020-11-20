@@ -11,5 +11,5 @@ import java.sql.JDBCType
 data class ColumnDefinition(
     var index: Int,
     var name: String,
-    var possibleTypes: Set<JDBCType> = HashSet()
+    var possibleTypes: MutableSet<JDBCType> = mutableSetOf()
 )
