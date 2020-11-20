@@ -8,7 +8,7 @@ package com.hagoapp.f2t.datafile
 import java.io.Closeable
 
 interface Reader : Closeable, MutableIterator<DataRow> {
-    fun open(fileInfo: FileInfo?)
+    fun open(fileInfo: FileInfo)
     fun findColumns(): List<ColumnDefinition>
     fun inferColumnTypes(sampleRowCount: Long = -1): List<ColumnDefinition>
 }
