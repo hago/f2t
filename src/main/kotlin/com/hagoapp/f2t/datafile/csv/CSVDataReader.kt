@@ -8,6 +8,7 @@ package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.*
+import com.hagoapp.f2t.util.EncodingUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
@@ -44,7 +45,7 @@ class CSVDataReader : Reader {
     override fun open(fileInfo: FileInfo) {
         this.fileInfo = fileInfo as FileInfoCsv
         prepare(this.fileInfo)
-        val charset = Charset.forName(this.fileInfo.encoding)
+        val charset = charsetForFile(fileInfo)
         for (i in formats.indices) {
             FileInputStream(fileInfo.filename).use { fi ->
                 try {
@@ -62,6 +63,10 @@ class CSVDataReader : Reader {
         if (!this.loaded) {
             throw F2TException("File parsing for ${fileInfo.filename} failed")
         }
+    }
+
+    private fun charsetForFile(fileInfo: FileInfoCsv): Charset {
+        return Charset.forName(fileInfo.encoding ?: EncodingUtils.guessEncoding(fileInfo.filename))
     }
 
     private fun checkLoad() {

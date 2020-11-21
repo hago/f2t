@@ -9,10 +9,9 @@ package com.hagoapp.f2t.datafile.csv
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
 
 class FileInfoCsv(filename: String) : FileInfo(filename) {
-    var encoding: String = StandardCharsets.UTF_8.displayName()
+    var encoding: String? = null
         set(value) {
             try {
                 Charset.forName(value)
