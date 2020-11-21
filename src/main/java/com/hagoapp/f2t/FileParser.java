@@ -40,7 +40,7 @@ public class FileParser {
     }
 
     public FileParser(FileInfo fileInfo) throws IOException {
-        if ((fileInfo == null) || (fileInfo.getFilename() == null)) {
+        if (fileInfo == null) {
             throw new IOException("null file");
         }
         this.fileInfo = fileInfo;

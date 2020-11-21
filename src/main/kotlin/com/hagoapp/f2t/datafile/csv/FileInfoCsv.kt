@@ -4,9 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.datafile
+package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
