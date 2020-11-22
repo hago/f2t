@@ -55,7 +55,7 @@ class CSVDataReader : Reader {
                     this.loaded = true
                     currentRow = 0
                 } catch (ex: Exception) {
-                    //
+                    ex.printStackTrace()
                 }
             }
             if (this.loaded) break
