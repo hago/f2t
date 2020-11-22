@@ -97,12 +97,14 @@ class CSVDataReader : Reader {
         if (!hasNext()) {
             throw F2TException("No more line")
         }
-        return DataRow(
+        val row = DataRow(
             currentRow.toLong(),
             data[currentRow].mapIndexed { i, cell ->
                 DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).inferredType!!), i)
             }
         )
+        currentRow++
+        return row
     }
 
     override fun remove() {
