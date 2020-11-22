@@ -3,19 +3,19 @@ package com.hagoapp.f2t.csv;
 import com.hagoapp.f2t.datafile.csv.FileInfoCsv;
 
 import java.sql.JDBCType;
-import java.util.List;
+import java.util.Map;
 
 public class CsvTestConfig {
     public class Expect {
         private int rowCount;
         private int columnCount;
-        private List<JDBCType> types;
+        private Map<String, JDBCType> types;
 
-        public List<JDBCType> getTypes() {
+        public Map<String, JDBCType> getTypes() {
             return types;
         }
 
-        public void setTypes(List<JDBCType> types) {
+        public void setTypes(Map<String, JDBCType> types) {
             this.types = types;
         }
 
@@ -33,6 +33,15 @@ public class CsvTestConfig {
 
         public void setColumnCount(int columnCount) {
             this.columnCount = columnCount;
+        }
+
+        @Override
+        public String toString() {
+            return "Expect{" +
+                    "rowCount=" + rowCount +
+                    ", columnCount=" + columnCount +
+                    ", types=" + types +
+                    '}';
         }
     }
 
@@ -53,5 +62,13 @@ public class CsvTestConfig {
 
     public void setExpect(Expect expect) {
         this.expect = expect;
+    }
+
+    @Override
+    public String toString() {
+        return "CsvTestConfig{" +
+                "fileInfo=" + fileInfo +
+                ", expect=" + expect +
+                '}';
     }
 }

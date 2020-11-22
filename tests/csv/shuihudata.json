@@ -8,15 +8,15 @@
   "expect": {
     "rowCount": 108,
     "columnCount": 8,
-    "types": [
-      "BIGINT",
-      "CLOB",
-      "CLOB",
-      "CLOB",
-      "BOOLEAN",
-      "DOUBLE",
-      "BIGINT",
-      "TIMESTAMP"
-    ]
+    "types": {
+      "座次": "BIGINT",
+      "星宿": "CLOB",
+      "诨名": "CLOB",
+      "姓名": "CLOB",
+      "布尔": "BOOLEAN",
+      "浮点": "DOUBLE",
+      "整数": "BIGINT",
+      "日期": "TIMESTAMP"
+    }
   }
 }
