@@ -136,6 +136,7 @@ class CSVDataReader : Reader {
                     val cell = item.trim()
                     row.add(cell)
                     val possibleTypes = JDBCTypeUtils.guessTypes(cell)
+                    if (j==7) System.out.println(possibleTypes)
                     val existTypes = columns.getValue(j).possibleTypes
                     columns.getValue(j).possibleTypes =
                         JDBCTypeUtils.combinePossibleTypes(existTypes.toList(), possibleTypes).toMutableSet()
