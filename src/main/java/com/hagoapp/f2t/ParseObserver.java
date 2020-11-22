@@ -39,4 +39,7 @@ public interface ParseObserver {
     default boolean onRowError(@NotNull Throwable e) {
         return true;
     }
+
+    default void onRowCountDetermined(long rowCount) {
+    }
 }

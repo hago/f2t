@@ -86,6 +86,7 @@ public class FileParser {
                     notifyObserver("onRowError", e);
                 }
             }
+            notifyObserver("onRowCountDetermined", rowNo);
             notifyObserver("onParseComplete", result);
         } catch (IOException e) {
             //
