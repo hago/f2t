@@ -41,11 +41,23 @@ class JDBCTypeUtils {
         }
 
         private val dateTimeFormatters: List<DateTimeFormatter> = listOf(
-            DateTimeFormatter.BASIC_ISO_DATE, DateTimeFormatter.ISO_DATE, DateTimeFormatter.ISO_DATE_TIME,
-            DateTimeFormatter.ISO_INSTANT, DateTimeFormatter.ISO_LOCAL_DATE, DateTimeFormatter.ISO_LOCAL_DATE_TIME,
-            DateTimeFormatter.ISO_LOCAL_TIME, DateTimeFormatter.ISO_OFFSET_DATE, DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            DateTimeFormatter.ISO_ORDINAL_DATE, DateTimeFormatter.ISO_TIME, DateTimeFormatter.ISO_OFFSET_TIME,
-            DateTimeFormatter.ISO_WEEK_DATE, DateTimeFormatter.ISO_ZONED_DATE_TIME, DateTimeFormatter.RFC_1123_DATE_TIME
+            DateTimeFormatter.BASIC_ISO_DATE,
+            DateTimeFormatter.ISO_DATE,
+            DateTimeFormatter.ISO_DATE_TIME,
+            DateTimeFormatter.ISO_INSTANT,
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+            DateTimeFormatter.ISO_LOCAL_TIME,
+            DateTimeFormatter.ISO_OFFSET_DATE,
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+            DateTimeFormatter.ISO_ORDINAL_DATE,
+            DateTimeFormatter.ISO_TIME,
+            DateTimeFormatter.ISO_OFFSET_TIME,
+            DateTimeFormatter.ISO_WEEK_DATE,
+            DateTimeFormatter.ISO_ZONED_DATE_TIME,
+            DateTimeFormatter.RFC_1123_DATE_TIME,
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a").withZone(ZoneId.systemDefault())
         )
 
         fun stringToDateTime(input: String): ZonedDateTime {
