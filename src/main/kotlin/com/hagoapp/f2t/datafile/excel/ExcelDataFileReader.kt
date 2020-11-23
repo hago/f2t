@@ -42,13 +42,12 @@ class ExcelDataFileReader : Reader {
                 if (row.lastCellNum > columns.size) {
                     throw F2TException("format error in ${infoExcel.filename}, line $i contains more cells than field row")
                 }
-                for (colIndex in 0 until row.lastCellNum) {
+                for (colIndex in columns.keys.indices) {
                     val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
                     val possibleTypes = guessCellType(cell)
                     val existingTypes = columns.getValue(colIndex).possibleTypes
                     columns.getValue(colIndex).possibleTypes = JDBCTypeUtils
                         .combinePossibleTypes(existingTypes.toList(), possibleTypes).toMutableSet()
-
                 }
             }
             columns.values.forEach { it.inferredType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList()) }
@@ -74,9 +73,13 @@ class ExcelDataFileReader : Reader {
         }
         currentRow++
         val rawRow = sheet.getRow(currentRow + sheet.firstRowNum)
+        val cells = mutableListOf<Cell>()
+        for (colIndex in columns.keys.indices) {
+            cells.add(rawRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK))
+        }
         return DataRow(
             currentRow.toLong() - 1,
-            rawRow.mapIndexed { i, cell ->
+            cells.mapIndexed { i, cell ->
                 DataCell(getCellValue(cell, columns.getValue(i).inferredType!!), i)
             }
         )
@@ -89,10 +92,10 @@ class ExcelDataFileReader : Reader {
         infoExcel = fileInfo
         workbook = WorkbookFactory.create(FileInputStream(fileInfo.filename))
         sheet = when {
-            fileInfo.sheetIndex != null && workbook.getSheetAt(fileInfo.sheetIndex!!) != null ->
-                workbook.getSheetAt(fileInfo.sheetIndex!!)
-            fileInfo.sheetName != null && workbook.getSheet(fileInfo.sheetName) != null ->
-                workbook.getSheet(fileInfo.sheetName)
+            infoExcel.sheetIndex != null && workbook.getSheetAt(infoExcel.sheetIndex!!) != null ->
+                workbook.getSheetAt(infoExcel.sheetIndex!!)
+            infoExcel.sheetName != null && workbook.getSheet(infoExcel.sheetName) != null ->
+                workbook.getSheet(infoExcel.sheetName)
             else -> workbook.getSheetAt(0)
         }
     }
@@ -107,7 +110,7 @@ class ExcelDataFileReader : Reader {
                     JDBCType.DOUBLE
                 )
             }
-            cell.cellType == CellType.BLANK -> listOf(JDBCType.CLOB)
+            cell.cellType == CellType.BLANK -> listOf()
             else -> JDBCTypeUtils.guessTypes(cell.stringCellValue)
         }
     }
