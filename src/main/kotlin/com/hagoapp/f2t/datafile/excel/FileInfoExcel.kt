@@ -7,4 +7,10 @@ package com.hagoapp.f2t.datafile.excel
 
 import com.hagoapp.f2t.datafile.FileInfo
 
-class FileInfoExcel(name: String) : FileInfo(name)
+/**
+ * Information of excel to read. {@code}sheetIndex priorities {@code sheetName}. Sheet 0 will be used if both are null.
+ */
+class FileInfoExcel(name: String) : FileInfo(name) {
+    var sheetIndex: Int? = null
+    var sheetName: String? = null
+}
