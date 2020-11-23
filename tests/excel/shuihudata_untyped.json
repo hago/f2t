@@ -1,0 +1,20 @@
+{
+  "fileInfo": {
+    "filename": "tests/excel/shuihudata_untyped.xlsx",
+    "sheetIndex": 0
+  },
+  "expect": {
+    "rowCount": 108,
+    "columnCount": 8,
+    "types": {
+      "座次": "BIGINT",
+      "星宿": "CLOB",
+      "诨名": "CLOB",
+      "姓名": "CLOB",
+      "布尔": "BOOLEAN",
+      "浮点": "DOUBLE",
+      "整数": "BIGINT",
+      "日期": "TIMESTAMP"
+    }
+  }
+}
