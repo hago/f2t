@@ -9,6 +9,7 @@ package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
 import com.hagoapp.f2t.FileParser;
+import com.hagoapp.f2t.TestObserver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
 
 public class CsvReadTest {
 
