@@ -7,6 +7,7 @@ package com.hagoapp.f2t.datafile
 
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.csv.CSVDataReader
+import com.hagoapp.f2t.datafile.excel.ExcelDataFileReader
 
 object ReaderFactory {
     @JvmStatic
@@ -14,7 +15,7 @@ object ReaderFactory {
         return when (val type = fileInfo.type) {
             FileType.CSV -> CSVDataReader()
             FileType.Excel -> TODO()
-            FileType.ExcelOpenXML -> TODO()
+            FileType.ExcelOpenXML -> ExcelDataFileReader()
             else -> throw F2TException("file type ${type.name} is not supported")
         }
     }
