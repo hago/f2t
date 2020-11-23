@@ -13,9 +13,9 @@
 
 package com.hagoapp.f2t;
 
-import com.hagoapp.f2t.ParseObserver;
 import com.hagoapp.f2t.datafile.ColumnDefinition;
 import com.hagoapp.f2t.datafile.DataRow;
+import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +46,8 @@ public class FileTestObserver implements ParseObserver {
     }
 
     @Override
-    public void onParseStart() {
-        System.out.println("start");
+    public void onParseStart(@NotNull FileInfo fileInfo) {
+        System.out.printf("start %s%n%s", fileInfo.getFilename(), System.getProperty("line.separator"));
     }
 
     @Override
@@ -77,8 +77,9 @@ public class FileTestObserver implements ParseObserver {
     }
 
     @Override
-    public void onParseComplete(@NotNull ParseResult result) {
-        System.out.println("complete");
+    public void onParseComplete(@NotNull FileInfo fileInfo, @NotNull ParseResult result) {
+        System.out.printf("complete %s %s%s", fileInfo.getFilename(),
+                result.isSucceeded() ? "successfully" : "unsuccessfully", System.getProperty("line.separator"));
     }
 
     @Override

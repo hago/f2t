@@ -62,7 +62,7 @@ public class FileParser {
 
     public void run(FileParserOption option) {
         try (Reader reader = ReaderFactory.getReader(fileInfo)) {
-            notifyObserver("onParseStart");
+            notifyObserver("onParseStart", fileInfo);
             ParseResult result = new ParseResult();
             reader.open(fileInfo);
             List<ColumnDefinition> definitions = reader.findColumns();
@@ -87,7 +87,7 @@ public class FileParser {
                 }
             }
             notifyObserver("onRowCountDetermined", rowNo);
-            notifyObserver("onParseComplete", result);
+            notifyObserver("onParseComplete", fileInfo, result);
         } catch (IOException e) {
             //
         }
