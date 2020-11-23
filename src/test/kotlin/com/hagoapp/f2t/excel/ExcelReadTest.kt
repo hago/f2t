@@ -21,24 +21,27 @@ class ExcelReadTest {
     private val observer = FileTestObserver()
 
     companion object {
-        private const val testConfigFile = "./tests/excel/shuihudata_untyped.json"
-        private lateinit var testConfig: ExcelTestConfig
+        private val testConfigFiles = listOf(
+            "./tests/excel/shuihudata_untyped.json",
+            "./tests/excel/shuihudata_untyped_xls.json"
+        )
+        private lateinit var testConfigs: List<ExcelTestConfig>
 
         @BeforeAll
         @JvmStatic
         @Throws(IOException::class)
         fun loadConfig() {
-            FileInputStream(testConfigFile).use { fis ->
-                val json = String(fis.readAllBytes(), StandardCharsets.UTF_8)
-                testConfig = Gson().fromJson(json, ExcelTestConfig::class.java)
-                println(testConfig)
-                val realCsv = File(
-                    System.getProperty("user.dir"),
-                    testConfig.fileInfo.filename
-                ).absolutePath
-                println(realCsv)
-                testConfig.fileInfo.filename = realCsv
-                println(testConfig)
+            testConfigs = testConfigFiles.map { testConfigFile ->
+                FileInputStream(testConfigFile).use { fis ->
+                    val json = String(fis.readAllBytes(), StandardCharsets.UTF_8)
+                    val testConfig = Gson().fromJson(json, ExcelTestConfig::class.java)
+                    val realExcel = File(
+                        System.getProperty("user.dir"),
+                        testConfig.fileInfo.filename
+                    ).absolutePath
+                    testConfig.fileInfo.filename = realExcel
+                    testConfig
+                }
             }
         }
     }
@@ -47,21 +50,23 @@ class ExcelReadTest {
     fun readExcelUnTyped() {
         observer.isRowDetail = true
         Assertions.assertDoesNotThrow {
-            val parser = FileParser(testConfig.fileInfo)
-            parser.addWatcher(observer)
-            parser.run()
-            Assertions.assertEquals(
-                observer.rowCount,
-                testConfig.expect.rowCount
-            )
-            Assertions.assertEquals(
-                observer.columns.size,
-                testConfig.expect.columnCount
-            )
-            Assertions.assertEquals(
-                observer.columns,
-                testConfig.expect.types
-            )
+            testConfigs.forEach { testConfig ->
+                val parser = FileParser(testConfig.fileInfo)
+                parser.addWatcher(observer)
+                parser.run()
+                Assertions.assertEquals(
+                    observer.rowCount,
+                    testConfig.expect.rowCount
+                )
+                Assertions.assertEquals(
+                    observer.columns.size,
+                    testConfig.expect.columnCount
+                )
+                Assertions.assertEquals(
+                    observer.columns,
+                    testConfig.expect.types
+                )
+            }
         }
     }
 }

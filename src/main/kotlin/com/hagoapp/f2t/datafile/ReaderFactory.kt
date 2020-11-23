@@ -14,7 +14,7 @@ object ReaderFactory {
     fun getReader(fileInfo: FileInfo): Reader {
         return when (val type = fileInfo.type) {
             FileType.CSV -> CSVDataReader()
-            FileType.Excel -> TODO()
+            FileType.Excel,
             FileType.ExcelOpenXML -> ExcelDataFileReader()
             else -> throw F2TException("file type ${type.name} is not supported")
         }
