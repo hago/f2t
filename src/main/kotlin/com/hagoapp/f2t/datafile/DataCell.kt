@@ -9,4 +9,8 @@ package com.hagoapp.f2t.datafile
 data class DataCell(
     var data: Any? = null,
     var index: Int = 0
-)
+) {
+    override fun toString(): String {
+        return "DataCell(data=$data, index=$index, dataType=${data?.javaClass?.canonicalName ?: "null"})"
+    }
+}
