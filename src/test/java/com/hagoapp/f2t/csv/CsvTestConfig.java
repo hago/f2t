@@ -1,12 +1,12 @@
 package com.hagoapp.f2t.csv;
 
-import com.hagoapp.f2t.Expect;
+import com.hagoapp.f2t.FileTestExpect;
 import com.hagoapp.f2t.datafile.csv.FileInfoCsv;
 
 public class CsvTestConfig {
 
     private FileInfoCsv fileInfo;
-    private Expect expect;
+    private FileTestExpect expect;
 
     public FileInfoCsv getFileInfo() {
         return fileInfo;
@@ -16,11 +16,11 @@ public class CsvTestConfig {
         this.fileInfo = fileInfo;
     }
 
-    public Expect getExpect() {
+    public FileTestExpect getExpect() {
         return expect;
     }
 
-    public void setExpect(Expect expect) {
+    public void setExpect(FileTestExpect expect) {
         this.expect = expect;
     }
 

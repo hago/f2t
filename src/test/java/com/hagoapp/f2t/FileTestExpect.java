@@ -9,7 +9,7 @@ package com.hagoapp.f2t;
 import java.sql.JDBCType;
 import java.util.Map;
 
-public class Expect {
+public class FileTestExpect {
     private int rowCount;
     private int columnCount;
     private Map<String, JDBCType> types;

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TestObserver implements ParseObserver {
+public class FileTestObserver implements ParseObserver {
     private int rowCount;
     private Map<String, JDBCType> columns;
     private boolean rowDetail = false;

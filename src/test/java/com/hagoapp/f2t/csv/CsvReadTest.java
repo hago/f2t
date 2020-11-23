@@ -9,7 +9,7 @@ package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
 import com.hagoapp.f2t.FileParser;
-import com.hagoapp.f2t.TestObserver;
+import com.hagoapp.f2t.FileTestObserver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,5 +50,5 @@ public class CsvReadTest {
         });
     }
 
-    TestObserver observer = new TestObserver();
+    FileTestObserver observer = new FileTestObserver();
 }
