@@ -39,6 +39,7 @@ public class CsvReadTest {
 
     @Test
     public void readCsv() {
+        observer.setRowDetail(true);
         Assertions.assertDoesNotThrow(() -> {
             FileParser parser = new FileParser(testConfig.getFileInfo());
             parser.addWatcher(observer);

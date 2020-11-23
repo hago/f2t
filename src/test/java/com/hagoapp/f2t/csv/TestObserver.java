@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class TestObserver implements ParseObserver {
     private int rowCount;
     private Map<String, JDBCType> columns;
+    private boolean rowDetail = false;
 
     public int getRowCount() {
         return rowCount;
@@ -28,6 +29,14 @@ public class TestObserver implements ParseObserver {
 
     public Map<String, JDBCType> getColumns() {
         return columns;
+    }
+
+    public boolean isRowDetail() {
+        return rowDetail;
+    }
+
+    public void setRowDetail(boolean rowDetail) {
+        this.rowDetail = rowDetail;
     }
 
     @Override
@@ -56,6 +65,9 @@ public class TestObserver implements ParseObserver {
     @Override
     public void onRowRead(@NotNull DataRow row) {
         System.out.printf("row %d get%n", row.getRowNo());
+        if (rowDetail) {
+            System.out.println(row);
+        }
     }
 
     @Override
@@ -65,7 +77,7 @@ public class TestObserver implements ParseObserver {
 
     @Override
     public boolean onRowError(@NotNull Throwable e) {
-        System.out.println("error occurs");
+        System.err.println("error occurs");
         e.printStackTrace();
         throw new RuntimeException(e);
     }
