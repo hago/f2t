@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.database.config.DbConfig
+import com.hagoapp.f2t.datafile.ColumnDefinition
 import java.sql.JDBCType
 
 /**
@@ -112,7 +113,7 @@ interface DbConnection {
     /**
      * Create a new table on given name and column definitions.
      */
-    fun createTable(table: TableName, columnDefinition: Map<String, JDBCType>)
+    fun createTable(table: TableName, columnDefinition: List<ColumnDefinition>)
 
     /**
      * Find local database type on given JDBC type.
@@ -122,7 +123,7 @@ interface DbConnection {
     /**
      * Fetch column definitions of given table.
      */
-    fun getExistingTableDefinition(table: TableName): Map<String, JDBCType>
+    fun getExistingTableDefinition(table: TableName): List<ColumnDefinition>
 
     /**
      * Find JDBC type on database local type.

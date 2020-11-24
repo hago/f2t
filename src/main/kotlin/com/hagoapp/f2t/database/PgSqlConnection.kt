@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
+import com.hagoapp.f2t.datafile.ColumnDefinition
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager
@@ -152,11 +153,11 @@ class PgSqlConnection : DbConnection, Closeable {
         return name.replace("\"", "\"\"")
     }
 
-    override fun createTable(table: TableName, columnDefinition: Map<String, JDBCType>) {
+    override fun createTable(table: TableName, columnDefinition: List<ColumnDefinition>) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
-        val defStr = columnDefinition.map { (col, type) ->
-            "${wrapper.first}${escapeNameString(col)}${wrapper.second} ${convertJDBCTypeToDBNativeType(type)}"
+        val defStr = columnDefinition.map { colDef ->
+            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
         }.joinToString(", ")
         val sql = "create table $tableFullName ($defStr)"
         connection.prepareStatement(sql).use { it.execute() }
@@ -173,7 +174,7 @@ class PgSqlConnection : DbConnection, Closeable {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): Map<String, JDBCType> {
+    override fun getExistingTableDefinition(table: TableName): List<ColumnDefinition> {
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename
             from pg_attribute as a
@@ -184,10 +185,13 @@ class PgSqlConnection : DbConnection, Closeable {
             val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
+            var i = 0
             stmt.executeQuery().use { rs ->
-                val tblColDef = mutableMapOf<String, JDBCType>()
+                val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    tblColDef[rs.getString("attname")] = mapDBTypeToJDBCType(rs.getString("typename"))
+                    tblColDef.add(ColumnDefinition(i, rs.getString("attname"),
+                        mutableSetOf(mapDBTypeToJDBCType(rs.getString("typename")))))
+                    i++
                 }
                 if (tblColDef.isEmpty()) {
                     throw F2TException(
