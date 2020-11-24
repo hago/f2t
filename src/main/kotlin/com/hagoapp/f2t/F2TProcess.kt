@@ -17,7 +17,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private var config: F2TConfig = f2TConfig
     private val observers = mutableListOf<ProcessObserver>()
     private val logger = F2TLogger.getLogger()
-    private val tableMatchedFile = false
+    private var tableMatchedFile = false
 
     init {
         if (config.isAddIdentity && (config.identityColumnName == null)) {
@@ -56,11 +56,16 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         }
         val table = TableName(config.targetTable, config.targetSchema)
         if (connection.isTableExists(table)) {
-            val dbColDef = connection.getExistingTableDefinition(table)
-
+            val tblDef = connection.getExistingTableDefinition(table)
+            if (!tblDef.diff(colDef.toSet(), connection.isCaseSensitive()).noDifference) {
+                logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
+            } else {
+                tableMatchedFile = true
+            }
         } else {
             if (config.isCreateTableIfNeeded) {
                 connection.createTable(table, TableDefinition((colDef.toSet())))
+                tableMatchedFile = true
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
             }
