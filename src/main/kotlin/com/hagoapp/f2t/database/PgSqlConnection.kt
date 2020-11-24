@@ -10,6 +10,7 @@ import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
 import com.hagoapp.f2t.datafile.ColumnDefinition
+import com.hagoapp.f2t.datafile.TableDefinition
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager
@@ -153,10 +154,10 @@ class PgSqlConnection : DbConnection, Closeable {
         return name.replace("\"", "\"\"")
     }
 
-    override fun createTable(table: TableName, columnDefinition: List<ColumnDefinition>) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
-        val defStr = columnDefinition.map { colDef ->
+        val defStr = tableDefinition.columns.map { colDef ->
             "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
         }.joinToString(", ")
         val sql = "create table $tableFullName ($defStr)"
@@ -174,7 +175,7 @@ class PgSqlConnection : DbConnection, Closeable {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): List<ColumnDefinition> {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition{
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename
             from pg_attribute as a
@@ -198,7 +199,7 @@ class PgSqlConnection : DbConnection, Closeable {
                         "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
                     )
                 }
-                return tblColDef
+                return TableDefinition(tblColDef.toSet())
             }
         }
     }
