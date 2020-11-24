@@ -11,6 +11,11 @@ import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.datafile.*
 import java.sql.JDBCType
 
+/**
+ * This class implements a process that extract data from data file, create according table(if necessary, based on
+ * the config) and write data into it. It may add one additional column of timestamp in long integer to identify
+ * different running(based on config), or truncate existing data from table(based on config).
+ */
 class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TConfig: F2TConfig) : ParseObserver {
     private var parser: FileParser = dataFileRParser
     private var connection: DbConnection = dbConnection

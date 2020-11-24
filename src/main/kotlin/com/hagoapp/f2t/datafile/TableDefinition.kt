@@ -9,6 +9,9 @@ package com.hagoapp.f2t.datafile
 import com.hagoapp.f2t.F2TException
 import java.sql.JDBCType
 
+/**
+ * This class represents column definitions of a table.
+ */
 class TableDefinition(var columns: Set<ColumnDefinition>) {
 
     init {
