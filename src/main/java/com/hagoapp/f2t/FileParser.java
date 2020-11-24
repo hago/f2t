@@ -83,7 +83,9 @@ public class FileParser {
                     rowNo++;
                 } catch (Throwable e) {
                     result.addError(rowNo, e);
-                    notifyObserver("onRowError", e);
+                    if (observers.stream().noneMatch( observer -> observer.onRowError(e))) {
+                        break;
+                    }
                 }
             }
             notifyObserver("onRowCountDetermined", rowNo);
