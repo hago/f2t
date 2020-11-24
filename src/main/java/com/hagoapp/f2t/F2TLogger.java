@@ -11,6 +11,6 @@ import org.slf4j.LoggerFactory;
 
 public class F2TLogger {
     public static Logger getLogger() {
-        return LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        return LoggerFactory.getLogger(F2TLogger.class);
     }
 }
