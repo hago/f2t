@@ -65,6 +65,10 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
             if (!tblDef.diff(colDef.toSet(), connection.isCaseSensitive()).noDifference) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
             } else {
+                if (config.isClearTable) {
+                    connection.clearTable(table)
+                    logger.warn("table ${connection.getFullTableName(table)} cleared")
+                }
                 tableMatchedFile = true
             }
         } else {
