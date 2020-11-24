@@ -8,11 +8,13 @@
 package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
+import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.FileTestObserver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +25,7 @@ public class CsvReadTest {
 
     private static final String testConfigFile = "./tests/csv/shuihudata.json";
     private static CsvTestConfig testConfig;
+    private static Logger logger = F2TLogger.getLogger();
 
     @BeforeAll
     public static void loadConfig() throws IOException {
@@ -31,9 +34,9 @@ public class CsvReadTest {
             testConfig = new Gson().fromJson(json, CsvTestConfig.class);
             String realCsv = new File(System.getProperty("user.dir"),
                     testConfig.getFileInfo().getFilename()).getAbsolutePath();
-            System.out.println(realCsv);
+            logger.debug(realCsv);
             testConfig.getFileInfo().setFilename(realCsv);
-            System.out.println(testConfig);
+            logger.debug(testConfig.toString());
         }
     }
 
