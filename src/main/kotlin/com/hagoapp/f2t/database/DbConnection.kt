@@ -154,11 +154,11 @@ interface DbConnection {
      * It should convert a value with specific unsupported type to new value in supported
      * type, to allow database inserting functions to create a compatible JDBC statement.
      */
-    fun getTypedDataConverters(): Map<JDBCType, (Any) -> Pair<JDBCType, Any?>> {
+    fun getTypedDataConverters(): Map<JDBCType, Pair<JDBCType, (Any?) -> Any?>> {
         return mapOf()
     }
 
     fun writeRow(table: TableName, row: DataRow)
 
-    fun createInsertSql(table: TableName, tableDefinition: TableDefinition)
+    fun prepareInsertion(table: TableName, tableDefinition: TableDefinition)
 }

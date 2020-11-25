@@ -70,14 +70,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
                 }
-                connection.createInsertSql(table, tblDef)
+                connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
             }
         } else {
             if (config.isCreateTableIfNeeded) {
                 val tblDef = TableDefinition((colDef.toSet()))
                 connection.createTable(table, tblDef)
-                connection.createInsertSql(table, tblDef)
+                connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
