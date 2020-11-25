@@ -7,7 +7,7 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.datafile.TableDefinition
+import com.hagoapp.f2t.TableDefinition
 import java.sql.JDBCType
 
 /**

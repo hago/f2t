@@ -6,6 +6,9 @@
 
 package com.hagoapp.f2t.datafile.excel
 
+import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.DataCell
+import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.*
 import com.hagoapp.f2t.util.JDBCTypeUtils

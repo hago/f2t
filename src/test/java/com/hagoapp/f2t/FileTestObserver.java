@@ -13,8 +13,6 @@
 
 package com.hagoapp.f2t;
 
-import com.hagoapp.f2t.datafile.ColumnDefinition;
-import com.hagoapp.f2t.datafile.DataRow;
 import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
 import org.jetbrains.annotations.NotNull;

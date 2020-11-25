@@ -9,8 +9,8 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
-import com.hagoapp.f2t.datafile.ColumnDefinition
-import com.hagoapp.f2t.datafile.TableDefinition
+import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.TableDefinition
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager
@@ -175,7 +175,7 @@ class PgSqlConnection : DbConnection, Closeable {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition{
+    override fun getExistingTableDefinition(table: TableName): TableDefinition {
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename
             from pg_attribute as a
@@ -190,8 +190,10 @@ class PgSqlConnection : DbConnection, Closeable {
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    tblColDef.add(ColumnDefinition(i, rs.getString("attname"),
-                        mutableSetOf(mapDBTypeToJDBCType(rs.getString("typename")))))
+                    tblColDef.add(
+                        ColumnDefinition(i, rs.getString("attname"),
+                        mutableSetOf(mapDBTypeToJDBCType(rs.getString("typename"))))
+                    )
                     i++
                 }
                 if (tblColDef.isEmpty()) {
