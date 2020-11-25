@@ -65,6 +65,10 @@ public class FileParser {
             notifyObserver("onParseStart", fileInfo);
             ParseResult result = new ParseResult();
             reader.open(fileInfo);
+            Integer rowNo = reader.getRowCount();
+            if (rowNo != null) {
+                notifyObserver("", reader.getRowCount());
+            }
             List<ColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);
             if (!option.isInferColumnTypes()) {
@@ -75,20 +79,22 @@ public class FileParser {
             if (!option.isReadData()) {
                 return;
             }
-            long rowNo = 0;
+            int i = 0;
             while (reader.hasNext()) {
                 try {
                     DataRow row = reader.next();
                     notifyObserver("onRowRead", row);
-                    rowNo++;
+                    i++;
                 } catch (Throwable e) {
-                    result.addError(rowNo, e);
-                    if (observers.stream().noneMatch( observer -> observer.onRowError(e))) {
+                    result.addError(i, e);
+                    if (observers.stream().noneMatch(observer -> observer.onRowError(e))) {
                         break;
                     }
                 }
             }
-            notifyObserver("onRowCountDetermined", rowNo);
+            if (rowNo == null) {
+                notifyObserver("onRowCountDetermined", i);
+            }
             notifyObserver("onParseComplete", fileInfo, result);
         } catch (IOException e) {
             //
@@ -106,5 +112,9 @@ public class FileParser {
                 //
             }
         });
+    }
+
+    public void getDataContainer() {
+
     }
 }

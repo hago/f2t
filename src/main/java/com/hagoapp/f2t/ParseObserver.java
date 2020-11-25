@@ -39,6 +39,6 @@ public interface ParseObserver {
         return true;
     }
 
-    default void onRowCountDetermined(long rowCount) {
+    default void onRowCountDetermined(int rowCount) {
     }
 }

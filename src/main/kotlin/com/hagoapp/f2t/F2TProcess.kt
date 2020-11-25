@@ -93,5 +93,5 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         return true
     }
 
-    override fun onRowCountDetermined(rowCount: Long) {}
+    override fun onRowCountDetermined(rowCount: Int) {}
 }

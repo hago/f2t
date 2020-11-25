@@ -103,6 +103,10 @@ class ExcelDataFileReader : Reader {
         }
     }
 
+    override fun getRowCount(): Int? {
+        return if (!this::sheet.isInitialized) null else (sheet.lastRowNum - sheet.firstRowNum)
+    }
+
     private fun guessCellType(cell: Cell): List<JDBCType> {
         return when {
             cell.cellType == CellType.BOOLEAN -> listOf(JDBCType.BOOLEAN)

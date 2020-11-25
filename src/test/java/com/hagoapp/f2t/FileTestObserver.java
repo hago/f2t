@@ -90,7 +90,7 @@ public class FileTestObserver implements ParseObserver {
     }
 
     @Override
-    public void onRowCountDetermined(long rowCount) {
-        this.rowCount = Long.valueOf(rowCount).intValue();
+    public void onRowCountDetermined(int rowCount) {
+        this.rowCount = rowCount;
     }
 }

@@ -11,6 +11,7 @@ import java.io.Closeable
 
 interface Reader : Closeable, MutableIterator<DataRow> {
     fun open(fileInfo: FileInfo)
+    fun getRowCount(): Int?
     fun findColumns(): List<ColumnDefinition>
     fun inferColumnTypes(sampleRowCount: Long = -1): List<ColumnDefinition>
 }

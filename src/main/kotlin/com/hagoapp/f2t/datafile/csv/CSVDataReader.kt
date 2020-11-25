@@ -27,6 +27,7 @@ class CSVDataReader : Reader {
     private var currentRow = 0
     private val data = mutableListOf<List<String>>()
     private lateinit var columns: Map<Int, ColumnDefinition>
+    private var rowCount = -1
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -66,6 +67,10 @@ class CSVDataReader : Reader {
         if (!this.loaded) {
             throw F2TException("File parsing for ${fileInfo.filename} failed")
         }
+    }
+
+    override fun getRowCount(): Int? {
+        return if (rowCount < 0) null else rowCount
     }
 
     private fun charsetForFile(fileInfo: FileInfoCsv): Charset {
@@ -130,6 +135,7 @@ class CSVDataReader : Reader {
             columns = parser.headerMap.entries.map {
                 Pair(it.value, ColumnDefinition(it.value, it.key))
             }.toMap()
+            rowCount = parser.records.size
             parser.forEachIndexed { i, record ->
                 if (record.size() != columns.size) {
                     throw F2TException("format error found in line $i of ${fileInfo.filename}")
