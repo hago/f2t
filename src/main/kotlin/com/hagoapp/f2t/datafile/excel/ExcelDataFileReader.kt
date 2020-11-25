@@ -24,9 +24,6 @@ class ExcelDataFileReader : Reader {
     private lateinit var sheet: Sheet
     private var currentRow = 0
     private lateinit var columns: Map<Int, ColumnDefinition>
-    override fun remove() {
-        throw UnsupportedOperationException("Remove from excel reader is not supported")
-    }
 
     override fun findColumns(): List<ColumnDefinition> {
         if (!this::columns.isInitialized) {

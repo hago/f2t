@@ -9,7 +9,7 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.DataRow
 import java.io.Closeable
 
-interface Reader : Closeable, MutableIterator<DataRow> {
+interface Reader : Closeable, Iterator<DataRow> {
     fun open(fileInfo: FileInfo)
     fun getRowCount(): Int?
     fun findColumns(): List<ColumnDefinition>

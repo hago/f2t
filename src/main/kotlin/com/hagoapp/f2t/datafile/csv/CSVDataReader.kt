@@ -113,10 +113,6 @@ class CSVDataReader : Reader {
         return row
     }
 
-    override fun remove() {
-        throw UnsupportedOperationException("Remove from csv reader is not supported")
-    }
-
     private fun prepare(fileInfo: FileInfoCsv) {
         val customizeCSVFormat = { fmt: CSVFormat ->
             fmt.withFirstRecordAsHeader().withDelimiter(fileInfo.delimiter)
