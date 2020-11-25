@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t.database
 
+import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
 import java.sql.JDBCType
@@ -156,4 +157,8 @@ interface DbConnection {
     fun getTypedDataConverters(): Map<JDBCType, (Any) -> Pair<JDBCType, Any?>> {
         return mapOf()
     }
+
+    fun writeRow(table: TableName, row: DataRow)
+
+    fun createInsertSql(table: TableName, tableDefinition: TableDefinition)
 }

@@ -23,12 +23,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private val observers = mutableListOf<ProcessObserver>()
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
+    private val table: TableName
 
     init {
         if (config.isAddIdentity && (config.identityColumnName == null)) {
             logger.error("identity column can't be null when addIdentity set to true")
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
+        table = TableName(config.targetTable, config.targetSchema)
     }
 
     fun addObserver(observer: ProcessObserver?) {
@@ -59,7 +61,6 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                 )
             else -> columnDefinitionList.map { it!! }
         }
-        val table = TableName(config.targetTable, config.targetSchema)
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             if (!tblDef.diff(colDef.toSet(), connection.isCaseSensitive()).noDifference) {
@@ -69,11 +70,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
                 }
+                connection.createInsertSql(table, tblDef)
                 tableMatchedFile = true
             }
         } else {
             if (config.isCreateTableIfNeeded) {
-                connection.createTable(table, TableDefinition((colDef.toSet())))
+                val tblDef = TableDefinition((colDef.toSet()))
+                connection.createTable(table, tblDef)
+                connection.createInsertSql(table, tblDef)
                 tableMatchedFile = true
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
@@ -83,7 +87,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onRowRead(row: DataRow) {
         if (tableMatchedFile) {
-            //
+            connection.writeRow(table, row)
         }
     }
 
