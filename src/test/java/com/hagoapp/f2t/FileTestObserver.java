@@ -30,6 +30,7 @@ public class FileTestObserver implements ParseObserver {
     private final Logger logger = F2TLogger.getLogger();
 
     public int getRowCount() {
+        logger.debug("getRowCount {}", rowCount);
         return rowCount;
     }
 
@@ -91,6 +92,7 @@ public class FileTestObserver implements ParseObserver {
 
     @Override
     public void onRowCountDetermined(int rowCount) {
+        logger.info("row count determined: {}", rowCount);
         this.rowCount = rowCount;
     }
 }

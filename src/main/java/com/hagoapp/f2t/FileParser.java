@@ -67,7 +67,7 @@ public class FileParser {
             reader.open(fileInfo);
             Integer rowNo = reader.getRowCount();
             if (rowNo != null) {
-                notifyObserver("", reader.getRowCount());
+                notifyObserver("onRowCountDetermined", rowNo);
             }
             List<ColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);

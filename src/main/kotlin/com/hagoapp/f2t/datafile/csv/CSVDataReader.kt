@@ -6,10 +6,7 @@
 
 package com.hagoapp.f2t.datafile.csv
 
-import com.hagoapp.f2t.ColumnDefinition
-import com.hagoapp.f2t.DataCell
-import com.hagoapp.f2t.DataRow
-import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.*
 import com.hagoapp.f2t.datafile.*
 import com.hagoapp.util.EncodingUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
@@ -28,6 +25,7 @@ class CSVDataReader : Reader {
     private val data = mutableListOf<List<String>>()
     private lateinit var columns: Map<Int, ColumnDefinition>
     private var rowCount = -1
+    private val logger = F2TLogger.getLogger()
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -135,7 +133,7 @@ class CSVDataReader : Reader {
             columns = parser.headerMap.entries.map {
                 Pair(it.value, ColumnDefinition(it.value, it.key))
             }.toMap()
-            rowCount = parser.records.size
+            rowCount = 0
             parser.forEachIndexed { i, record ->
                 if (record.size() != columns.size) {
                     throw F2TException("format error found in line $i of ${fileInfo.filename}")
@@ -150,6 +148,7 @@ class CSVDataReader : Reader {
                         JDBCTypeUtils.combinePossibleTypes(existTypes.toList(), possibleTypes).toMutableSet()
                 }
                 data.add(row)
+                rowCount++
             }
             columns.values.forEach { column ->
                 column.inferredType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
