@@ -7,6 +7,7 @@
 package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.*;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class FileParser {
     private final FileInfo fileInfo;
     private final List<ParseObserver> observers = new ArrayList<>();
     private long rowCountToInferType = -1;
-    private Reader reader;
+    private final Logger logger = F2TLogger.getLogger();
 
     public long getRowCountToInferType() {
         return rowCountToInferType;
