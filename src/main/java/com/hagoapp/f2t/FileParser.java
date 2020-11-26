@@ -112,10 +112,10 @@ public class FileParser {
                 Method method = methods.get(methodName);
                 if (method != null) {
                     method.invoke(observer, params);
-                    logger.error("callback {} of ParseObserver {} invoked", methodName,
-                            observer.getClass().getCanonicalName());
+                    //logger.debug("callback {} of ParseObserver {} invoked", methodName,
+                    //        observer.getClass().getCanonicalName());
                 } else {
-                    logger.error("callback {} of ParseObserver not found", methodName);
+                    logger.warn("callback {} of ParseObserver not found", methodName);
                 }
             } catch (Throwable e) {
                 logger.error("callback {} of ParseObserver {} failed: {}", methodName,
