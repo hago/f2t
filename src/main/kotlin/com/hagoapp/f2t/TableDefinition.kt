@@ -4,12 +4,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
-
 package com.hagoapp.f2t
 
 import java.sql.JDBCType
@@ -20,7 +14,7 @@ import java.sql.JDBCType
 class TableDefinition(var columns: Set<ColumnDefinition>) {
 
     init {
-        val x = columns.filter { it.inferredType != null }
+        val x = columns.filter { it.inferredType == null }
         if (x.isNotEmpty()) {
             throw F2TException("type${if (x.size > 1) "s" else ""} not inferred for: ${x.joinToString { it.name }}")
         }
