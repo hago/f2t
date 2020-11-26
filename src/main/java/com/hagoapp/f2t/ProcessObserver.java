@@ -6,12 +6,6 @@
 
 package com.hagoapp.f2t;
 
-public interface ProcessObserver {
-    void onTableExisted();
-    void onTableCreated();
-    void onRowInserted(int num);
-    void onStart();
-    void onComplete();
-    void onDbError(Throwable e);
-    void onFileError(Throwable e);
+public interface ProcessObserver extends ParseObserver {
+
 }
