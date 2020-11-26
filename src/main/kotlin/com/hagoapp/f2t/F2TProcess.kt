@@ -26,7 +26,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private val table: TableName
 
     init {
-        if (config.isAddIdentity && (config.identityColumnName == null)) {
+        if (config.isAddBatch && (config.batchColumnName == null)) {
             logger.error("identity column can't be null when addIdentity set to true")
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
@@ -50,11 +50,11 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
         val colDef = when {
-            config.isAddIdentity -> columnDefinitionList.map { it!! }
+            config.isAddBatch -> columnDefinitionList.map { it!! }
                 .plus(
                     ColumnDefinition(
                         columnDefinitionList.size,
-                        config.identityColumnName,
+                        config.batchColumnName,
                         mutableSetOf(),
                         JDBCType.BIGINT
                     )

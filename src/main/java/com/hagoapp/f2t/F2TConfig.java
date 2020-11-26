@@ -9,10 +9,10 @@ package com.hagoapp.f2t;
 public class F2TConfig {
     private String targetTable;
     private String targetSchema = "";
-    private boolean addIdentity = true;
+    private boolean addBatch = true;
     private boolean clearTable = false;
     private boolean createTableIfNeeded = true;
-    private String identityColumnName = "f2tBatch";
+    private String batchColumnName = "f2tBatch";
 
     public String getTargetTable() {
         return targetTable;
@@ -30,12 +30,12 @@ public class F2TConfig {
         this.targetSchema = targetSchema;
     }
 
-    public boolean isAddIdentity() {
-        return addIdentity;
+    public boolean isAddBatch() {
+        return addBatch;
     }
 
-    public void setAddIdentity(boolean addIdentity) {
-        this.addIdentity = addIdentity;
+    public void setAddBatch(boolean addBatch) {
+        this.addBatch = addBatch;
     }
 
     public boolean isClearTable() {
@@ -54,11 +54,11 @@ public class F2TConfig {
         this.createTableIfNeeded = createTableIfNeeded;
     }
 
-    public String getIdentityColumnName() {
-        return identityColumnName;
+    public String getBatchColumnName() {
+        return batchColumnName;
     }
 
-    public void setIdentityColumnName(String identityColumnName) {
-        this.identityColumnName = identityColumnName;
+    public void setBatchColumnName(String batchColumnName) {
+        this.batchColumnName = batchColumnName;
     }
 }
