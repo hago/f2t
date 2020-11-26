@@ -8,7 +8,9 @@ package com.hagoapp.f2t
 
 import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.TableName
-import com.hagoapp.f2t.datafile.*
+import com.hagoapp.f2t.datafile.FileInfo
+import com.hagoapp.f2t.datafile.ParseResult
+import java.lang.reflect.Method
 import java.sql.JDBCType
 
 /**
@@ -25,12 +27,22 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private var tableMatchedFile = false
     private val table: TableName
 
+    companion object {
+        private val methods = mutableMapOf<String, Method>()
+
+        init {
+            for (method in ParseObserver::class.java.declaredMethods) {
+                methods[method.name] = method
+            }
+        }
+    }
+
     init {
         if (config.isAddBatch && (config.batchColumnName == null)) {
             logger.error("identity column can't be null when addIdentity set to true")
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
-        table = TableName(config.targetTable, config.targetSchema)
+        table = TableName(config.targetTable, config.targetSchema ?: "")
     }
 
     fun addObserver(observer: ProcessObserver?) {
@@ -44,9 +56,13 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         parser.run()
     }
 
-    override fun onParseStart(fileInfo: FileInfo) {}
+    override fun onParseStart(fileInfo: FileInfo) {
+        notifyObserver("onParseStart")
+    }
 
-    override fun onColumnsParsed(columnDefinitionList: List<ColumnDefinition?>) {}
+    override fun onColumnsParsed(columnDefinitionList: List<ColumnDefinition?>) {
+        notifyObserver("onColumnsParsed")
+    }
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
         val colDef = when {
@@ -72,6 +88,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                 }
                 connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
+                logger.info("table $table found and matches ${parser.fileInfo.filename}")
             }
         } else {
             if (config.isCreateTableIfNeeded) {
@@ -79,6 +96,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                 connection.createTable(table, tblDef)
                 connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
+                logger.info("table $table created on ${parser.fileInfo.filename}")
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
             }
@@ -98,4 +116,15 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     }
 
     override fun onRowCountDetermined(rowCount: Int) {}
+
+    private fun notifyObserver(methodName: String, vararg params: Any) {
+        observers.forEach { observer ->
+            try {
+                val method = methods.getValue(methodName)
+                method.invoke(observer, *params)
+            } catch (ignored: Throwable) {
+                //
+            }
+        }
+    }
 }
