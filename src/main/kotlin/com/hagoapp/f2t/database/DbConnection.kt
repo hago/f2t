@@ -9,12 +9,13 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
+import java.io.Closeable
 import java.sql.JDBCType
 
 /**
  * Interface of database operations required to insert a set of 2-dimensional data into it.
  */
-interface DbConnection {
+interface DbConnection: Closeable {
     companion object {
         /**
          * Acquire a DbConnection object according the type.

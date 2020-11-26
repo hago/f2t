@@ -17,7 +17,7 @@ import java.util.*
 /**
  * Database operations implementation for PostgreSQL.
  */
-class PgSqlConnection : DbConnection, Closeable {
+class PgSqlConnection : DbConnection {
 
     private lateinit var connection: Connection
     private val insertionMap = mutableMapOf<TableName, String>()
@@ -109,7 +109,8 @@ class PgSqlConnection : DbConnection, Closeable {
             insertionMap.forEach { (table, _) -> doWrite(table) }
             connection.close()
         } catch (e: Throwable) {
-            //
+            logger.error("flush cached rows failed: {}", e.message)
+            e.printStackTrace()
         }
     }
 
@@ -162,6 +163,7 @@ class PgSqlConnection : DbConnection, Closeable {
             "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
         }.joinToString(", ")
         val sql = "create table $tableFullName ($defStr)"
+        //logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
     }
 
@@ -179,6 +181,7 @@ class PgSqlConnection : DbConnection, Closeable {
                 createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
             }
         }
+        println(fieldValueSetters[table])
     }
 
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
@@ -191,6 +194,7 @@ class PgSqlConnection : DbConnection, Closeable {
             if (newValue != null) stmt.setInt(i, newValue as Int) else stmt.setNull(i, Types.INTEGER)
         }
         JDBCType.BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            logger.debug("$i $value")
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
         }
@@ -238,11 +242,9 @@ class PgSqlConnection : DbConnection, Closeable {
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
+                    var type = mapDBTypeToJDBCType(rs.getString("typename"))
                     tblColDef.add(
-                        ColumnDefinition(
-                            i, rs.getString("attname"),
-                            mutableSetOf(mapDBTypeToJDBCType(rs.getString("typename")))
-                        )
+                        ColumnDefinition(i, rs.getString("attname"), mutableSetOf(type), type)
                     )
                     i++
                 }
@@ -296,23 +298,24 @@ class PgSqlConnection : DbConnection, Closeable {
             throw F2TException("Way to insert into table ${getFullTableName(table)} is unknown")
         }
         rows.add(row)
-        doWrite(table)
+        if (rows.size >= getInsertBatchAmount()) {
+            doWrite(table)
+        }
     }
 
     private fun doWrite(table: TableName) {
-        if (rows.size >= getInsertBatchAmount()) {
-            val fieldValueSetter = fieldValueSetters.getValue(table)
-            connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
-                rows.forEach { row ->
-                    row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
-                        fieldValueSetter[i].invoke(stmt, i, cell.data)
-                        stmt.addBatch()
-                    }
-                    stmt.addBatch()
+        val fieldValueSetter = fieldValueSetters.getValue(table)
+        //logger.debug(insertionMap.getValue(table))
+        connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
+            rows.forEach { row ->
+                row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
+                    println(cell)
+                    fieldValueSetter[i].invoke(stmt, i + 1, cell.data)
                 }
-                stmt.executeBatch()
+                stmt.addBatch()
             }
-            rows.clear()
+            stmt.executeBatch()
         }
+        rows.clear()
     }
 }
