@@ -1,0 +1,7 @@
+{
+  "targetTable": "shuihu",
+  "targetSchema": null,
+  "addBatch": true,
+  "clearTable": true,
+  "createTableIfNeeded": true
+}
