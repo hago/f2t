@@ -4,5 +4,5 @@
   "port": 5432,
   "username": "f2t",
   "password": "f2t",
-  "database": "f2tdb"
+  "databaseName": "f2tdb"
 }
