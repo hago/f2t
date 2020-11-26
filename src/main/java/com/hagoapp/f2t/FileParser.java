@@ -40,6 +40,10 @@ public class FileParser {
         this.rowCountToInferType = rowCountToInferType;
     }
 
+    public FileInfo getFileInfo() {
+        return fileInfo;
+    }
+
     public FileParser(FileInfo fileInfo) throws IOException {
         if (fileInfo == null) {
             throw new IOException("null file");
@@ -108,9 +112,15 @@ public class FileParser {
                 Method method = methods.get(methodName);
                 if (method != null) {
                     method.invoke(observer, params);
+                    logger.error("callback {} of ParseObserver {} invoked", methodName,
+                            observer.getClass().getCanonicalName());
+                } else {
+                    logger.error("callback {} of ParseObserver not found", methodName);
                 }
-            } catch (Throwable ignored) {
-                //
+            } catch (Throwable e) {
+                logger.error("callback {} of ParseObserver {} failed: {}", methodName,
+                        observer.getClass().getCanonicalName(), e.getMessage());
+                e.printStackTrace();
             }
         });
     }
