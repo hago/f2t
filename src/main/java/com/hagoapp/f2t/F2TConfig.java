@@ -61,4 +61,16 @@ public class F2TConfig {
     public void setBatchColumnName(String batchColumnName) {
         this.batchColumnName = batchColumnName;
     }
+
+    @Override
+    public String toString() {
+        return "F2TConfig{" +
+                "targetTable='" + targetTable + '\'' +
+                ", targetSchema='" + targetSchema + '\'' +
+                ", addBatch=" + addBatch +
+                ", clearTable=" + clearTable +
+                ", createTableIfNeeded=" + createTableIfNeeded +
+                ", batchColumnName='" + batchColumnName + '\'' +
+                '}';
+    }
 }
