@@ -41,11 +41,12 @@ class ProcessTester {
         val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
         fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename).absolutePath
         val dbConfig = DbConfigReader.readConfig(dbConfigFile)
-        val dbConnection = DbConnectionFactory.createDbConnection(dbConfig)
-        val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
-        val process = F2TProcess(FileParser(fileInfo), dbConnection, f2tConfig)
-        process.addObserver(TestProcessObserver())
-        process.run()
+        DbConnectionFactory.createDbConnection(dbConfig).use { dbConnection ->
+            val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
+            val process = F2TProcess(FileParser(fileInfo), dbConnection, f2tConfig)
+            process.addObserver(TestProcessObserver())
+            process.run()
+        }
     }
 
     override fun toString(): String {
