@@ -24,6 +24,8 @@ dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
+    implementation group:'org.postgresql',name:'postgresql',version:'42.2.11'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
     testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'
@@ -44,4 +46,5 @@ compileTestKotlin {
 
 test {
     useJUnitPlatform()
+    systemProperties = System.properties as Map<String, ?>
 }
