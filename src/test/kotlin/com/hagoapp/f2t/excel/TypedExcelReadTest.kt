@@ -53,7 +53,7 @@ class TypedExcelReadTest {
             testConfigs.forEach { testConfig ->
                 val parser = FileParser(testConfig.fileInfo)
                 parser.addObserver(observer)
-                parser.run()
+                parser.parse()
                 Assertions.assertEquals(
                     observer.rowCount,
                     testConfig.expect.rowCount

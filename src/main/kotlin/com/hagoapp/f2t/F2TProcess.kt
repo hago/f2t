@@ -48,7 +48,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     fun run() {
         parser.addObserver(this)
-        parser.run()
+        parser.parse()
     }
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {

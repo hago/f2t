@@ -46,7 +46,7 @@ public class CsvReadTest {
         Assertions.assertDoesNotThrow(() -> {
             FileParser parser = new FileParser(testConfig.getFileInfo());
             parser.addObserver(observer);
-            parser.run();
+            parser.parse();
             Assertions.assertEquals(observer.getRowCount(), testConfig.getExpect().getRowCount());
             Assertions.assertEquals(observer.getColumns().size(), testConfig.getExpect().getColumnCount());
             Assertions.assertEquals(observer.getColumns(), testConfig.getExpect().getTypes());

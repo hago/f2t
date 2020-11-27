@@ -61,11 +61,11 @@ public class FileParser {
         }
     }
 
-    public void run() {
-        run(new FileParserOption());
+    public void parse() {
+        parse(new FileParserOption());
     }
 
-    public void run(FileParserOption option) {
+    public void parse(FileParserOption option) {
         try (Reader reader = ReaderFactory.getReader(fileInfo)) {
             notifyObserver("onParseStart", fileInfo);
             ParseResult result = new ParseResult();
