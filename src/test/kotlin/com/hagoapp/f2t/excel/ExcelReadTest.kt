@@ -69,4 +69,25 @@ class ExcelReadTest {
             }
         }
     }
+
+    @Test
+    fun extractExcelUnTyped() {
+        testConfigs.forEach { testConfig ->
+            val parser = FileParser(testConfig.fileInfo)
+            parser.addObserver(observer)
+            val table = parser.extractData()
+            Assertions.assertEquals(
+                table.rows.size,
+                testConfig.expect.rowCount
+            )
+            Assertions.assertEquals(
+                table.columnDefinition.size,
+                testConfig.expect.columnCount
+            )
+            Assertions.assertEquals(
+                table.columnDefinition.map { Pair(it.name, it.inferredType) }.toMap(),
+                testConfig.expect.types
+            )
+        }
+    }
 }
