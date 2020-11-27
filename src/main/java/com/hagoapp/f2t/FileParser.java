@@ -7,6 +7,7 @@
 package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -80,7 +81,7 @@ public class FileParser {
                 return;
             }
             List<ColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
-            notifyObserver("onColumnTypeDetermined", definitions);
+            notifyObserver("onColumnTypeDetermined", typedDefinitions);
             if (!option.isReadData()) {
                 return;
             }
@@ -125,7 +126,48 @@ public class FileParser {
         });
     }
 
-    public void getDataContainer() {
+    /**
+     * Fetch data and concluded column definitions into a <Code>DataTable</Code> object.
+     *
+     * @return <Code>DataTable</Code> object including column definition and data
+     * @throws F2TException if anything wrong
+     */
+    public DataTable extractData() throws F2TException {
+        ExtractorObserver observer = new ExtractorObserver();
+        this.addObserver(observer);
+        parse();
+        return observer.getData();
+    }
 
+    private static class ExtractorObserver implements ParseObserver {
+        private List<ColumnDefinition> columns = null;
+        private List<DataRow> rows = new ArrayList<>();
+        private Throwable error;
+
+        @Override
+        public void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+            columns = columnDefinitionList;
+        }
+
+        @Override
+        public void onRowRead(@NotNull DataRow row) {
+            rows.add(row);
+        }
+
+        @Override
+        public boolean onRowError(@NotNull Throwable e) {
+            error = e;
+            return false;
+        }
+
+        public DataTable getData() throws F2TException {
+            if (error != null) {
+                throw new F2TException("Error occurs during extracting: " + error.getMessage(), error);
+            }
+            if (columns == null) {
+                throw new F2TException("No data definition set");
+            }
+            return new DataTable(columns, rows);
+        }
     }
 }

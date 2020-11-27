@@ -8,9 +8,7 @@
 package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
-import com.hagoapp.f2t.F2TLogger;
-import com.hagoapp.f2t.FileParser;
-import com.hagoapp.f2t.FileTestObserver;
+import com.hagoapp.f2t.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 public class CsvReadTest {
 
@@ -54,4 +53,17 @@ public class CsvReadTest {
     }
 
     FileTestObserver observer = new FileTestObserver();
+
+    @Test
+    public void extractCsv() throws IOException, F2TException {
+        FileParser parser = new FileParser(testConfig.getFileInfo());
+        parser.addObserver(observer);
+        DataTable table = parser.extractData();
+        Assertions.assertEquals(table.getRows().size(), testConfig.getExpect().getRowCount());
+        Assertions.assertEquals(table.getColumnDefinition().size(), testConfig.getExpect().getColumnCount());
+        Assertions.assertEquals(testConfig.getExpect().getTypes(), table.getColumnDefinition().stream()
+                .collect(Collectors.toMap(ColumnDefinition::getName, ColumnDefinition::getInferredType))
+        );
+        System.out.println(table);
+    }
 }
