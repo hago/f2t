@@ -55,6 +55,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         val colDef = when {
             config.isAddBatch -> {
                 batchNum = Instant.now().toEpochMilli()
+                logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
                 columnDefinitionList.map { it!! }
                     .plus(
                         ColumnDefinition(

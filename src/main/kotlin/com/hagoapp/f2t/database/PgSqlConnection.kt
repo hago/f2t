@@ -312,6 +312,7 @@ class PgSqlConnection : DbConnection {
                 stmt.addBatch()
             }
             stmt.executeBatch()
+            logger.info("${rows.size} row${if (rows.size > 1) "s" else ""} inserted into table ${table}.")
         }
         rows.clear()
     }
