@@ -47,7 +47,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     }
 
     fun run() {
-        parser.addWatcher(this)
+        parser.addObserver(this)
         parser.run()
     }
 

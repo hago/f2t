@@ -52,7 +52,7 @@ class ExcelReadTest {
         Assertions.assertDoesNotThrow {
             testConfigs.forEach { testConfig ->
                 val parser = FileParser(testConfig.fileInfo)
-                parser.addWatcher(observer)
+                parser.addObserver(observer)
                 parser.run()
                 Assertions.assertEquals(
                     observer.rowCount,

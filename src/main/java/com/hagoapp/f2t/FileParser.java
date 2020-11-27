@@ -55,7 +55,7 @@ public class FileParser {
         }
     }
 
-    public void addWatcher(ParseObserver watcher) {
+    public void addObserver(ParseObserver watcher) {
         if (watcher != null) {
             observers.add(watcher);
         }
