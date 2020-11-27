@@ -12,6 +12,7 @@ import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import java.lang.reflect.Method
 import java.sql.JDBCType
+import java.time.Instant
 
 /**
  * This class implements a process that extract data from data file, create according table(if necessary, based on
@@ -26,6 +27,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
     private val table: TableName
+    private var batchNum = -1L
 
     companion object {
         private val methods = mutableMapOf<String, Method>()
@@ -66,15 +68,18 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
         val colDef = when {
-            config.isAddBatch -> columnDefinitionList.map { it!! }
-                .plus(
-                    ColumnDefinition(
-                        columnDefinitionList.size,
-                        config.batchColumnName,
-                        mutableSetOf(),
-                        JDBCType.BIGINT
+            config.isAddBatch -> {
+                batchNum = Instant.now().toEpochMilli()
+                columnDefinitionList.map { it!! }
+                    .plus(
+                        ColumnDefinition(
+                            columnDefinitionList.size,
+                            config.batchColumnName,
+                            mutableSetOf(),
+                            JDBCType.BIGINT
+                        )
                     )
-                )
+            }
             else -> columnDefinitionList.map { it!! }
         }
         if (connection.isTableExists(table)) {
@@ -105,7 +110,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onRowRead(row: DataRow) {
         if (tableMatchedFile) {
-            connection.writeRow(table, row)
+            val r = if (batchNum < 0) row else DataRow(row.rowNo, row.cells.toMutableList()
+                .plus(DataCell(batchNum, row.cells.size)))
+            connection.writeRow(table, r)
         }
     }
 
