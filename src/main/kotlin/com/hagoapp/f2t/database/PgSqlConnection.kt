@@ -181,7 +181,6 @@ class PgSqlConnection : DbConnection {
                 createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
             }
         }
-        println(fieldValueSetters[table])
     }
 
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
@@ -194,7 +193,6 @@ class PgSqlConnection : DbConnection {
             if (newValue != null) stmt.setInt(i, newValue as Int) else stmt.setNull(i, Types.INTEGER)
         }
         JDBCType.BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            logger.debug("$i $value")
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
         }
@@ -309,7 +307,6 @@ class PgSqlConnection : DbConnection {
         connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
             rows.forEach { row ->
                 row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
-                    println(cell)
                     fieldValueSetter[i].invoke(stmt, i + 1, cell.data)
                 }
                 stmt.addBatch()
