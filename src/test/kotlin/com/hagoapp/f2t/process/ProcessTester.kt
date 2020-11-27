@@ -43,8 +43,9 @@ class ProcessTester {
         val dbConfig = DbConfigReader.readConfig(dbConfigFile)
         DbConnectionFactory.createDbConnection(dbConfig).use { dbConnection ->
             val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
-            val process = F2TProcess(FileParser(fileInfo), dbConnection, f2tConfig)
-            process.addObserver(TestProcessObserver())
+            val parser = FileParser(fileInfo)
+            parser.addWatcher(FileTestObserver())
+            val process = F2TProcess(parser, dbConnection, f2tConfig)
             process.run()
         }
     }

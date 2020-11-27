@@ -23,7 +23,6 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private var parser: FileParser = dataFileRParser
     private var connection: DbConnection = dbConnection
     private var config: F2TConfig = f2TConfig
-    private val observers = mutableListOf<ProcessObserver>()
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
     private val table: TableName
@@ -47,23 +46,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         table = TableName(config.targetTable, config.targetSchema ?: "")
     }
 
-    fun addObserver(observer: ProcessObserver?) {
-        if (observer != null && !observers.contains(observer)) {
-            observers.add(observer)
-        }
-    }
-
     fun run() {
         parser.addWatcher(this)
         parser.run()
-    }
-
-    override fun onParseStart(fileInfo: FileInfo) {
-        notifyObserver("onParseStart")
-    }
-
-    override fun onColumnsParsed(columnDefinitionList: List<ColumnDefinition?>) {
-        notifyObserver("onColumnsParsed")
     }
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
@@ -110,8 +95,10 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onRowRead(row: DataRow) {
         if (tableMatchedFile) {
-            val r = if (batchNum < 0) row else DataRow(row.rowNo, row.cells.toMutableList()
-                .plus(DataCell(batchNum, row.cells.size)))
+            val r = if (batchNum < 0) row else DataRow(
+                row.rowNo, row.cells.toMutableList()
+                    .plus(DataCell(batchNum, row.cells.size))
+            )
             connection.writeRow(table, r)
         }
     }
@@ -124,14 +111,4 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
 
     override fun onRowCountDetermined(rowCount: Int) {}
 
-    private fun notifyObserver(methodName: String, vararg params: Any) {
-        observers.forEach { observer ->
-            try {
-                val method = methods.getValue(methodName)
-                method.invoke(observer, *params)
-            } catch (ignored: Throwable) {
-                //
-            }
-        }
-    }
 }
