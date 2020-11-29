@@ -9,20 +9,13 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
-import java.io.Closeable
 import java.sql.*
-import java.time.ZonedDateTime
 import java.util.*
 
 /**
  * Database operations implementation for PostgreSQL.
  */
-class PgSqlConnection : DbConnection {
-
-    private lateinit var connection: Connection
-    private val insertionMap = mutableMapOf<TableName, String>()
-    private val rows = mutableListOf<DataRow>()
-    private val logger = F2TLogger.getLogger()
+class PgSqlConnection : DbConnection() {
 
     companion object {
         private const val PGSQL_DRIVER_CLASS_NAME = "org.postgresql.Driver"
@@ -100,21 +93,7 @@ class PgSqlConnection : DbConnection {
         return conf
     }
 
-    override fun open(conf: DbConfig) {
-        connection = getConnection(conf)
-    }
-
-    override fun close() {
-        try {
-            insertionMap.forEach { (table, _) -> doWrite(table) }
-            connection.close()
-        } catch (e: Throwable) {
-            logger.error("flush cached rows failed: {}", e.message)
-            e.printStackTrace()
-        }
-    }
-
-    private fun getConnection(conf: DbConfig): Connection {
+    override fun getConnection(conf: DbConfig): Connection {
         val config = getPgConfig(conf)
         if (config.databaseName.isNullOrBlank()) {
             config.databaseName = "postgres"
@@ -166,53 +145,6 @@ class PgSqlConnection : DbConnection {
         //logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
     }
-
-    override fun prepareInsertion(table: TableName, tableDefinition: TableDefinition) {
-        val sql = """
-                insert into ${getFullTableName(table)} (${tableDefinition.columns.joinToString { normalizeName(it.name) }})
-                values (${tableDefinition.columns.joinToString { "?" }})
-            """
-        insertionMap[table] = sql
-        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.index }.map { col ->
-            val converter = getTypedDataConverters()[col.inferredType]
-            if (converter == null) {
-                createFieldSetter(col.inferredType!!)
-            } else {
-                createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
-            }
-        }
-    }
-
-    private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
-        JDBCType.BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setBoolean(i, newValue as Boolean) else stmt.setNull(i, Types.BOOLEAN)
-        }
-        JDBCType.INTEGER -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setInt(i, newValue as Int) else stmt.setNull(i, Types.INTEGER)
-        }
-        JDBCType.BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
-        }
-        JDBCType.DECIMAL, JDBCType.FLOAT, JDBCType.DOUBLE -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setDouble(i, newValue as Double) else stmt.setNull(i, Types.DOUBLE)
-        }
-        JDBCType.TIMESTAMP -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setTimestamp(i, Timestamp.from((newValue as ZonedDateTime).toInstant()))
-            else stmt.setNull(i, Types.TIMESTAMP)
-        }
-        else -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, newValue.toString()) else stmt.setNull(i, Types.CLOB)
-        }
-    }
-
-    private val fieldValueSetters =
-        mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType): String {
         return when (aType) {
@@ -289,31 +221,5 @@ class PgSqlConnection : DbConnection {
 
     override fun getDefaultSchema(): String {
         return "public"
-    }
-
-    override fun writeRow(table: TableName, row: DataRow) {
-        if (!insertionMap.contains(table)) {
-            throw F2TException("Way to insert into table ${getFullTableName(table)} is unknown")
-        }
-        rows.add(row)
-        if (rows.size >= getInsertBatchAmount()) {
-            doWrite(table)
-        }
-    }
-
-    private fun doWrite(table: TableName) {
-        val fieldValueSetter = fieldValueSetters.getValue(table)
-        //logger.debug(insertionMap.getValue(table))
-        connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
-            rows.forEach { row ->
-                row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
-                    fieldValueSetter[i].invoke(stmt, i + 1, cell.data)
-                }
-                stmt.addBatch()
-            }
-            stmt.executeBatch()
-            logger.info("${rows.size} row${if (rows.size > 1) "s" else ""} inserted into table ${table}.")
-        }
-        rows.clear()
     }
 }

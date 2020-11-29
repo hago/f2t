@@ -7,70 +7,78 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.DataRow
+import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
+import org.slf4j.Logger
 import java.io.Closeable
-import java.sql.JDBCType
+import java.sql.*
+import java.time.ZonedDateTime
 
 /**
  * Interface of database operations required to insert a set of 2-dimensional data into it.
  */
-interface DbConnection: Closeable {
-    companion object {
-        /**
-         * Acquire a DbConnection object according the type.
-         */
-        fun getDbConnection(type: DbType): DbConnection {
-            return when (type) {
-                DbType.PostgreSql -> PgSqlConnection()
-                DbType.MsSqlServer,
-                DbType.MariaDb,
-                DbType.Hive -> TODO()
-            }
-        }
+abstract class DbConnection : Closeable {
 
-        fun getDbConnection(conf: DbConfig): DbConnection {
-            return getDbConnection(conf.dbType)
-        }
-    }
+    protected lateinit var connection: Connection
+    protected val insertionMap = mutableMapOf<TableName, String>()
+    protected val rows = mutableListOf<DataRow>()
+    protected val logger: Logger = F2TLogger.getLogger()
+    protected val fieldValueSetters =
+        mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
 
     /**
      * Whether the config is valid to lead a successful connection.
      */
-    fun canConnect(conf: DbConfig): Pair<Boolean, String>
+    abstract fun canConnect(conf: DbConfig): Pair<Boolean, String>
 
     /**
      * Fetch the existing tables from database.
      */
-    fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>>
+    abstract fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>>
 
     /**
      * List all visible databases by user from the config.
      */
-    fun listDatabases(conf: DbConfig): List<String>
+    abstract fun listDatabases(conf: DbConfig): List<String>
 
     /**
      * Create the JDBC connection when needed. This method could be called many other methods in implementation.
      */
-    fun open(conf: DbConfig)
+    open fun open(conf: DbConfig) {
+        connection = getConnection(conf)
+    }
+
+    protected abstract fun getConnection(conf: DbConfig): Connection
+
+    override fun close() {
+        try {
+            insertionMap.forEach { (table, _) -> flushRows(table) }
+            connection.close()
+        } catch (e: Throwable) {
+            logger.error("flush cached rows failed: {}", e.message)
+            e.printStackTrace()
+        }
+    }
 
     /**
      * Clear any data in given table.
      */
-    fun clearTable(table: TableName): Pair<Boolean, String?>
+    abstract fun clearTable(table: TableName): Pair<Boolean, String?>
 
     /**
      * Drop given table.
      */
-    fun dropTable(tableName: String): Pair<Boolean, String?>
-    fun dropTable(table: TableName): Pair<Boolean, String?> {
+    abstract fun dropTable(tableName: String): Pair<Boolean, String?>
+    open fun dropTable(table: TableName): Pair<Boolean, String?> {
         return dropTable(getFullTableName(table))
     }
 
     /**
      * Create quoted, escaped identity name of database.
      */
-    fun normalizeName(name: String): String {
+    open fun normalizeName(name: String): String {
         return if (isNormalizedName(name)) name else {
             val wrapper = getWrapperCharacter()
             "${wrapper.first}${escapeNameString(name)}${wrapper.second}"
@@ -80,7 +88,7 @@ interface DbConnection: Closeable {
     /**
      * Whether the given name is quoted, escaped on database's definition.
      */
-    fun isNormalizedName(name: String): Boolean {
+    open fun isNormalizedName(name: String): Boolean {
         val w = getWrapperCharacter()
         return name.trim().startsWith(w.first) && name.trim().endsWith(w.second)
     }
@@ -88,64 +96,64 @@ interface DbConnection: Closeable {
     /**
      * Escape database identity name.
      */
-    fun escapeNameString(name: String): String
+    abstract fun escapeNameString(name: String): String
 
     /**
      * Get the wrapper character defined by database.
      */
-    fun getWrapperCharacter(): Pair<String, String>
+    abstract fun getWrapperCharacter(): Pair<String, String>
 
     /**
      * Create quoted, escaped table name of database, including schema if supported.
      */
-    fun getFullTableName(schema: String, tableName: String): String {
+    open fun getFullTableName(schema: String, tableName: String): String {
         return if (schema.isBlank()) normalizeName(tableName)
         else "${normalizeName(schema)}.${normalizeName(tableName)}"
     }
 
-    fun getFullTableName(table: TableName): String {
+    open fun getFullTableName(table: TableName): String {
         return getFullTableName(table.schema, table.tableName)
     }
 
     /**
      * Whether the given table exists in database by schema and name.
      */
-    fun isTableExists(table: TableName): Boolean
+    abstract fun isTableExists(table: TableName): Boolean
 
     /**
      * Create a new table on given name and column definitions.
      */
-    fun createTable(table: TableName, tableDefinition: TableDefinition)
+    abstract fun createTable(table: TableName, tableDefinition: TableDefinition)
 
     /**
      * Find local database type on given JDBC type.
      */
-    fun convertJDBCTypeToDBNativeType(aType: JDBCType): String
+    abstract fun convertJDBCTypeToDBNativeType(aType: JDBCType): String
 
     /**
      * Fetch column definitions of given table.
      */
-    fun getExistingTableDefinition(table: TableName): TableDefinition
+    abstract fun getExistingTableDefinition(table: TableName): TableDefinition
 
     /**
      * Find JDBC type on database local type.
      */
-    fun mapDBTypeToJDBCType(typeName: String): JDBCType
+    abstract fun mapDBTypeToJDBCType(typeName: String): JDBCType
 
     /**
      * Whether this database is case sensitive.
      */
-    fun isCaseSensitive(): Boolean
+    abstract fun isCaseSensitive(): Boolean
 
     /**
      * Get default schema of database.
      */
-    fun getDefaultSchema(): String
+    abstract fun getDefaultSchema(): String
 
     /**
      * Set the record amount of one batch insert.
      */
-    fun getInsertBatchAmount(): Long {
+    open fun getInsertBatchAmount(): Long {
         return 1000
     }
 
@@ -155,11 +163,78 @@ interface DbConnection: Closeable {
      * It should convert a value with specific unsupported type to new value in supported
      * type, to allow database inserting functions to create a compatible JDBC statement.
      */
-    fun getTypedDataConverters(): Map<JDBCType, Pair<JDBCType, (Any?) -> Any?>> {
+    open fun getTypedDataConverters(): Map<JDBCType, Pair<JDBCType, (Any?) -> Any?>> {
         return mapOf()
     }
 
-    fun writeRow(table: TableName, row: DataRow)
+    open fun writeRow(table: TableName, row: DataRow) {
+        if (!insertionMap.contains(table)) {
+            throw F2TException("Way to insert into table ${getFullTableName(table)} is unknown")
+        }
+        rows.add(row)
+        if (rows.size >= getInsertBatchAmount()) {
+            flushRows(table)
+        }
+    }
 
-    fun prepareInsertion(table: TableName, tableDefinition: TableDefinition)
+    protected open fun flushRows(table: TableName) {
+        val fieldValueSetter = fieldValueSetters.getValue(table)
+        //logger.debug(insertionMap.getValue(table))
+        connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
+            rows.forEach { row ->
+                row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
+                    fieldValueSetter[i].invoke(stmt, i + 1, cell.data)
+                }
+                stmt.addBatch()
+            }
+            stmt.executeBatch()
+            logger.info("${rows.size} row${if (rows.size > 1) "s" else ""} inserted into table ${table}.")
+        }
+        rows.clear()
+    }
+
+    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition) {
+        val sql = """
+                insert into ${getFullTableName(table)} (${tableDefinition.columns.joinToString { normalizeName(it.name) }})
+                values (${tableDefinition.columns.joinToString { "?" }})
+            """
+        insertionMap[table] = sql
+        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.index }.map { col ->
+            val converter = getTypedDataConverters()[col.inferredType]
+            if (converter == null) {
+                createFieldSetter(col.inferredType!!)
+            } else {
+                createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
+            }
+        }
+    }
+
+    private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
+        JDBCType.BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setBoolean(i, newValue as Boolean) else stmt.setNull(i, Types.BOOLEAN)
+        }
+        JDBCType.INTEGER -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setInt(i, newValue as Int) else stmt.setNull(i, Types.INTEGER)
+        }
+        JDBCType.BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
+        }
+        JDBCType.DECIMAL, JDBCType.FLOAT, JDBCType.DOUBLE -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setDouble(i, newValue as Double) else stmt.setNull(i, Types.DOUBLE)
+        }
+        JDBCType.TIMESTAMP -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setTimestamp(i, Timestamp.from((newValue as ZonedDateTime).toInstant()))
+            else stmt.setNull(i, Types.TIMESTAMP)
+        }
+        else -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, newValue.toString()) else stmt.setNull(i, Types.CLOB)
+        }
+    }
+
 }
