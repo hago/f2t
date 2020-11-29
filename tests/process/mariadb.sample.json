@@ -1,0 +1,9 @@
+{
+  "dbType": "MariaDb",
+  "host": "127.0.0.1",
+  "port": 3306,
+  "username": "f2t",
+  "password": "f2t",
+  "databaseName": "f2tdb",
+  "storeEngine": "innodb"
+}
