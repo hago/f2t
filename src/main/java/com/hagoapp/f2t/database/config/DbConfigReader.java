@@ -38,9 +38,14 @@ public class DbConfigReader {
     public static DbConfig json2DbConfig(String json) throws F2TException {
         Gson gson = new GsonBuilder().create();
         DbConfig baseConfig = gson.fromJson(json, DbConfig.class);
+        if (baseConfig == null) {
+            throw new F2TException("Not a valid db config, check whether 'dbType' existed and valid.");
+        }
         switch (baseConfig.getDbType()) {
             case PostgreSql:
                 return gson.fromJson(json, PgSqlConfig.class);
+            case MariaDb:
+                return gson.fromJson(json, MariaDbConfig.class);
             default:
                 throw new F2TException("DB config type unknown");
         }
