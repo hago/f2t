@@ -25,4 +25,12 @@ class TableDefinitionDifference(
         get() {
             return superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
         }
+
+    override fun toString(): String {
+        return """
+            Superfluous: $superfluousColumns,
+            Missing: $missingColumns,
+            Type Mismatched: $typeMismatchColumns
+            """
+    }
 }
