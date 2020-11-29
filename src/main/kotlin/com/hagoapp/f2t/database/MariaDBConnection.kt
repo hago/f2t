@@ -79,16 +79,16 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun getConnection(conf: DbConfig): Connection {
-        val config = checkConfig(conf)
-        if (config.databaseName.isNullOrBlank()) {
-            config.databaseName = "postgres"
+        val mariaDbConfig = checkConfig(conf)
+        if (mariaDbConfig.databaseName.isNullOrBlank()) {
+            throw F2TException("database not specified")
         }
-        if (listOf(config.host, config.username, conf.password).any { it == null }) {
+        if (listOf(mariaDbConfig.host, mariaDbConfig.username, mariaDbConfig.password).any { it == null }) {
             throw F2TException("Configuration is incomplete")
         }
-        val conStr = "jdbc:mariadb://${config.host}:${config.port}/${config.databaseName}"
+        val conStr = "jdbc:mariadb://${mariaDbConfig.host}:${mariaDbConfig.port}/${mariaDbConfig.databaseName}"
         val props = Properties()
-        props.putAll(mapOf("user" to config.username, "password" to config.password))
+        props.putAll(mapOf("user" to mariaDbConfig.username, "password" to mariaDbConfig.password))
         return DriverManager.getConnection(conStr, props)
     }
 
@@ -132,7 +132,7 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun isTableExists(table: TableName): Boolean {
-        connection.prepareStatement("show tables like '${normalizeName(table.tableName)}'").use { stmt ->
+        connection.prepareStatement("show tables like '${table.tableName}'").use { stmt ->
             stmt.executeQuery().use { rs ->
                 return rs.next()
             }
@@ -140,18 +140,16 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
-        val content = tableDefinition.columns.map { col ->
+        val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)} null"
-        }.joinToString(", ")
+        }
         val sql = """
             create table ${normalizeName(table.tableName)} ($content) 
             engine = ${config.storeEngine} 
             default charset=utf8mb4
             """
-        connection.use { con ->
-            con.prepareStatement(sql).use { stmt ->
-                stmt.execute()
-            }
+        connection.prepareStatement(sql).use { stmt ->
+            stmt.execute()
         }
     }
 
@@ -167,7 +165,9 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition {
-        connection.prepareStatement("desc `${getFullTableName(table)}`;").use { stmt ->
+        val sql = "desc ${normalizeName(table.tableName)};"
+        //logger.debug(sql)
+        connection.prepareStatement(sql).use { stmt ->
             stmt.executeQuery().use { rs ->
                 val def = mutableMapOf<String, JDBCType>()
                 while (rs.next()) {
@@ -187,7 +187,7 @@ class MariaDBConnection : DbConnection() {
             "bigint" -> JDBCType.BIGINT
             "float", "double" -> JDBCType.DOUBLE
             "timestamp", "datetime", "decimal" -> JDBCType.TIMESTAMP
-            else -> JDBCType.VARCHAR
+            else -> JDBCType.CLOB
         }
     }
 
