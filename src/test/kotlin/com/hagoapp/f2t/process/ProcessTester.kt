@@ -11,6 +11,7 @@ import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.config.DbConfigReader
 import com.hagoapp.f2t.datafile.FileInfoReader
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperties
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
@@ -54,6 +55,8 @@ class ProcessTester {
             parser.addObserver(FileTestObserver())
             val process = F2TProcess(parser, dbConnection, f2tConfig)
             process.run()
+            println(process.result)
+            Assertions.assertTrue(process.result.succeeded())
         }
     }
 

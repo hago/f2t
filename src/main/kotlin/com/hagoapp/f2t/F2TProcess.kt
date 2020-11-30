@@ -27,6 +27,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     private var tableMatchedFile = false
     private val table: TableName
     private var batchNum = -1L
+    val result = F2TResult()
 
     companion object {
         private val methods = mutableMapOf<String, Method>()
@@ -80,6 +81,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                 }
                 connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
+                result.tableDefinition = tblDef
                 logger.info("table $table found and matches ${parser.fileInfo.filename}")
             }
         } else {
@@ -88,6 +90,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                 connection.createTable(table, tblDef)
                 connection.prepareInsertion(table, tblDef)
                 tableMatchedFile = true
+                result.tableDefinition = tblDef
                 logger.info("table $table created on ${parser.fileInfo.filename}")
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
@@ -102,15 +105,21 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
                     .plus(DataCell(batchNum, row.cells.size))
             )
             connection.writeRow(table, r)
+            result.rowCount++
         }
     }
 
-    override fun onParseComplete(fileInfo: FileInfo, result: ParseResult) {}
+    override fun onParseComplete(fileInfo: FileInfo, result: ParseResult) {
+        this.result.complete(result)
+    }
 
     override fun onRowError(e: Throwable): Boolean {
+        result.errors.add(e)
         return true
     }
 
-    override fun onRowCountDetermined(rowCount: Int) {}
+    override fun onError(e: Throwable) {
+        result.errors.add(e)
+    }
 
 }
