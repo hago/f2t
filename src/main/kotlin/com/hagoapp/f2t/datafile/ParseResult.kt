@@ -32,4 +32,10 @@ class ParseResult {
     fun addError(rowNo: Long, e: Throwable) {
         errors[rowNo] = e
     }
+
+    override fun toString(): String {
+        return "ParseResult(startTime=$startTime, endTime=$endTime, errors=$errors)"
+    }
+
+
 }
