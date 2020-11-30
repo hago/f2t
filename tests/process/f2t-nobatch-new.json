@@ -1,0 +1,7 @@
+{
+  "targetTable": "shuihu_nobatch",
+  "targetSchema": null,
+  "addBatch": false,
+  "clearTable": false,
+  "createTableIfNeeded": true
+}
