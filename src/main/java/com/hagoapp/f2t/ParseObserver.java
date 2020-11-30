@@ -41,4 +41,9 @@ public interface ParseObserver {
 
     default void onRowCountDetermined(int rowCount) {
     }
+
+    default void onError(@NotNull Throwable e) {
+        System.err.println(e.getMessage());
+        e.printStackTrace();
+    }
 }

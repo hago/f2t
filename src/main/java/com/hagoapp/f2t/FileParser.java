@@ -56,9 +56,9 @@ public class FileParser {
         }
     }
 
-    public void addObserver(ParseObserver watcher) {
-        if (watcher != null) {
-            observers.add(watcher);
+    public void addObserver(ParseObserver observer) {
+        if (observer != null) {
+            observers.add(observer);
         }
     }
 
@@ -102,8 +102,8 @@ public class FileParser {
                 notifyObserver("onRowCountDetermined", i);
             }
             notifyObserver("onParseComplete", fileInfo, result);
-        } catch (IOException e) {
-            //
+        } catch (Throwable e) {
+            notifyObserver("onError", e);
         }
     }
 
