@@ -16,6 +16,7 @@ class DbConnectionFactory {
             val connection = when(dbConfig.dbType) {
                 DbType.PostgreSql -> PgSqlConnection()
                 DbType.MariaDb -> MariaDBConnection()
+                DbType.Hive -> HiveConnection()
                 else -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
             }
             connection.open(dbConfig)
