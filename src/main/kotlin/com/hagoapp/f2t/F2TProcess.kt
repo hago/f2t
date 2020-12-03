@@ -87,11 +87,16 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
         } else {
             if (config.isCreateTableIfNeeded) {
                 val tblDef = TableDefinition(colDef.toSet())
-                connection.createTable(table, tblDef)
-                connection.prepareInsertion(table, tblDef)
-                tableMatchedFile = true
                 result.tableDefinition = tblDef
-                logger.info("table $table created on ${parser.fileInfo.filename}")
+                try {
+                    connection.createTable(table, tblDef)
+                    connection.prepareInsertion(table, tblDef)
+                    tableMatchedFile = true
+                    logger.info("table $table created on ${parser.fileInfo.filename}")
+                } catch (e: Throwable) {
+                    result.errors.add(e)
+                    logger.error("Error occurs when creating table $table: ${e.message}")
+                }
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
             }
