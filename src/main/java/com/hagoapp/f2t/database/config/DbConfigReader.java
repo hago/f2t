@@ -46,8 +46,10 @@ public class DbConfigReader {
                 return gson.fromJson(json, PgSqlConfig.class);
             case MariaDb:
                 return gson.fromJson(json, MariaDbConfig.class);
+            case Hive:
+                return gson.fromJson(json, HiveConfig.class);
             default:
-                throw new F2TException("DB config type unknown");
+                throw new F2TException(String.format("DB config type %s not supported", baseConfig.getDbType().name()));
         }
     }
 }
