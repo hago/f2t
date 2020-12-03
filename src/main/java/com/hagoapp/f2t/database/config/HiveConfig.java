@@ -19,7 +19,7 @@ public class HiveConfig extends DbConfig {
     private AuthMech authMech;
     private String host = "";
     private int port = 10000;
-    private String zookeeperNamespace;
+    private String zooKeeperNamespace;
     private List<ZooKeeperQuorum> quorums;
 
     public int getPort() {
@@ -70,12 +70,12 @@ public class HiveConfig extends DbConfig {
         this.host = host;
     }
 
-    public String getZookeeperNamespace() {
-        return zookeeperNamespace;
+    public String getZooKeeperNamespace() {
+        return zooKeeperNamespace;
     }
 
-    public void setZookeeperNamespace(String zookeeperNamespace) {
-        this.zookeeperNamespace = zookeeperNamespace;
+    public void setZooKeeperNamespace(String zooKeeperNamespace) {
+        this.zooKeeperNamespace = zooKeeperNamespace;
     }
 
     public List<ZooKeeperQuorum> getQuorums() {

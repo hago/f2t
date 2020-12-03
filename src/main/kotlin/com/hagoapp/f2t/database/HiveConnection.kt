@@ -84,7 +84,7 @@ class HiveConnection : DbConnection() {
 
     private fun createZKConnectInfo(conf: HiveConfig): String {
         val zk = conf.quorums.joinToString(",") { node ->
-            "zk=${node.host}:${node.port}/${conf.zookeeperNamespace}"
+            "zk=${node.host}:${node.port}/${conf.zooKeeperNamespace}"
         }
         return "jdbc:hive2://${conf.databaseName};$zk;"
     }
