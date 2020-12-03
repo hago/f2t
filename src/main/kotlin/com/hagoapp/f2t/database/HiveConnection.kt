@@ -223,7 +223,7 @@ class HiveConnection : DbConnection() {
     }
 
     override fun isTableExists(table: TableName): Boolean {
-        connection.prepareStatement("show tables in ${hiveConfig.databaseName} ${getFullTableName(table)}").use { stmt ->
+        connection.prepareStatement("show tables in ${hiveConfig.databaseName} '${table.tableName}'").use { stmt ->
             stmt.executeQuery().use { rs ->
                 return rs.next()
             }
@@ -231,9 +231,9 @@ class HiveConnection : DbConnection() {
     }
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
-        val content = tableDefinition.columns.map { col ->
+        val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)}"
-        }.joinToString(", ")
+        }
         val sql = "create table ${getFullTableName(table)} ($content);"
         logger.debug("create table using SQL: $sql")
         connection.prepareStatement("use ${hiveConfig.databaseName}").use { it.execute() }
@@ -250,7 +250,10 @@ class HiveConnection : DbConnection() {
         val lambda = Pair(
             JDBCType.CLOB,
             { value: Any? ->
-                (value as ZonedDateTime).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"))
+                logger.debug(value?.toString())
+                val nv = (value as ZonedDateTime).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"))
+                logger.debug(nv?.toString())
+                nv
             }
         )
         return mapOf(
