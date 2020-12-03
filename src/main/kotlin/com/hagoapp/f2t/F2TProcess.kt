@@ -110,6 +110,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     }
 
     override fun onParseComplete(fileInfo: FileInfo, result: ParseResult) {
+        result.end()
         this.result.complete(result)
     }
 
