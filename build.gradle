@@ -26,6 +26,7 @@ dependencies {
 
     implementation group:'org.postgresql',name:'postgresql',version:'42.2.11'
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.1'
+    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
 
     runtimeOnly fileTree('libs') { include '*.jar' }
 
