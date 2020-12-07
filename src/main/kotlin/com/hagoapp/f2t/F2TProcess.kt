@@ -7,7 +7,9 @@
 package com.hagoapp.f2t
 
 import com.hagoapp.f2t.database.DbConnection
+import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
+import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import java.lang.reflect.Method
@@ -19,9 +21,9 @@ import java.time.Instant
  * the config) and write data into it. It may add one additional column of timestamp in long integer to identify
  * different running(based on config), or truncate existing data from table(based on config).
  */
-class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TConfig: F2TConfig) : ParseObserver {
+class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2TConfig) : ParseObserver {
     private var parser: FileParser = dataFileRParser
-    private var connection: DbConnection = dbConnection
+    private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
@@ -45,6 +47,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
         table = TableName(config.targetTable, config.targetSchema ?: "")
+        connection = DbConnectionFactory.createDbConnection(dbConfig)
     }
 
     fun run() {
@@ -115,8 +118,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConnection: DbConnection, f2TCon
     }
 
     override fun onParseComplete(fileInfo: FileInfo, result: ParseResult) {
-        result.end()
-        this.result.complete(result)
+        try {
+            connection.close()
+        } catch (e: Throwable) {
+            this.result.errors.add(e)
+        } finally {
+            result.end()
+            this.result.complete(result)
+        }
     }
 
     override fun onRowError(e: Throwable): Boolean {

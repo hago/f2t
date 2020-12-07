@@ -8,7 +8,6 @@ package com.hagoapp.f2t.process
 
 import com.google.gson.Gson
 import com.hagoapp.f2t.*
-import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.config.DbConfigReader
 import com.hagoapp.f2t.datafile.FileInfoReader
 import org.junit.jupiter.api.Assertions
@@ -49,15 +48,13 @@ class ProcessTester {
         val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
         fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename).absolutePath
         val dbConfig = DbConfigReader.readConfig(dbConfigFile)
-        DbConnectionFactory.createDbConnection(dbConfig).use { dbConnection ->
-            val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
-            val parser = FileParser(fileInfo)
-            parser.addObserver(FileTestObserver())
-            val process = F2TProcess(parser, dbConnection, f2tConfig)
-            process.run()
-            println(process.result)
-            Assertions.assertTrue(process.result.succeeded())
-        }
+        val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
+        val parser = FileParser(fileInfo)
+        parser.addObserver(FileTestObserver())
+        val process = F2TProcess(parser, dbConfig, f2tConfig)
+        process.run()
+        println(process.result)
+        Assertions.assertTrue(process.result.succeeded())
     }
 
     override fun toString(): String {
