@@ -16,6 +16,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
 import java.sql.SQLException
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -23,7 +24,7 @@ import java.util.*
 class HiveConnection : DbConnection() {
 
     companion object {
-//        private const val SERVICE_DISCOVERY_MODE = "serviceDiscoveryMode"
+        //        private const val SERVICE_DISCOVERY_MODE = "serviceDiscoveryMode"
 //        private const val ZOOKEEPER_NODES = "zookeeperNodes"
 //        private const val ZOOKEEPER_NAMESPACE = "zookeeperNamespace"
         private const val HIVE_DRIVER_CLASS_NAME = "com.cloudera.hive.jdbc.HS2Driver"
@@ -251,7 +252,10 @@ class HiveConnection : DbConnection() {
             JDBCType.CLOB,
             { value: Any? ->
                 logger.debug(value?.toString())
-                val nv = (value as ZonedDateTime).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"))
+                val nv = (value as ZonedDateTime).format(
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.of("UTC"))
+                )
                 logger.debug(nv?.toString())
                 nv
             }
