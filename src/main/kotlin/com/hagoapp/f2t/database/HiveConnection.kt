@@ -251,12 +251,12 @@ class HiveConnection : DbConnection() {
         val lambda = Pair(
             JDBCType.CLOB,
             { value: Any? ->
-                logger.debug(value?.toString())
+                //logger.debug(value?.toString())
                 val nv = (value as ZonedDateTime).format(
                     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                         .withZone(ZoneId.of("UTC"))
                 )
-                logger.debug(nv?.toString())
+                //logger.debug(nv?.toString())
                 nv
             }
         )
