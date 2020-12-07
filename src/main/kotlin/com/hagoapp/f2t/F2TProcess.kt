@@ -77,6 +77,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
             val difference = tblDef.diff(colDef.toSet(), connection.isCaseSensitive())
             if (!difference.noDifference) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
+                logger.error(difference.toString())
             } else {
                 if (config.isClearTable) {
                     connection.clearTable(table)
