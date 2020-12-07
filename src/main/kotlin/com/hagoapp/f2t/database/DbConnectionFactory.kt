@@ -17,6 +17,7 @@ class DbConnectionFactory {
                 DbType.PostgreSql -> PgSqlConnection()
                 DbType.MariaDb -> MariaDBConnection()
                 DbType.Hive -> HiveConnection()
+                DbType.MsSqlServer -> MsSqlConnection()
                 else -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
             }
             connection.open(dbConfig)

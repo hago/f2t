@@ -48,6 +48,8 @@ public class DbConfigReader {
                 return gson.fromJson(json, MariaDbConfig.class);
             case Hive:
                 return gson.fromJson(json, HiveConfig.class);
+            case MsSqlServer:
+                return gson.fromJson(json, MsSqlConfig.class);
             default:
                 throw new F2TException(String.format("DB config type %s not supported", baseConfig.getDbType().name()));
         }
