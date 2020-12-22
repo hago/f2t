@@ -55,3 +55,9 @@ test {
     useJUnitPlatform()
     systemProperties = System.properties as Map<String, ?>
 }
+
+uploadArchives {
+    repositories {
+        mavenLocal{}
+    }
+}
