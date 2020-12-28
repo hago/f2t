@@ -6,6 +6,7 @@ import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.datafile.ParseResult
 import java.lang.reflect.Method
+import java.sql.JDBCType
 import java.time.Instant
 
 class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
@@ -15,7 +16,6 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
     private val table: TableName
-    private var batchNum = -1L
 
     companion object {
         private val methods = mutableMapOf<String, Method>()
@@ -42,7 +42,6 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
             if (!prepareTable()) {
                 throw Exception("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
             }
-            batchNum = Instant.now().toEpochMilli()
             dataTable.rows.forEachIndexed { i, row ->
                 try {
                     onRowRead(row)
@@ -64,6 +63,21 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     }
 
     private fun prepareTable(): Boolean {
+        if (config.isAddBatch && !dataTable.columnDefinition.any { it.name == config.batchColumnName }) {
+            val batchIndex = dataTable.columnDefinition.size
+            val newDefinitions = dataTable.columnDefinition.toMutableList()
+                .plus(
+                    ColumnDefinition(
+                        batchIndex, config.batchColumnName,
+                        mutableSetOf(JDBCType.BIGINT), JDBCType.BIGINT
+                    )
+                )
+            val batchNumber = Instant.now().toEpochMilli()
+            val rows = dataTable.rows.map { dataRow ->
+                DataRow(dataRow.rowNo, dataRow.cells.toMutableList().plus(DataCell(batchNumber, batchIndex)))
+            }
+            dataTable = DataTable(newDefinitions, rows)
+        }
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             val difference = tblDef.diff(dataTable.columnDefinition.toSet(), connection.isCaseSensitive())
@@ -72,6 +86,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
                 logger.error(difference.toString())
                 false
             } else {
+                tableMatchedFile = true
                 if (config.isClearTable) {
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
@@ -102,11 +117,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
 
     private fun onRowRead(row: DataRow) {
         if (tableMatchedFile) {
-            val r = if (batchNum < 0) row else DataRow(
-                row.rowNo, row.cells.toMutableList()
-                    .plus(DataCell(batchNum, row.cells.size))
-            )
-            connection.writeRow(table, r)
+            connection.writeRow(table, row)
         }
     }
 
