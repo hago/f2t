@@ -58,7 +58,8 @@ class PgSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return ret
+                        return if (ret.isNotEmpty()) ret
+                        else mapOf(getDefaultSchema() to listOf())
                     }
                 }
             }
