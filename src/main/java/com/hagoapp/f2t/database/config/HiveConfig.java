@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t.database.config;
 
+import com.hagoapp.f2t.database.DbType;
 import com.hagoapp.f2t.database.config.hive.AuthMech;
 import com.hagoapp.f2t.database.config.hive.ServiceDiscoveryMode;
 import com.hagoapp.f2t.database.config.hive.TransportMode;
@@ -21,6 +22,11 @@ public class HiveConfig extends DbConfig {
     private int port = 10000;
     private String zooKeeperNamespace;
     private List<ZooKeeperQuorum> quorums;
+
+    public HiveConfig() {
+        super();
+        dbType = DbType.Hive;
+    }
 
     public int getPort() {
         return port <= 0 ? 10000 : port;

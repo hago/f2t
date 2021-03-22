@@ -7,11 +7,18 @@
 
 package com.hagoapp.f2t.database.config;
 
+import com.hagoapp.f2t.database.DbType;
+
 public class MariaDbConfig extends DbConfig {
     private String host;
     private Integer port;
     private String socketFile;
     private String storeEngine;
+
+    public MariaDbConfig() {
+        super();
+        dbType = DbType.MariaDb;
+    }
 
     public String getStoreEngine() {
         return storeEngine;

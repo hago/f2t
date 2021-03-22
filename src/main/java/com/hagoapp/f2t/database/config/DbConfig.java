@@ -25,10 +25,6 @@ public class DbConfig implements JsonStringify {
         return dbType;
     }
 
-    public void setDbType(DbType dbType) {
-        this.dbType = dbType;
-    }
-
     public String getUsername() {
         return username;
     }
