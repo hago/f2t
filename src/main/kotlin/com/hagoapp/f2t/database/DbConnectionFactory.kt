@@ -19,11 +19,12 @@ class DbConnectionFactory {
         private val logger = F2TLogger.getLogger()
 
         init {
-            val r = Reflections(F2TException::class.java.canonicalName, SubTypesScanner())
+            val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
             r.getSubTypesOf(DbConnection::class.java).forEach { t ->
                 try {
                     val template = t.getConstructor().newInstance()
                     typedConnectionMapper[template.getSupportedDbType()] = t
+                    logger.info("DbConnection ${t.canonicalName} registered")
                 } catch (e: Exception) {
                     logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
                 }
@@ -32,9 +33,8 @@ class DbConnectionFactory {
 
         @JvmStatic
         fun createDbConnection(dbConfig: DbConfig): DbConnection {
-            val clz = typedConnectionMapper[dbConfig.dbType]
-            return when {
-                clz == null -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
+            return when (val clz = typedConnectionMapper[dbConfig.dbType]) {
+                null -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
                 else -> {
                     val con = clz.getConstructor().newInstance()
                     con.open(dbConfig)
