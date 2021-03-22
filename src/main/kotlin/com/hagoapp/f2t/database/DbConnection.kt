@@ -29,6 +29,11 @@ abstract class DbConnection : Closeable {
         mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
 
     /**
+     * Tell user what kind of db config is required
+     */
+    abstract fun getSupportedDbType(): DbType
+
+    /**
      * Whether the config is valid to lead a successful connection.
      */
     abstract fun canConnect(conf: DbConfig): Pair<Boolean, String>
@@ -44,7 +49,8 @@ abstract class DbConnection : Closeable {
     abstract fun listDatabases(conf: DbConfig): List<String>
 
     /**
-     * Create the JDBC connection when needed. This method could be called many other methods in implementation.
+     * Create the internal JDBC connection for those methods which doesn't have a <code>DbConfig</code> parameter.
+     * This method could be called by many other methods in implementation.
      */
     open fun open(conf: DbConfig) {
         connection = getConnection(conf)

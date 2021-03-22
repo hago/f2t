@@ -7,21 +7,40 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
+import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 
 class DbConnectionFactory {
     companion object {
+
+        private val typedConnectionMapper = mutableMapOf<DbType, Class<out DbConnection>>()
+        private val logger = F2TLogger.getLogger()
+
+        init {
+            val r = Reflections(F2TException::class.java.canonicalName, SubTypesScanner())
+            r.getSubTypesOf(DbConnection::class.java).forEach { t ->
+                try {
+                    val template = t.getConstructor().newInstance()
+                    typedConnectionMapper[template.getSupportedDbType()] = t
+                } catch (e: Exception) {
+                    logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
+                }
+            }
+        }
+
         @JvmStatic
         fun createDbConnection(dbConfig: DbConfig): DbConnection {
-            val connection = when(dbConfig.dbType) {
-                DbType.PostgreSql -> PgSqlConnection()
-                DbType.MariaDb -> MariaDBConnection()
-                DbType.Hive -> HiveConnection()
-                DbType.MsSqlServer -> MsSqlConnection()
-                else -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
+            val clz = typedConnectionMapper[dbConfig.dbType]
+            return when {
+                clz == null -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
+                else -> {
+                    val con = clz.getConstructor().newInstance()
+                    con.open(dbConfig)
+                    con
+                }
             }
-            connection.open(dbConfig)
-            return connection
         }
     }
 }

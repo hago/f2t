@@ -90,6 +90,10 @@ class HiveConnection : DbConnection() {
         return "jdbc:hive2://${conf.databaseName};$zk;"
     }
 
+    override fun getSupportedDbType(): DbType {
+        return DbType.Hive
+    }
+
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
         try {
             getConnection(conf).use {

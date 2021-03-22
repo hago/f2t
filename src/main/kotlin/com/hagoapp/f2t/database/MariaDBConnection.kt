@@ -27,6 +27,10 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
+    override fun getSupportedDbType(): DbType {
+        return DbType.MariaDb
+    }
+
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
         try {
             getConnection(conf).use {
