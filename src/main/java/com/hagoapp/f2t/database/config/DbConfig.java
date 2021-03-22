@@ -12,11 +12,10 @@
 
 package com.hagoapp.f2t.database.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.hagoapp.f2t.JsonStringify;
 import com.hagoapp.f2t.database.DbType;
 
-public class DbConfig {
+public class DbConfig implements JsonStringify {
     protected DbType dbType;
     protected String username;
     protected String password;
@@ -52,10 +51,5 @@ public class DbConfig {
 
     public void setDatabaseName(String databaseName) {
         this.databaseName = databaseName;
-    }
-
-    public String toString() {
-        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
-        return gson.toJson(this);
     }
 }
