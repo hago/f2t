@@ -7,12 +7,12 @@
 package com.hagoapp.f2t;
 
 public class F2TConfig {
-    private String targetTable;
-    private String targetSchema = "";
-    private boolean addBatch = true;
-    private boolean clearTable = false;
-    private boolean createTableIfNeeded = true;
-    private String batchColumnName = "f2tBatch";
+    protected String targetTable;
+    protected String targetSchema = "";
+    protected boolean addBatch = true;
+    protected boolean clearTable = false;
+    protected boolean createTableIfNeeded = true;
+    protected String batchColumnName = "f2tBatch";
 
     public String getTargetTable() {
         return targetTable;
