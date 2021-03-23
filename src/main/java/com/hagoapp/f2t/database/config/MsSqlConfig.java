@@ -16,7 +16,7 @@ public class MsSqlConfig extends DbConfig {
     }
 
     private String host;
-    private int port;
+    private int port = 1433;
 
     public String getHost() {
         return host;

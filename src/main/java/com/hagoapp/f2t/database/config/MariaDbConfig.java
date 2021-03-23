@@ -11,7 +11,7 @@ import com.hagoapp.f2t.database.DbType;
 
 public class MariaDbConfig extends DbConfig {
     private String host;
-    private Integer port;
+    private Integer port = 3306;
     private String socketFile;
     private String storeEngine;
 
