@@ -84,7 +84,8 @@ class MariaDBConnection : DbConnection() {
 
     override fun getConnection(conf: DbConfig): Connection {
         val mariaDbConfig = checkConfig(conf)
-        val dbName = if (mariaDbConfig.databaseName.isNullOrBlank()) "mysql" else mariaDbConfig.databaseName
+        val dbName = if (mariaDbConfig.databaseName.isNullOrBlank()) "information_schema"
+        else mariaDbConfig.databaseName
         if (listOf(mariaDbConfig.host, mariaDbConfig.username, mariaDbConfig.password).any { it == null }) {
             throw F2TException("Configuration is incomplete")
         }
