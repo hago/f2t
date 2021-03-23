@@ -84,13 +84,11 @@ class MariaDBConnection : DbConnection() {
 
     override fun getConnection(conf: DbConfig): Connection {
         val mariaDbConfig = checkConfig(conf)
-        if (mariaDbConfig.databaseName.isNullOrBlank()) {
-            throw F2TException("database not specified")
-        }
+        val dbName = if (mariaDbConfig.databaseName.isNullOrBlank()) "mysql" else mariaDbConfig.databaseName
         if (listOf(mariaDbConfig.host, mariaDbConfig.username, mariaDbConfig.password).any { it == null }) {
             throw F2TException("Configuration is incomplete")
         }
-        val conStr = "jdbc:mariadb://${mariaDbConfig.host}:${mariaDbConfig.port}/${mariaDbConfig.databaseName}"
+        val conStr = "jdbc:mariadb://${mariaDbConfig.host}:${mariaDbConfig.port}/$dbName"
         val props = Properties()
         props.putAll(mapOf("user" to mariaDbConfig.username, "password" to mariaDbConfig.password))
         return DriverManager.getConnection(conStr, props)
