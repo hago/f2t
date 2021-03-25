@@ -62,7 +62,8 @@ class MsSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return ret
+                        return if (ret.isNotEmpty()) ret
+                        else mapOf(conf.databaseName to listOf())
                     }
                 }
             }
