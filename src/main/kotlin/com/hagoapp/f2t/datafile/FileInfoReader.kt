@@ -40,7 +40,7 @@ class FileInfoReader {
         fun json2FileInfo(content: String): FileInfo {
             val gson = GsonBuilder().create()
             val base = gson.fromJson(content, FileInfo::class.java)
-            return when (base.type) {
+            return when (base.getFileType()) {
                 FileType.CSV -> gson.fromJson(content, FileInfoCsv::class.java)
                 FileType.Excel, FileType.ExcelOpenXML -> gson.fromJson(content, FileInfoExcel::class.java)
                 else -> throw F2TException("FileInfo type unknown")

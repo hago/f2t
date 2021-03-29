@@ -12,7 +12,7 @@ import com.hagoapp.f2t.datafile.excel.ExcelDataFileReader
 object ReaderFactory {
     @JvmStatic
     fun getReader(fileInfo: FileInfo): Reader {
-        return when (val type = fileInfo.type) {
+        return when (val type = fileInfo.getFileType()) {
             FileType.CSV -> CSVDataReader()
             FileType.Excel,
             FileType.ExcelOpenXML -> ExcelDataFileReader()

@@ -24,7 +24,7 @@ public class CsvReadTest {
 
     private static final String testConfigFile = "./tests/csv/shuihudata.json";
     private static CsvTestConfig testConfig;
-    private static Logger logger = F2TLogger.getLogger();
+    private static final Logger logger = F2TLogger.getLogger();
 
     @BeforeAll
     public static void loadConfig() throws IOException {
