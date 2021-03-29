@@ -26,7 +26,7 @@ open class FileInfo(initFilename: String) {
         return type
     }
 
-    protected fun calcType() {
+    protected open fun calcType() {
         val i = filename.lastIndexOf('.')
         type = if (i < 0) {
             FileType.Unknown
