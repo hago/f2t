@@ -11,6 +11,11 @@ import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
 
 class FileInfoCsv(filename: String) : FileInfo(filename) {
+
+    companion object {
+        const val FILE_TYPE_CSV = 1
+    }
+
     var encoding: String? = null
         set(value) {
             try {
@@ -21,6 +26,7 @@ class FileInfoCsv(filename: String) : FileInfo(filename) {
         }
     var quote = '"'
     var delimiter = ','
+    override val type: Int = FILE_TYPE_CSV
 
     override fun toString(): String {
         return "FileInfoCsv(encoding=$encoding, quote=$quote, delimiter=$delimiter, filename=$filename)"
