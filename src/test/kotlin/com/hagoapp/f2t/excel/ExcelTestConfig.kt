@@ -9,7 +9,7 @@ package com.hagoapp.f2t.excel
 import com.hagoapp.f2t.FileTestExpect
 import com.hagoapp.f2t.datafile.excel.FileInfoExcel
 
-data class ExcelTestConfig (
-    var fileInfo:FileInfoExcel,
+data class ExcelTestConfig(
+    var fileInfo: FileInfoExcel,
     var expect: FileTestExpect
 )
