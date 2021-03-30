@@ -91,6 +91,10 @@ class CSVDataReader : Reader {
         return columns.values.toList().sortedBy { it.index }
     }
 
+    override fun getSupportedFileType(): Set<Int> {
+        return setOf(FileInfoCsv.FILE_TYPE_CSV)
+    }
+
     override fun close() {
         data.clear()
     }

@@ -55,6 +55,10 @@ class ExcelDataFileReader : Reader {
         return columns.values.sortedBy { it.index }
     }
 
+    override fun getSupportedFileType(): Set<Int> {
+        return setOf(FileInfoExcel.FILE_TYPE_EXCEL, FileInfoExcelX.FILE_TYPE_EXCEL_OPEN_XML)
+    }
+
     override fun close() {
         try {
             workbook.close()

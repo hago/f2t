@@ -6,17 +6,31 @@
 package com.hagoapp.f2t.datafile
 
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.datafile.csv.CSVDataReader
-import com.hagoapp.f2t.datafile.excel.ExcelDataFileReader
+import com.hagoapp.f2t.F2TLogger
+import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
+import java.lang.reflect.Constructor
 
 object ReaderFactory {
+
+    private val readerMap = mutableMapOf<Int, Constructor<out Reader>>()
+    private val logger = F2TLogger.getLogger()
+
+    init {
+        val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
+        r.getSubTypesOf(Reader::class.java).forEach { clz ->
+            val constructor = clz.getConstructor()
+            val template = constructor.newInstance()
+            template.getSupportedFileType().forEach { fileType ->
+                readerMap[fileType] = constructor
+                logger.info("Data file reader registered for type $fileType")
+            }
+        }
+    }
+
     @JvmStatic
     fun getReader(fileInfo: FileInfo): Reader {
-        return when (val type = fileInfo.getFileType()) {
-            FileType.CSV -> CSVDataReader()
-            FileType.Excel,
-            FileType.ExcelOpenXML -> ExcelDataFileReader()
-            else -> throw F2TException("file type ${type.name} is not supported")
-        }
+        val constructor = readerMap[fileInfo.type] ?: throw F2TException("file type ${fileInfo.type} is not supported")
+        return constructor.newInstance()
     }
 }
