@@ -13,38 +13,36 @@ import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import java.io.FileInputStream
 import java.io.InputStream
+import java.nio.file.Path
 
 class FileInfoReader {
     companion object {
 
         private val fileInfoMap = mutableMapOf<Int, Class<out FileInfo>>()
+        private val fileInfoExtMap = mutableMapOf<String, Class<out FileInfo>>()
         private val logger = F2TLogger.getLogger()
 
         init {
-            logger.debug("1")
             val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
-            logger.debug("2")
             r.getSubTypesOf(FileInfo::class.java).forEach { clz ->
                 val constructor = clz.getConstructor(String::class.java)
-                logger.debug("3")
                 val template = constructor.newInstance("")
-                logger.debug("4")
                 fileInfoMap[template.type] = clz
+                template.getSupportedFileExtNames().forEach { ext ->
+                    fileInfoExtMap[ext] = clz
+                }
                 logger.info("FileInfo reader registered for type ${template.type}")
             }
         }
 
-        @JvmStatic
         fun createFileInfo(stream: InputStream): FileInfo {
             return createFileInfo(stream.readAllBytes())
         }
 
-        @JvmStatic
         fun createFileInfo(content: ByteArray): FileInfo {
             return json2FileInfo(String(content))
         }
 
-        @JvmStatic
         fun createFileInfo(filename: String): FileInfo {
             try {
                 FileInputStream(filename).use {
@@ -55,12 +53,25 @@ class FileInfoReader {
             }
         }
 
-        @JvmStatic
         fun json2FileInfo(content: String): FileInfo {
+            println(content)
             val gson = GsonBuilder().create()
             val base = gson.fromJson(content, FileInfo::class.java)
-            val clz = fileInfoMap[base.type] ?: throw F2TException("FileInfo type ${base.type} unknown")
+            val clz = when {
+                fileInfoMap.containsKey(base.type) -> fileInfoMap[base.type]
+                else -> getConcreteFileInfoByName(base.filename)
+            } ?: throw F2TException("FileInfo type ${base.type} unknown")
             return gson.fromJson(content, clz)
+        }
+
+        private fun getConcreteFileInfoByName(fn: String): Class<out FileInfo>? {
+            val ext = getFileExtension(fn).toLowerCase().trim()
+            return fileInfoExtMap[ext]
+        }
+
+        private fun getFileExtension(fn: String): String {
+            val parts = fn.split('.')
+            return if (parts.size == 1) "" else parts.last()
         }
     }
 }
