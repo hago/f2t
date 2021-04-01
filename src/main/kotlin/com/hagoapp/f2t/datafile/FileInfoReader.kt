@@ -13,7 +13,6 @@ import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import java.io.FileInputStream
 import java.io.InputStream
-import java.nio.file.Path
 
 class FileInfoReader {
     companion object {
@@ -25,8 +24,8 @@ class FileInfoReader {
         init {
             val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
             r.getSubTypesOf(FileInfo::class.java).forEach { clz ->
-                val constructor = clz.getConstructor(String::class.java)
-                val template = constructor.newInstance("")
+                val constructor = clz.getConstructor()
+                val template = constructor.newInstance()
                 fileInfoMap[template.type] = clz
                 template.getSupportedFileExtNames().forEach { ext ->
                     fileInfoExtMap[ext] = clz
@@ -64,7 +63,8 @@ class FileInfoReader {
             return gson.fromJson(content, clz)
         }
 
-        private fun getConcreteFileInfoByName(fn: String): Class<out FileInfo>? {
+        private fun getConcreteFileInfoByName(fn: String?): Class<out FileInfo>? {
+            fn ?: return null
             val ext = getFileExtension(fn).toLowerCase().trim()
             return fileInfoExtMap[ext]
         }

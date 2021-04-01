@@ -10,7 +10,7 @@ import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
 
-class FileInfoCsv(filename: String) : FileInfo(filename) {
+class FileInfoCsv : FileInfo() {
 
     companion object {
         const val FILE_TYPE_CSV = 1

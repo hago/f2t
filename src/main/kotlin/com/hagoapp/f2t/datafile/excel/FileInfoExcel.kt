@@ -10,7 +10,7 @@ import com.hagoapp.f2t.datafile.FileInfo
 /**
  * Information of excel to read. {@code}sheetIndex priorities {@code sheetName}. Sheet 0 will be used if both are null.
  */
-open class FileInfoExcel(name: String) : FileInfo(name) {
+open class FileInfoExcel : FileInfo() {
 
     companion object {
         const val FILE_TYPE_EXCEL = 2

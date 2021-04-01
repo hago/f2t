@@ -15,6 +15,7 @@ import org.apache.commons.csv.CSVParser
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 class CSVDataReader : Reader {
 
@@ -72,7 +73,11 @@ class CSVDataReader : Reader {
     }
 
     private fun charsetForFile(fileInfo: FileInfoCsv): Charset {
-        return Charset.forName(fileInfo.encoding ?: EncodingUtils.guessEncoding(fileInfo.filename))
+        return when {
+            fileInfo.encoding != null -> Charset.forName(fileInfo.encoding)
+            fileInfo.filename == null -> StandardCharsets.UTF_8
+            else -> Charset.forName(EncodingUtils.guessEncoding(fileInfo.filename!!))
+        }
     }
 
     private fun checkLoad() {

@@ -6,11 +6,13 @@
 
 package com.hagoapp.f2t.datafile
 
-abstract class FileInfo(initFilename: String) {
+open class FileInfo {
 
-    var filename: String = initFilename
+    var filename: String? = null
 
-    abstract val type: Int
+    open val type: Int = 0
 
-    abstract fun getSupportedFileExtNames(): Set<String>
+    open fun getSupportedFileExtNames(): Set<String> {
+        throw NotImplementedError("No supported file extension names in base class FileInfo")
+    }
 }

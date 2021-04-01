@@ -5,7 +5,7 @@
  */
 package com.hagoapp.f2t.datafile.excel
 
-class FileInfoExcelX(name: String) : FileInfoExcel(name) {
+class FileInfoExcelX : FileInfoExcel() {
     companion object {
         const val FILE_TYPE_EXCEL_OPEN_XML = 3
     }
