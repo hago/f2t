@@ -27,6 +27,9 @@ class FileInfoCsv(filename: String) : FileInfo(filename) {
     var quote = '"'
     var delimiter = ','
     override val type: Int = FILE_TYPE_CSV
+    override fun getSupportedFileExtNames(): Set<String> {
+        return setOf("csv", "tsv")
+    }
 
     override fun toString(): String {
         return "FileInfoCsv(encoding=$encoding, quote=$quote, delimiter=$delimiter, filename=$filename)"

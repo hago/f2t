@@ -12,4 +12,5 @@ abstract class FileInfo(initFilename: String) {
 
     abstract val type: Int
 
+    abstract fun getSupportedFileExtNames(): Set<String>
 }
