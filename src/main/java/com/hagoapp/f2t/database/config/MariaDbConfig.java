@@ -10,6 +10,7 @@ package com.hagoapp.f2t.database.config;
 import com.hagoapp.f2t.database.DbType;
 
 public class MariaDbConfig extends DbConfig {
+    private static final String STORE_ENGINE_INNODB = "innodb";
     private String host;
     private Integer port = 3306;
     private String socketFile;
@@ -21,7 +22,7 @@ public class MariaDbConfig extends DbConfig {
     }
 
     public String getStoreEngine() {
-        return storeEngine;
+        return storeEngine != null ? storeEngine : STORE_ENGINE_INNODB;
     }
 
     public void setStoreEngine(String storeEngine) {
