@@ -53,7 +53,6 @@ class FileInfoReader {
         }
 
         fun json2FileInfo(content: String): FileInfo {
-            println(content)
             val gson = GsonBuilder().create()
             val base = gson.fromJson(content, FileInfo::class.java)
             val clz = when {
@@ -61,6 +60,10 @@ class FileInfoReader {
                 else -> getConcreteFileInfoByName(base.filename)
             } ?: throw F2TException("FileInfo type ${base.type} unknown")
             return gson.fromJson(content, clz)
+        }
+
+        fun json2FileInfo(content: Map<String, Any?>): FileInfo {
+            return json2FileInfo(GsonBuilder().create().toJson(content))
         }
 
         private fun getConcreteFileInfoByName(fn: String?): Class<out FileInfo>? {
