@@ -10,7 +10,10 @@ class FileInfoExcelX : FileInfoExcel() {
         const val FILE_TYPE_EXCEL_OPEN_XML = 3
     }
 
-    override val type: Int = FILE_TYPE_EXCEL_OPEN_XML
+    override fun getFileTypeValue(): Int {
+        return FILE_TYPE_EXCEL_OPEN_XML
+    }
+
     override fun getSupportedFileExtNames(): Set<String> {
         return setOf("xlsx")
     }

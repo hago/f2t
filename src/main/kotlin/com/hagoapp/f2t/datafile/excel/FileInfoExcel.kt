@@ -18,7 +18,10 @@ open class FileInfoExcel : FileInfo() {
 
     var sheetIndex: Int? = null
     var sheetName: String? = null
-    override val type: Int = FILE_TYPE_EXCEL
+    override fun getFileTypeValue(): Int {
+        return FILE_TYPE_EXCEL
+    }
+
     override fun getSupportedFileExtNames(): Set<String> {
         return setOf("xls")
     }

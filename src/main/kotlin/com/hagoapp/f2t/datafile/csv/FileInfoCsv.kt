@@ -20,13 +20,17 @@ class FileInfoCsv : FileInfo() {
         set(value) {
             try {
                 Charset.forName(value)
+                field = value
             } catch (e: Throwable) {
                 throw F2TException("$value is not valid charset", e)
             }
         }
     var quote = '"'
     var delimiter = ','
-    override val type: Int = FILE_TYPE_CSV
+    override fun getFileTypeValue(): Int {
+        return FILE_TYPE_CSV
+    }
+
     override fun getSupportedFileExtNames(): Set<String> {
         return setOf("csv", "tsv")
     }

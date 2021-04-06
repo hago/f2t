@@ -8,9 +8,17 @@ package com.hagoapp.f2t.datafile
 
 open class FileInfo {
 
+    companion object {
+        const val FILE_TYPE_UNDETERMINED = 0
+    }
+
     var filename: String? = null
 
-    open val type: Int = 0
+    val type: Int = getFileTypeValue()
+
+    open fun getFileTypeValue(): Int {
+        return FILE_TYPE_UNDETERMINED
+    }
 
     open fun getSupportedFileExtNames(): Set<String> {
         throw NotImplementedError("No supported file extension names in base class FileInfo")
