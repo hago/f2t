@@ -22,6 +22,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
     private val table: TableName
+    var progressNotifier: ProgressNotify? = null
 
     companion object {
         private val methods = mutableMapOf<String, Method>()
@@ -43,19 +44,24 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     }
 
     fun run(): ParseResult {
+        progressNotifier?.onStart()
         val parseResult = ParseResult()
         try {
             if (!prepareTable()) {
                 throw Exception("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
             }
+            val count = dataTable.rows.size
             dataTable.rows.forEachIndexed { i, row ->
                 try {
                     onRowRead(row)
+                    progressNotifier?.onProgress(i.toFloat() / count.toFloat())
                 } catch (e: Throwable) {
                     parseResult.addError(i.toLong(), e)
                 }
             }
+            progressNotifier?.onComplete(true)
         } catch (e: Throwable) {
+            progressNotifier?.onComplete(false)
             parseResult.addError(-1L, e)
         } finally {
             parseResult.end()
