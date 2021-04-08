@@ -6,10 +6,12 @@
 
 package com.hagoapp.f2t;
 
+import com.hagoapp.f2t.datafile.ParseResult;
+
 public interface ProgressNotify {
     void onStart();
 
-    void onComplete(boolean succeeded);
+    void onComplete(ParseResult result);
 
     void onProgress(float progress);
 }

@@ -59,9 +59,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
                     parseResult.addError(i.toLong(), e)
                 }
             }
-            progressNotifier?.onComplete(true)
         } catch (e: Throwable) {
-            progressNotifier?.onComplete(false)
             parseResult.addError(-1L, e)
         } finally {
             parseResult.end()
@@ -71,6 +69,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
                 logger.error("error: $e in connection close")
             }
         }
+        progressNotifier?.onComplete(parseResult)
         return parseResult
     }
 
