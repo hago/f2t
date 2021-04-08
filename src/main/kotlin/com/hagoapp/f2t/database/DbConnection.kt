@@ -183,7 +183,7 @@ abstract class DbConnection : Closeable {
         }
     }
 
-    protected open fun flushRows(table: TableName) {
+    open fun flushRows(table: TableName) {
         val fieldValueSetter = fieldValueSetters.getValue(table)
         //logger.debug(insertionMap.getValue(table))
         connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
