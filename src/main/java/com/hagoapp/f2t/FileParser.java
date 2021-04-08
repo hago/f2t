@@ -67,9 +67,9 @@ public class FileParser {
     }
 
     public void parse(FileParserOption option) {
+        ParseResult result = new ParseResult();
         try (Reader reader = ReaderFactory.getReader(fileInfo)) {
             notifyObserver("onParseStart", fileInfo);
-            ParseResult result = new ParseResult();
             reader.open(fileInfo);
             Integer rowNo = reader.getRowCount();
             if (rowNo != null) {
@@ -78,11 +78,13 @@ public class FileParser {
             List<ColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);
             if (!option.isInferColumnTypes()) {
+                endParse(result);
                 return;
             }
             List<ColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
             notifyObserver("onColumnTypeDetermined", typedDefinitions);
             if (!option.isReadData()) {
+                endParse(result);
                 return;
             }
             int i = 0;
@@ -101,10 +103,17 @@ public class FileParser {
             if (rowNo == null) {
                 notifyObserver("onRowCountDetermined", i);
             }
-            notifyObserver("onParseComplete", fileInfo, result);
         } catch (Throwable e) {
             notifyObserver("onError", e);
+            result.addError(-1, e);
+        } finally {
+            endParse(result);
         }
+    }
+
+    private void endParse(ParseResult result) {
+        result.end();
+        notifyObserver("onParseComplete", fileInfo, result);
     }
 
     private void notifyObserver(String methodName, Object... params) {
@@ -141,7 +150,7 @@ public class FileParser {
 
     private static class ExtractorObserver implements ParseObserver {
         private List<ColumnDefinition> columns = null;
-        private List<DataRow> rows = new ArrayList<>();
+        private final List<DataRow> rows = new ArrayList<>();
         private Throwable error;
 
         @Override

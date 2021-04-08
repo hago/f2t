@@ -119,14 +119,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
     }
 
     override fun onParseComplete(fileInfo: FileInfo, result: ParseResult) {
-        try {
-            connection.close()
-        } catch (e: Throwable) {
-            this.result.errors.add(e)
-        } finally {
-            result.end()
-            this.result.complete(result)
-        }
+        connection.flushRows(table)
+        result.end()
+        this.result.complete(result)
     }
 
     override fun onRowError(e: Throwable): Boolean {
