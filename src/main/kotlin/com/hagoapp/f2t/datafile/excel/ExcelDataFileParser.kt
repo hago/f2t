@@ -16,9 +16,10 @@ class ExcelDataFileParser(fileName: String) {
                         val row = sheet.getRow(0)
                         ExcelSheetInfo(
                             rowCount = sheet.lastRowNum - sheet.firstRowNum + 1,
-                            columns = (row.firstCellNum..row.lastCellNum).map { j ->
-                                row.getCell(j).stringCellValue
-                            }
+                            columns = (row.firstCellNum until row.lastCellNum).mapNotNull { j ->
+                                row.getCell(j)?.stringCellValue
+                            },
+                            name = sheet.sheetName
                         )
                     }
                 )
