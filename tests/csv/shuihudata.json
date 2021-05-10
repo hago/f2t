@@ -17,7 +17,7 @@
       "布尔": "BOOLEAN",
       "浮点": "DOUBLE",
       "整数": "BIGINT",
-      "日期": "TIMESTAMP"
+      "日期": "TIMESTAMP_WITH_TIMEZONE"
     }
   }
 }

@@ -35,7 +35,7 @@ class JDBCTypeUtils {
                 types.contains(JDBCType.INTEGER) || types.contains(JDBCType.BIGINT) -> JDBCType.BIGINT
                 types.contains(JDBCType.DOUBLE) || types.contains(JDBCType.FLOAT)
                         || types.contains(JDBCType.DECIMAL) -> JDBCType.DOUBLE
-                types.contains(JDBCType.TIMESTAMP) -> JDBCType.TIMESTAMP
+                types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE) -> JDBCType.TIMESTAMP_WITH_TIMEZONE
                 else -> JDBCType.CLOB
             }
         }
@@ -94,7 +94,7 @@ class JDBCTypeUtils {
                 JDBCType.INTEGER -> value.toInt()
                 JDBCType.BIGINT -> value.toLong()
                 JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> value.toDouble()
-                JDBCType.TIMESTAMP -> stringToDateTime(
+                JDBCType.TIMESTAMP_WITH_TIMEZONE -> stringToDateTime(
                     value
                 )
                 JDBCType.BOOLEAN -> toBoolean(value)
@@ -140,7 +140,7 @@ class JDBCTypeUtils {
                 dl.add(JDBCType.BOOLEAN)
             }
             if (stringToDateTimeOrNull(value) != null) {
-                dl.add(JDBCType.TIMESTAMP)
+                dl.add(JDBCType.TIMESTAMP_WITH_TIMEZONE)
             }
             return dl
         }
