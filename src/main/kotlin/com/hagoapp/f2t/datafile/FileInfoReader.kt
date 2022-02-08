@@ -68,7 +68,7 @@ class FileInfoReader {
 
         private fun getConcreteFileInfoByName(fn: String?): Class<out FileInfo>? {
             fn ?: return null
-            val ext = getFileExtension(fn).toLowerCase().trim()
+            val ext = getFileExtension(fn).lowercase().trim()
             return fileInfoExtMap[ext]
         }
 

@@ -67,7 +67,7 @@ class EncodingUtils {
         }
 
         fun mapDetectorEnc2JavaEnc(enc: String, default: String?): String? {
-            return when (val enc0 = enc.toUpperCase()) {
+            return when (val enc0 = enc.uppercase()) {
                 "ISO-2022-JP",
                 "ISO-2022-CN",
                 "ISO-2022-KR",

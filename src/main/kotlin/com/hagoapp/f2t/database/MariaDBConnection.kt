@@ -184,7 +184,7 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
-        return when (typeName.substringBefore('(').toLowerCase()) {
+        return when (typeName.substringBefore('(').lowercase()) {
             "tinyint", "bit" -> JDBCType.BOOLEAN
             "int", "smallint", "mediumint" -> JDBCType.INTEGER
             "bigint" -> JDBCType.BIGINT
