@@ -53,7 +53,7 @@ class TableDefinition(var columns: Set<ColumnDefinition>) {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
         other as TableDefinition
-        return diff(other).noDifference
+        return diff(other).containsIdenticalColumns
     }
 
     override fun hashCode(): Int {

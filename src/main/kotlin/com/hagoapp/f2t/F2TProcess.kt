@@ -75,7 +75,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             val difference = tblDef.diff(colDef.toSet(), connection.isCaseSensitive())
-            if (!difference.noDifference) {
+            if (!difference.containsIdenticalColumns) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
                 logger.error(difference.toString())
             } else {

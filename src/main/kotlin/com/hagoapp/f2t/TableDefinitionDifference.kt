@@ -21,10 +21,14 @@ class TableDefinitionDifference(
     var missingColumns: List<String>,
     var typeMismatchColumns: List<Triple<String, JDBCType?, JDBCType?>>
 ) {
-    val noDifference: Boolean
+    val containsIdenticalColumns: Boolean
         get() {
             return superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
         }
+
+    fun isIdentical(): Boolean {
+        return superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
+    }
 
     override fun toString(): String {
         return """
