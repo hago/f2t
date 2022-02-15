@@ -11,7 +11,13 @@ import java.sql.JDBCType
 /**
  * This class represents column definitions of a table.
  */
-class TableDefinition(var columns: Set<ColumnDefinition>) {
+class TableDefinition(
+    var columns: Set<ColumnDefinition>,
+    val caseSensitive: Boolean = true,
+    var primaryKey: TableUniqueDefinition? = null
+) {
+
+    val uniqueConstraints = mutableSetOf<TableUniqueDefinition>()
 
     init {
         val x = columns.filter { it.inferredType == null }
@@ -20,11 +26,15 @@ class TableDefinition(var columns: Set<ColumnDefinition>) {
         }
     }
 
-    fun diff(other: TableDefinition, caseSensitive:Boolean = true): TableDefinitionDifference {
-        return diff(other.columns, caseSensitive)
+    fun diff(other: TableDefinition): TableDefinitionDifference {
+        val ret = diff(other.columns)
+        ret.hasIdenticalPrimaryKey = primaryKey?.compare(other.primaryKey)
+        ret.hasIdenticalUniqueConstraints = (uniqueConstraints.size == other.uniqueConstraints.size) &&
+                (uniqueConstraints.intersect(other.uniqueConstraints).size == uniqueConstraints.size)
+        return ret
     }
 
-    fun diff(otherColumns: Set<ColumnDefinition>, caseSensitive:Boolean = true): TableDefinitionDifference {
+    fun diff(otherColumns: Set<ColumnDefinition>): TableDefinitionDifference {
         val has = mutableListOf<String>()
         val missing = mutableListOf<String>()
         val typeDiffers = mutableListOf<Triple<String, JDBCType?, JDBCType?>>()

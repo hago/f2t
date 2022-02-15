@@ -26,15 +26,24 @@ class TableDefinitionDifference(
             return superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
         }
 
-    fun isIdentical(): Boolean {
-        return superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
+    var hasIdenticalPrimaryKey: Boolean? = null
+    var hasIdenticalUniqueConstraints: Boolean? = null
+
+    fun isIdentical(compareConstraints: Boolean = false): Boolean {
+        return when {
+            compareConstraints && !(hasIdenticalPrimaryKey ?: true) -> false
+            compareConstraints && !(hasIdenticalUniqueConstraints ?: true) -> false
+            else -> superfluousColumns.isEmpty() && missingColumns.isEmpty() && typeMismatchColumns.isEmpty()
+        }
     }
 
     override fun toString(): String {
         return """
             Superfluous: $superfluousColumns,
             Missing: $missingColumns,
-            Type Mismatched: $typeMismatchColumns
+            Type Mismatched: $typeMismatchColumns,
+            hasIdenticalPrimaryKey: $hasIdenticalPrimaryKey,
+            hasIdenticalUniqueConstraints: $hasIdenticalUniqueConstraints
             """
     }
 }
