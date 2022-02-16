@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.*
+import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.datafile.*
 import com.hagoapp.util.EncodingUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils

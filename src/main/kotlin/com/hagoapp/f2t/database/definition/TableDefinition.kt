@@ -13,7 +13,6 @@
 
 package com.hagoapp.f2t.database.definition
 
-import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.F2TException
 import java.sql.JDBCType
 

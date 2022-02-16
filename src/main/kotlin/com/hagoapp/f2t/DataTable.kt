@@ -6,6 +6,8 @@
 
 package com.hagoapp.f2t
 
+import com.hagoapp.f2t.database.definition.ColumnDefinition
+
 data class DataTable(
     var columnDefinition: List<ColumnDefinition>,
     var rows: List<DataRow>

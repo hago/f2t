@@ -14,8 +14,6 @@
 
 package com.hagoapp.f2t.database.definition
 
-import com.hagoapp.f2t.ColumnDefinition
-
 data class TableUniqueDefinition(
     val name: String,
     val columns: Set<ColumnDefinition>,

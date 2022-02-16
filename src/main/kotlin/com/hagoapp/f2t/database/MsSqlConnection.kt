@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t.database
 
-import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.database.definition.TableDefinition
 import com.hagoapp.f2t.database.config.DbConfig

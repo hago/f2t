@@ -9,6 +9,7 @@ package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
 import com.hagoapp.f2t.*;
+import com.hagoapp.f2t.database.definition.ColumnDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

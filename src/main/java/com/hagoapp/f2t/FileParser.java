@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t;
 
+import com.hagoapp.f2t.database.definition.ColumnDefinition;
 import com.hagoapp.f2t.datafile.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;

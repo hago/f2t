@@ -10,6 +10,7 @@ import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfig
+import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.database.definition.TableDefinition
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
