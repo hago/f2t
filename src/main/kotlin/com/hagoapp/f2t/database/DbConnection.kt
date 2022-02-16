@@ -10,7 +10,7 @@ import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.TableDefinition
+import com.hagoapp.f2t.database.definition.TableDefinition
 import org.slf4j.Logger
 import java.io.Closeable
 import java.sql.*

@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
+import com.hagoapp.f2t.database.definition.TableDefinition
 import java.sql.*
 import java.util.*
 

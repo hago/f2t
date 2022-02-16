@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t
 
+import com.hagoapp.f2t.database.definition.TableDefinition
 import com.hagoapp.f2t.datafile.ParseResult
 
 class F2TResult {
