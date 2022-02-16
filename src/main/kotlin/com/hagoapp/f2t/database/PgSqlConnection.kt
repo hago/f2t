@@ -60,8 +60,7 @@ class PgSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return if (ret.isNotEmpty()) ret
-                        else mapOf(getDefaultSchema() to listOf())
+                        return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
                     }
                 }
             }
@@ -145,9 +144,9 @@ class PgSqlConnection : DbConnection() {
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
-        val defStr = tableDefinition.columns.map { colDef ->
+        val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
             "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
-        }.joinToString(", ")
+        }
         val sql = "create table $tableFullName ($defStr)"
         //logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
@@ -179,7 +178,7 @@ class PgSqlConnection : DbConnection() {
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    var type = mapDBTypeToJDBCType(rs.getString("typename"))
+                    val type = mapDBTypeToJDBCType(rs.getString("typename"))
                     tblColDef.add(
                         ColumnDefinition(i, rs.getString("attname"), mutableSetOf(type), type)
                     )
@@ -217,7 +216,7 @@ class PgSqlConnection : DbConnection() {
             from pg_tables 
             where tablename = ? and schemaname = ? """
         ).use { stmt ->
-            val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
+            val schema = table.schema.ifBlank { getDefaultSchema() }
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->
