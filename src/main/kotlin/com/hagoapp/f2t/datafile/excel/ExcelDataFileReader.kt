@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t.datafile.excel
 
-import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.DataCell
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
@@ -23,18 +23,18 @@ class ExcelDataFileReader : Reader {
     private lateinit var workbook: Workbook
     private lateinit var sheet: Sheet
     private var currentRow = 0
-    private lateinit var columns: Map<Int, ColumnDefinition>
+    private lateinit var columns: Map<Int, FileColumnDefinition>
 
-    override fun findColumns(): List<ColumnDefinition> {
+    override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, ColumnDefinition(i, cell.stringCellValue))
+                Pair(i, FileColumnDefinition(i, cell.stringCellValue))
             }.toMap()
         }
         return columns.values.sortedBy { it.index }
     }
 
-    override fun inferColumnTypes(sampleRowCount: Long): List<ColumnDefinition> {
+    override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         if (!this::columns.isInitialized || columns.values.any { it.inferredType == null }) {
             val lastRowNum = if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
             for (i in sheet.firstRowNum + 1..lastRowNum) {

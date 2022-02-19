@@ -144,7 +144,7 @@ class PgSqlConnection : DbConnection() {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
         val defStr = tableDefinition.columns.map { colDef ->
-            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
+            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.dataType)}"
         }.joinToString(", ")
         val sql = "create table $tableFullName ($defStr)"
         //logger.debug("create table $tableFullName using: $sql")
@@ -178,10 +178,7 @@ class PgSqlConnection : DbConnection() {
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
                     var type = mapDBTypeToJDBCType(rs.getString("typename"))
-                    tblColDef.add(
-                        ColumnDefinition(i, rs.getString("attname"), mutableSetOf(type), type)
-                    )
-                    i++
+                    tblColDef.add(ColumnDefinition(rs.getString("attname")))
                 }
                 if (tblColDef.isEmpty()) {
                     throw F2TException(

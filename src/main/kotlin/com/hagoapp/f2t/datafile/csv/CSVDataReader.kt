@@ -24,7 +24,7 @@ class CSVDataReader : Reader {
     private lateinit var format: CSVFormat
     private var currentRow = 0
     private val data = mutableListOf<List<String>>()
-    private lateinit var columns: Map<Int, ColumnDefinition>
+    private lateinit var columns: Map<Int, FileColumnDefinition>
     private var rowCount = -1
     private val logger = F2TLogger.getLogger()
 
@@ -86,12 +86,12 @@ class CSVDataReader : Reader {
         }
     }
 
-    override fun findColumns(): List<ColumnDefinition> {
+    override fun findColumns(): List<FileColumnDefinition> {
         checkLoad()
         return columns.values.sortedBy { it.index }
     }
 
-    override fun inferColumnTypes(sampleRowCount: Long): List<ColumnDefinition> {
+    override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         checkLoad()
         return columns.values.toList().sortedBy { it.index }
     }
@@ -136,7 +136,7 @@ class CSVDataReader : Reader {
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
             columns = parser.headerMap.entries.map {
-                Pair(it.value, ColumnDefinition(it.value, it.key))
+                Pair(it.value, FileColumnDefinition(it.value, it.key))
             }.toMap()
             rowCount = 0
             parser.forEachIndexed { i, record ->

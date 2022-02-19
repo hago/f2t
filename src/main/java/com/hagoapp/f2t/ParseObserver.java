@@ -17,10 +17,10 @@ public interface ParseObserver {
     default void onParseStart(@NotNull FileInfo fileInfo) {
     }
 
-    default void onColumnsParsed(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    default void onColumnsParsed(@NotNull List<FileColumnDefinition> columnDefinitionList) {
     }
 
-    default void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    default void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
     }
 
     default void onRowRead(@NotNull DataRow row) {

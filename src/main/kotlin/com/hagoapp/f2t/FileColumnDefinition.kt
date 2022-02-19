@@ -8,7 +8,7 @@ package com.hagoapp.f2t
 
 import java.sql.JDBCType
 
-data class ColumnDefinition(
+data class FileColumnDefinition(
     var index: Int,
     var name: String,
     var possibleTypes: MutableSet<JDBCType> = mutableSetOf(),

@@ -144,7 +144,7 @@ class MariaDBConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)} null"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)} null"
         }
         val sql = """
             create table ${normalizeName(table.tableName)} ($content) 
@@ -177,7 +177,7 @@ class MariaDBConnection : DbConnection() {
                     def[rs.getString("Field")] = mapDBTypeToJDBCType(rs.getString("Type"))
                 }
                 return TableDefinition(def.entries.mapIndexed { i, entry ->
-                    ColumnDefinition(i, entry.key, mutableSetOf(entry.value), entry.value)
+                    ColumnDefinition(entry.key, entry.value)
                 }.toSet())
             }
         }

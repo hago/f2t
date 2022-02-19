@@ -210,7 +210,7 @@ class HiveConnection : DbConnection() {
                     throw F2TException("Column definition of file differs from existing table $ftn")
                 }
                 return TableDefinition(tblColDef.entries.mapIndexed { i, col ->
-                    ColumnDefinition(i, col.key, mutableSetOf(col.value), col.value)
+                    ColumnDefinition(col.key, col.value)
                 }.toSet())
             }
         }
@@ -237,7 +237,7 @@ class HiveConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)}"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
         }
         val sql = "create table ${getFullTableName(table)} ($content);"
         logger.debug("create table using SQL: $sql")
@@ -253,17 +253,16 @@ class HiveConnection : DbConnection() {
 
     override fun getTypedDataConverters(): Map<JDBCType, Pair<JDBCType, (Any?) -> Any?>> {
         val lambda = Pair(
-            JDBCType.CLOB,
-            { value: Any? ->
-                //logger.debug(value?.toString())
-                val nv = (value as ZonedDateTime).format(
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        .withZone(ZoneId.of("UTC"))
-                )
-                //logger.debug(nv?.toString())
-                nv
-            }
-        )
+            JDBCType.CLOB
+        ) { value: Any? ->
+            //logger.debug(value?.toString())
+            val nv = (value as ZonedDateTime).format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(ZoneId.of("UTC"))
+            )
+            //logger.debug(nv?.toString())
+            nv
+        }
         return mapOf(
             JDBCType.TIMESTAMP to lambda
         )

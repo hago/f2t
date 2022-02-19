@@ -75,13 +75,13 @@ public class FileParser {
             if (rowNo != null) {
                 notifyObserver("onRowCountDetermined", rowNo);
             }
-            List<ColumnDefinition> definitions = reader.findColumns();
+            List<FileColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);
             if (!option.isInferColumnTypes()) {
                 endParse(result);
                 return;
             }
-            List<ColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
+            List<FileColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
             notifyObserver("onColumnTypeDetermined", typedDefinitions);
             if (!option.isReadData()) {
                 endParse(result);
@@ -149,12 +149,12 @@ public class FileParser {
     }
 
     private static class ExtractorObserver implements ParseObserver {
-        private List<ColumnDefinition> columns = null;
+        private List<FileColumnDefinition> columns = null;
         private final List<DataRow> rows = new ArrayList<>();
         private Throwable error;
 
         @Override
-        public void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+        public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
             columns = columnDefinitionList;
         }
 

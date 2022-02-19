@@ -9,22 +9,15 @@ package com.hagoapp.f2t
 import java.sql.JDBCType
 
 /**
- * This class represents column definitions of a table.
+ * This class represents definition of a table.
  */
 class TableDefinition(
     var columns: Set<ColumnDefinition>,
-    val caseSensitive: Boolean = true,
+    var caseSensitive: Boolean = true,
     var primaryKey: TableUniqueDefinition? = null
 ) {
 
-    val uniqueConstraints = mutableSetOf<TableUniqueDefinition>()
-
-    init {
-        val x = columns.filter { it.inferredType == null }
-        if (x.isNotEmpty()) {
-            throw F2TException("type${if (x.size > 1) "s" else ""} not inferred for: ${x.joinToString { it.name }}")
-        }
-    }
+    var uniqueConstraints = mutableSetOf<TableUniqueDefinition>()
 
     fun diff(other: TableDefinition): TableDefinitionDifference {
         val ret = diff(other.columns)
@@ -42,8 +35,8 @@ class TableDefinition(
             val otherCol = otherColumns.find { it.name.equals(col.name, !caseSensitive) }
             if (otherCol == null) {
                 has.add(col.name)
-            } else if (col.inferredType != otherCol.inferredType) {
-                typeDiffers.add(Triple(col.name, col.inferredType, otherCol.inferredType))
+            } else if (col.dataType != otherCol.dataType) {
+                typeDiffers.add(Triple(col.name, col.dataType, otherCol.dataType))
             }
         }
         otherColumns.forEach { col ->
@@ -68,7 +61,7 @@ class TableDefinition(
 
     override fun hashCode(): Int {
         return columns.sortedBy { it.name }.map {
-            Pair(it.name, it.inferredType)
+            Pair(it.name, it.dataType)
         }.hashCode()
     }
 

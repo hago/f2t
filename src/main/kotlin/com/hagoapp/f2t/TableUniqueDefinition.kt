@@ -9,7 +9,7 @@ package com.hagoapp.f2t
 
 data class TableUniqueDefinition(
     val name: String,
-    val columns: Set<ColumnDefinition>,
+    val columns: Set<FileColumnDefinition>,
     val caseSensitive: Boolean = true
 ) {
     fun compare(other: TableUniqueDefinition?): Boolean {

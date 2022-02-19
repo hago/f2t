@@ -164,7 +164,7 @@ class MsSqlConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)}"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
         }
         val sql = "create table ${getFullTableName(table)} ($content);"
         logger.debug("create table using SQL: $sql")
@@ -202,7 +202,7 @@ class MsSqlConnection : DbConnection() {
                 }
 
                 return TableDefinition(tblColDef.entries.mapIndexed { i, col ->
-                    ColumnDefinition(i, col.key, mutableSetOf(col.value), col.value)
+                    ColumnDefinition(col.key, col.value)
                 }.toSet())
             }
         }

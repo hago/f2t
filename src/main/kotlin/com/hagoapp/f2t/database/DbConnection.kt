@@ -205,10 +205,10 @@ abstract class DbConnection : Closeable {
                 values (${tableDefinition.columns.joinToString { "?" }})
             """
         insertionMap[table] = sql
-        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.index }.map { col ->
-            val converter = getTypedDataConverters()[col.inferredType]
+        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.name }.map { col ->
+            val converter = getTypedDataConverters()[col.dataType]
             if (converter == null) {
-                createFieldSetter(col.inferredType!!)
+                createFieldSetter(col.dataType!!)
             } else {
                 createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
             }

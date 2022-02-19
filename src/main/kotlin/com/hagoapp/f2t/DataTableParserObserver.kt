@@ -6,7 +6,7 @@ import com.hagoapp.f2t.datafile.ParseResult
 class DataTableParserObserver : ParseObserver {
 
     private lateinit var dataTable: DataTable
-    private lateinit var columnDefinitions: List<ColumnDefinition>
+    private lateinit var columnDefinitions: List<FileColumnDefinition>
     private val rows = mutableListOf<DataRow>()
     var errors = mutableListOf<Throwable>()
         private set
@@ -18,7 +18,7 @@ class DataTableParserObserver : ParseObserver {
     private var lineNo = 0
     private var completed: Boolean = false
 
-    override fun onColumnTypeDetermined(columnDefinitionList: MutableList<ColumnDefinition>) {
+    override fun onColumnTypeDetermined(columnDefinitionList: MutableList<FileColumnDefinition>) {
         columnDefinitions = columnDefinitionList
     }
 

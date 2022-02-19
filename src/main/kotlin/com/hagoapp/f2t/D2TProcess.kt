@@ -74,7 +74,7 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
             val batchIndex = dataTable.columnDefinition.size
             val newDefinitions = dataTable.columnDefinition.toMutableList()
                 .plus(
-                    ColumnDefinition(
+                    FileColumnDefinition(
                         batchIndex, config.batchColumnName,
                         mutableSetOf(JDBCType.BIGINT), JDBCType.BIGINT
                     )

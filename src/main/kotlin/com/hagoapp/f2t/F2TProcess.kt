@@ -55,14 +55,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         parser.parse()
     }
 
-    override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
+    override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition?>) {
         val colDef = when {
             config.isAddBatch -> {
                 batchNum = Instant.now().toEpochMilli()
                 logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
                 columnDefinitionList.map { it!! }
                     .plus(
-                        ColumnDefinition(
+                        FileColumnDefinition(
                             columnDefinitionList.size,
                             config.batchColumnName,
                             mutableSetOf(),
