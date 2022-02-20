@@ -141,7 +141,7 @@ public class FileParser {
      * @return <Code>DataTable</Code> object including column definition and data
      * @throws F2TException if anything wrong
      */
-    public DataTable extractData() throws F2TException {
+    public DataTable<FileColumnDefinition> extractData() throws F2TException {
         ExtractorObserver observer = new ExtractorObserver();
         this.addObserver(observer);
         parse();
@@ -169,14 +169,14 @@ public class FileParser {
             return false;
         }
 
-        public DataTable getData() throws F2TException {
+        public DataTable<FileColumnDefinition> getData() throws F2TException {
             if (error != null) {
                 throw new F2TException("Error occurs during extracting: " + error.getMessage(), error);
             }
             if (columns == null) {
                 throw new F2TException("No data definition set");
             }
-            return new DataTable(columns, rows);
+            return new DataTable<>(columns, rows);
         }
     }
 }
