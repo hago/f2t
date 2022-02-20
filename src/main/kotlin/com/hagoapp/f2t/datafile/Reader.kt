@@ -15,4 +15,10 @@ interface Reader : Closeable, Iterator<DataRow> {
     fun findColumns(): List<FileColumnDefinition>
     fun inferColumnTypes(sampleRowCount: Long = -1): List<FileColumnDefinition>
     fun getSupportedFileType(): Set<Int>
+    fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+        throw NotImplementedError();
+    }
+    fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
+        throw NotImplementedError();
+    }
 }

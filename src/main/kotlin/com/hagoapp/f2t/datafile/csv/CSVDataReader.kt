@@ -27,6 +27,8 @@ class CSVDataReader : Reader {
     private lateinit var columns: Map<Int, FileColumnDefinition>
     private var rowCount = -1
     private val logger = F2TLogger.getLogger()
+    private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
+    private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -44,6 +46,20 @@ class CSVDataReader : Reader {
         "CSVFormat.POSTGRESQL_TEXT",
         "CSVFormat.TDF"
     )
+
+    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+        defaultDeterminer = determiner
+        return this
+    }
+
+    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
+        columnDeterminerMap[column] = determiner
+        return this
+    }
+
+    private fun getDeterminer(column: String): DataTypeDeterminer {
+        return columnDeterminerMap[column] ?: defaultDeterminer
+    }
 
     override fun open(fileInfo: FileInfo) {
         this.fileInfo = fileInfo as FileInfoCsv
@@ -156,7 +172,8 @@ class CSVDataReader : Reader {
                 rowCount++
             }
             columns.values.forEach { column ->
-                column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+                //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+                column.dataType = getDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
             }
         }
     }
