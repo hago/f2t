@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CsvReadTest {
@@ -32,7 +33,7 @@ public class CsvReadTest {
             String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
             testConfig = new Gson().fromJson(json, CsvTestConfig.class);
             String realCsv = new File(System.getProperty("user.dir"),
-                    testConfig.getFileInfo().getFilename()).getAbsolutePath();
+                    Objects.requireNonNull(testConfig.getFileInfo().getFilename())).getAbsolutePath();
             logger.debug(realCsv);
             testConfig.getFileInfo().setFilename(realCsv);
             logger.debug(testConfig.toString());
@@ -58,11 +59,11 @@ public class CsvReadTest {
     public void extractCsv() throws IOException, F2TException {
         FileParser parser = new FileParser(testConfig.getFileInfo());
         parser.addObserver(observer);
-        DataTable table = parser.extractData();
+        var table = parser.extractData();
         Assertions.assertEquals(table.getRows().size(), testConfig.getExpect().getRowCount());
         Assertions.assertEquals(table.getColumnDefinition().size(), testConfig.getExpect().getColumnCount());
         Assertions.assertEquals(testConfig.getExpect().getTypes(), table.getColumnDefinition().stream()
-                .collect(Collectors.toMap(ColumnDefinition::getName, ColumnDefinition::getInferredType))
+                .collect(Collectors.toMap(FileColumnDefinition::getName, FileColumnDefinition::getDataType))
         );
         System.out.println(table);
     }

@@ -85,7 +85,7 @@ class ExcelReadTest {
                 testConfig.expect.columnCount
             )
             Assertions.assertEquals(
-                table.columnDefinition.map { Pair(it.name, it.inferredType) }.toMap(),
+                table.columnDefinition.associate { Pair(it.name, it.dataType) },
                 testConfig.expect.types
             )
         }

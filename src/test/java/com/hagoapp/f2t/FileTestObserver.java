@@ -52,20 +52,20 @@ public class FileTestObserver implements ParseObserver {
     }
 
     @Override
-    public void onColumnsParsed(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    public void onColumnsParsed(@NotNull List<FileColumnDefinition> columnDefinitionList) {
         logger.info("column parsed");
         columns = columnDefinitionList.stream().collect(Collectors.toMap(
-                ColumnDefinition::getName,
+                FileColumnDefinition::getName,
                 col -> JDBCType.NULL
         ));
     }
 
     @Override
-    public void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
         logger.info("column definition determined");
         columns = columnDefinitionList.stream().collect(Collectors.toMap(
-                ColumnDefinition::getName,
-                col -> col.getInferredType() != null ? col.getInferredType() : JDBCType.NULL
+                FileColumnDefinition::getName,
+                col -> col.getDataType() != null ? col.getDataType() : JDBCType.NULL
         ));
     }
 

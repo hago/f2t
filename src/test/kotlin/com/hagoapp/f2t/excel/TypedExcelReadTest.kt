@@ -37,7 +37,7 @@ class TypedExcelReadTest {
                     val testConfig = Gson().fromJson(json, ExcelTestConfig::class.java)
                     val realExcel = File(
                         System.getProperty("user.dir"),
-                        testConfig.fileInfo.filename
+                        testConfig.fileInfo.filename!!
                     ).absolutePath
                     testConfig.fileInfo.filename = realExcel
                     testConfig
@@ -85,7 +85,7 @@ class TypedExcelReadTest {
                 testConfig.expect.columnCount
             )
             Assertions.assertEquals(
-                table.columnDefinition.map { Pair(it.name, it.inferredType) }.toMap(),
+                table.columnDefinition.map { Pair(it.name, it.dataType) }.toMap(),
                 testConfig.expect.types
             )
         }
