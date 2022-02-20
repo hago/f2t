@@ -5,8 +5,8 @@
  */
 package com.hagoapp.f2t.datafile
 
-import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.DataRow
+import com.hagoapp.f2t.FileColumnDefinition
 import java.io.Closeable
 
 interface Reader : Closeable, Iterator<DataRow> {

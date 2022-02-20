@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t
 
-data class DataTable(
-    var columnDefinition: List<FileColumnDefinition>,
+data class DataTable<T: ColumnDefinition>(
+    var columnDefinition: List<T>,
     var rows: List<DataRow>
 )

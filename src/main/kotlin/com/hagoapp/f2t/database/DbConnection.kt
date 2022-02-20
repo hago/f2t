@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t.database
 
+import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
@@ -129,7 +130,7 @@ abstract class DbConnection : Closeable {
     /**
      * Create a new table on given name and column definitions.
      */
-    abstract fun createTable(table: TableName, tableDefinition: TableDefinition)
+    abstract fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>)
 
     /**
      * Find local database type on given JDBC type.
@@ -139,7 +140,7 @@ abstract class DbConnection : Closeable {
     /**
      * Fetch column definitions of given table.
      */
-    abstract fun getExistingTableDefinition(table: TableName): TableDefinition
+    abstract fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition>
 
     /**
      * Find JDBC type on database local type.
@@ -199,7 +200,7 @@ abstract class DbConnection : Closeable {
         rows.clear()
     }
 
-    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition) {
+    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val sql = """
                 insert into ${getFullTableName(table)} (${tableDefinition.columns.joinToString { normalizeName(it.name) }})
                 values (${tableDefinition.columns.joinToString { "?" }})

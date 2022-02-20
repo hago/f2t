@@ -196,7 +196,7 @@ class HiveConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val ftn = getFullTableName(table)
         val sql = """describe $ftn"""
         connection.prepareStatement(sql).use { stmt ->
@@ -235,7 +235,7 @@ class HiveConnection : DbConnection() {
         }
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
         }

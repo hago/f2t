@@ -6,10 +6,10 @@
 
 package com.hagoapp.f2t.datafile.excel
 
-import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.DataCell
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.datafile.*
 import com.hagoapp.f2t.util.JDBCTypeUtils
 import org.apache.poi.ss.usermodel.*
@@ -28,14 +28,14 @@ class ExcelDataFileReader : Reader {
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, FileColumnDefinition(i, cell.stringCellValue))
+                Pair(i, FileColumnDefinition(cell.stringCellValue))
             }.toMap()
         }
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
     override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
-        if (!this::columns.isInitialized || columns.values.any { it.inferredType == null }) {
+        if (!this::columns.isInitialized || columns.values.any { it.dataType == null }) {
             val lastRowNum = if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
             for (i in sheet.firstRowNum + 1..lastRowNum) {
                 val row = sheet.getRow(i)
@@ -50,9 +50,9 @@ class ExcelDataFileReader : Reader {
                         .combinePossibleTypes(existingTypes.toList(), possibleTypes).toMutableSet()
                 }
             }
-            columns.values.forEach { it.inferredType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList()) }
+            columns.values.forEach { it.dataType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList()) }
         }
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
     override fun getSupportedFileType(): Set<Int> {
@@ -84,7 +84,7 @@ class ExcelDataFileReader : Reader {
         return DataRow(
             currentRow.toLong() - 1,
             cells.mapIndexed { i, cell ->
-                DataCell(getCellValue(cell, columns.getValue(i).inferredType!!), i)
+                DataCell(getCellValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
     }
@@ -94,7 +94,7 @@ class ExcelDataFileReader : Reader {
             throw F2TException("Not a FileInfoExcel class")
         }
         infoExcel = fileInfo
-        workbook = WorkbookFactory.create(FileInputStream(fileInfo.filename))
+        workbook = WorkbookFactory.create(FileInputStream(fileInfo.filename!!))
         sheet = when {
             infoExcel.sheetIndex != null && workbook.getSheetAt(infoExcel.sheetIndex!!) != null ->
                 workbook.getSheetAt(infoExcel.sheetIndex!!)

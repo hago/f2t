@@ -5,7 +5,7 @@ import com.hagoapp.f2t.datafile.ParseResult
 
 class DataTableParserObserver : ParseObserver {
 
-    private lateinit var dataTable: DataTable
+    private lateinit var dataTable: DataTable<ColumnDefinition>
     private lateinit var columnDefinitions: List<FileColumnDefinition>
     private val rows = mutableListOf<DataRow>()
     var errors = mutableListOf<Throwable>()
@@ -41,7 +41,7 @@ class DataTableParserObserver : ParseObserver {
         errors.add(e)
     }
 
-    fun getDataTable(): DataTable {
+    fun getDataTable(): DataTable<ColumnDefinition> {
         if (!completed) {
             throw F2TException("parsing not completed")
         }

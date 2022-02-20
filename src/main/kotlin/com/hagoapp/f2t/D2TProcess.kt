@@ -15,8 +15,8 @@ import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.time.Instant
 
-class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
-    private var dataTable: DataTable = dTable
+class D2TProcess(dTable: DataTable<ColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
+    private var dataTable: DataTable<ColumnDefinition> = dTable
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = F2TLogger.getLogger()
@@ -73,17 +73,12 @@ class D2TProcess(dTable: DataTable, dbConfig: DbConfig, f2TConfig: F2TConfig) {
         if (config.isAddBatch && !dataTable.columnDefinition.any { it.name == config.batchColumnName }) {
             val batchIndex = dataTable.columnDefinition.size
             val newDefinitions = dataTable.columnDefinition.toMutableList()
-                .plus(
-                    FileColumnDefinition(
-                        batchIndex, config.batchColumnName,
-                        mutableSetOf(JDBCType.BIGINT), JDBCType.BIGINT
-                    )
-                )
+                .plus(ColumnDefinition(config.batchColumnName, JDBCType.BIGINT))
             val batchNumber = Instant.now().toEpochMilli()
             val rows = dataTable.rows.map { dataRow ->
                 DataRow(dataRow.rowNo, dataRow.cells.toMutableList().plus(DataCell(batchNumber, batchIndex)))
             }
-            dataTable = DataTable(newDefinitions, rows)
+            dataTable = DataTable<ColumnDefinition>(newDefinitions, rows)
         }
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)

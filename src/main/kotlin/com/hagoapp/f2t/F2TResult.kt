@@ -18,7 +18,7 @@ class F2TResult {
                 field = value
             }
         }
-    var tableDefinition: TableDefinition? = null
+    var tableDefinition: TableDefinition<ColumnDefinition>? = null
         set(value) {
             if (finished) {
                 throw F2TException("Result is already final")

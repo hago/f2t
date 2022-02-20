@@ -162,7 +162,7 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
         }
@@ -184,7 +184,7 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """
                 select TYPE_NAME(c.system_type_id) as typeName, c.name
                 from  sys.schemas as s

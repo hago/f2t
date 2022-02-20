@@ -63,7 +63,6 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
                 columnDefinitionList.map { it!! }
                     .plus(
                         FileColumnDefinition(
-                            columnDefinitionList.size,
                             config.batchColumnName,
                             mutableSetOf(),
                             JDBCType.BIGINT
@@ -91,9 +90,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         } else {
             if (config.isCreateTableIfNeeded) {
                 val tblDef = TableDefinition(colDef.toSet())
-                result.tableDefinition = tblDef
+                result.tableDefinition = TableDefinition(colDef.toSet())
                 try {
-                    connection.createTable(table, tblDef)
+                    connection.createTable(table, result.tableDefinition!!)
                     connection.prepareInsertion(table, tblDef)
                     tableMatchedFile = true
                     logger.info("table $table created on ${parser.fileInfo.filename}")

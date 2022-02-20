@@ -7,12 +7,12 @@
 
 package com.hagoapp.f2t
 
-data class TableUniqueDefinition(
+data class TableUniqueDefinition<T : ColumnDefinition>(
     val name: String,
-    val columns: Set<FileColumnDefinition>,
+    val columns: Set<T>,
     val caseSensitive: Boolean = true
 ) {
-    fun compare(other: TableUniqueDefinition?): Boolean {
+    fun compare(other: TableUniqueDefinition<T>?): Boolean {
         return (caseSensitive == other?.caseSensitive) &&
                 (str() == other.str())
     }

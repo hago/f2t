@@ -140,7 +140,7 @@ class PgSqlConnection : DbConnection() {
         return name.replace("\"", "\"\"")
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
         val defStr = tableDefinition.columns.map { colDef ->
@@ -162,7 +162,7 @@ class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename
             from pg_attribute as a

@@ -142,7 +142,7 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)} null"
         }
@@ -167,7 +167,7 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = "desc ${normalizeName(table.tableName)};"
         //logger.debug(sql)
         connection.prepareStatement(sql).use { stmt ->

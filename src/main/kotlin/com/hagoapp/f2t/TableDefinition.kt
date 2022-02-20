@@ -11,15 +11,15 @@ import java.sql.JDBCType
 /**
  * This class represents definition of a table.
  */
-class TableDefinition(
-    var columns: Set<ColumnDefinition>,
+class TableDefinition<T:ColumnDefinition>(
+    var columns: Set<T>,
     var caseSensitive: Boolean = true,
-    var primaryKey: TableUniqueDefinition? = null
+    var primaryKey: TableUniqueDefinition<T>? = null
 ) {
 
-    var uniqueConstraints = mutableSetOf<TableUniqueDefinition>()
+    var uniqueConstraints: Set<TableUniqueDefinition<T>> = mutableSetOf()
 
-    fun diff(other: TableDefinition): TableDefinitionDifference {
+    fun diff(other: TableDefinition<T>): TableDefinitionDifference {
         val ret = diff(other.columns)
         ret.hasIdenticalPrimaryKey = primaryKey?.compare(other.primaryKey)
         ret.hasIdenticalUniqueConstraints = (uniqueConstraints.size == other.uniqueConstraints.size) &&
@@ -27,7 +27,7 @@ class TableDefinition(
         return ret
     }
 
-    fun diff(otherColumns: Set<ColumnDefinition>): TableDefinitionDifference {
+    fun diff(otherColumns: Set<T>): TableDefinitionDifference {
         val has = mutableListOf<String>()
         val missing = mutableListOf<String>()
         val typeDiffers = mutableListOf<Triple<String, JDBCType?, JDBCType?>>()
@@ -55,14 +55,24 @@ class TableDefinition(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as TableDefinition
-        return diff(other).containsIdenticalColumns
+
+        other as TableDefinition<*>
+
+        if (columns != other.columns) return false
+        if (caseSensitive != other.caseSensitive) return false
+        if (primaryKey != other.primaryKey) return false
+        if (uniqueConstraints != other.uniqueConstraints) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
-        return columns.sortedBy { it.name }.map {
-            Pair(it.name, it.dataType)
-        }.hashCode()
+        var result = columns.hashCode()
+        result = 31 * result + caseSensitive.hashCode()
+        result = 31 * result + (primaryKey?.hashCode() ?: 0)
+        result = 31 * result + uniqueConstraints.hashCode()
+        return result
     }
+
 
 }

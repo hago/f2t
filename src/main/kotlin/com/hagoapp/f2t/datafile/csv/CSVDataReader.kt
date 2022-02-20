@@ -88,12 +88,12 @@ class CSVDataReader : Reader {
 
     override fun findColumns(): List<FileColumnDefinition> {
         checkLoad()
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
     override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         checkLoad()
-        return columns.values.toList().sortedBy { it.index }
+        return columns.values.toList().sortedBy { it.name }
     }
 
     override fun getSupportedFileType(): Set<Int> {
@@ -115,7 +115,7 @@ class CSVDataReader : Reader {
         val row = DataRow(
             currentRow.toLong(),
             data[currentRow].mapIndexed { i, cell ->
-                DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).inferredType!!), i)
+                DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
         currentRow++
@@ -136,7 +136,7 @@ class CSVDataReader : Reader {
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
             columns = parser.headerMap.entries.map {
-                Pair(it.value, FileColumnDefinition(it.value, it.key))
+                Pair(it.value, FileColumnDefinition(it.key))
             }.toMap()
             rowCount = 0
             parser.forEachIndexed { i, record ->
@@ -156,7 +156,7 @@ class CSVDataReader : Reader {
                 rowCount++
             }
             columns.values.forEach { column ->
-                column.inferredType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+                column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
             }
         }
     }
