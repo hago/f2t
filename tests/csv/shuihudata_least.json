@@ -1,0 +1,23 @@
+{
+  "fileInfo": {
+    "type": 1,
+    "filename": "tests/csv/shuihudata.csv",
+    "encoding": null,
+    "quote": "\"",
+    "delimiter": ","
+  },
+  "expect": {
+    "rowCount": 108,
+    "columnCount": 8,
+    "types": {
+      "座次": "TINYINT",
+      "星宿": "VARCHAR",
+      "诨名": "VARCHAR",
+      "姓名": "VARCHAR",
+      "布尔": "BOOLEAN",
+      "浮点": "FLOAT",
+      "整数": "INTEGER",
+      "日期": "TIMESTAMP_WITH_TIMEZONE"
+    }
+  }
+}
