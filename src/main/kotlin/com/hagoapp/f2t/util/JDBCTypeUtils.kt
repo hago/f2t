@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.util
 
 import com.hagoapp.f2t.F2TException
+import com.hagoapp.util.EncodingUtils
 import java.sql.JDBCType
 import java.time.Instant
 import java.time.ZoneId
@@ -23,6 +24,17 @@ class JDBCTypeUtils {
                 else -> {
                     val l = a.intersect(b).toList()
                     if (l.isEmpty()) listOf(JDBCType.CLOB) else l
+                }
+            }
+        }
+
+        fun combinePossibleTypes(a: Set<JDBCType>, b: Set<JDBCType>): Set<JDBCType> {
+            return when {
+                a.isEmpty() -> b
+                b.isEmpty() -> a
+                else -> {
+                    val l = a.intersect(b)
+                    l.ifEmpty { setOf(JDBCType.NCLOB) }
                 }
             }
         }
@@ -118,9 +130,14 @@ class JDBCTypeUtils {
             if (value == null) {
                 return dl
             }
-            dl.add(JDBCType.CLOB)
-            dl.add(JDBCType.VARCHAR)
-            dl.add(JDBCType.CHAR)
+            dl.add(JDBCType.NCLOB)
+            dl.add(JDBCType.NVARCHAR)
+            dl.add(JDBCType.NCHAR)
+            if (EncodingUtils.isAsciiText(value)) {
+                dl.add(JDBCType.CLOB)
+                dl.add(JDBCType.VARCHAR)
+                dl.add(JDBCType.CHAR)
+            }
             if (value.toIntOrNull() != null) {
                 dl.add(JDBCType.INTEGER)
             }
