@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t
 
-import com.hagoapp.f2t.database.definition.TableDefinition
 import com.hagoapp.f2t.datafile.ParseResult
 
 class F2TResult {
@@ -19,7 +18,7 @@ class F2TResult {
                 field = value
             }
         }
-    var tableDefinition: TableDefinition? = null
+    var tableDefinition: TableDefinition<ColumnDefinition>? = null
         set(value) {
             if (finished) {
                 throw F2TException("Result is already final")

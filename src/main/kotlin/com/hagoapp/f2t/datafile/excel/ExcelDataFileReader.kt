@@ -6,15 +6,18 @@
 
 package com.hagoapp.f2t.datafile.excel
 
-import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.DataCell
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
+import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.datafile.*
 import com.hagoapp.f2t.util.JDBCTypeUtils
+import com.hagoapp.util.EncodingUtils
+import com.hagoapp.util.NumericUtils
 import org.apache.poi.ss.usermodel.*
 import java.io.FileInputStream
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -23,19 +26,21 @@ class ExcelDataFileReader : Reader {
     private lateinit var workbook: Workbook
     private lateinit var sheet: Sheet
     private var currentRow = 0
-    private lateinit var columns: Map<Int, ColumnDefinition>
+    private lateinit var columns: Map<Int, FileColumnDefinition>
+    private var determiner: DataTypeDeterminer? = null
+    private val columnDeterminer = mutableMapOf<String, DataTypeDeterminer>()
 
-    override fun findColumns(): List<ColumnDefinition> {
+    override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, ColumnDefinition(i, cell.stringCellValue))
+                Pair(i, FileColumnDefinition(cell.stringCellValue))
             }.toMap()
         }
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
-    override fun inferColumnTypes(sampleRowCount: Long): List<ColumnDefinition> {
-        if (!this::columns.isInitialized || columns.values.any { it.inferredType == null }) {
+    override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
+        if (!this::columns.isInitialized || columns.values.any { it.dataType == null }) {
             val lastRowNum = if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
             for (i in sheet.firstRowNum + 1..lastRowNum) {
                 val row = sheet.getRow(i)
@@ -44,19 +49,35 @@ class ExcelDataFileReader : Reader {
                 }
                 for (colIndex in columns.keys.indices) {
                     val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-                    val possibleTypes = guessCellType(cell)
-                    val existingTypes = columns.getValue(colIndex).possibleTypes
-                    columns.getValue(colIndex).possibleTypes = JDBCTypeUtils
-                        .combinePossibleTypes(existingTypes.toList(), possibleTypes).toMutableSet()
+                    setupColumnDefinition(columns.getValue(colIndex), cell)
                 }
             }
-            columns.values.forEach { it.inferredType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList()) }
+            columns.values.forEach { column ->
+                //it.dataType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList())
+                column.dataType =
+                    getTypeDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
+            }
         }
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
     override fun getSupportedFileType(): Set<Int> {
         return setOf(FileInfoExcel.FILE_TYPE_EXCEL, FileInfoExcelX.FILE_TYPE_EXCEL_OPEN_XML)
+    }
+
+    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+        this.determiner = determiner
+        return this
+    }
+
+    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
+        columnDeterminer[column] = determiner
+        return this
+    }
+
+    private fun getTypeDeterminer(column: String): DataTypeDeterminer {
+        return columnDeterminer[column] ?: determiner
+        ?: throw java.lang.UnsupportedOperationException("No type determiner defined")
     }
 
     override fun close() {
@@ -84,7 +105,7 @@ class ExcelDataFileReader : Reader {
         return DataRow(
             currentRow.toLong() - 1,
             cells.mapIndexed { i, cell ->
-                DataCell(getCellValue(cell, columns.getValue(i).inferredType!!), i)
+                DataCell(getCellValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
     }
@@ -94,7 +115,7 @@ class ExcelDataFileReader : Reader {
             throw F2TException("Not a FileInfoExcel class")
         }
         infoExcel = fileInfo
-        workbook = WorkbookFactory.create(FileInputStream(fileInfo.filename))
+        workbook = WorkbookFactory.create(FileInputStream(fileInfo.filename!!))
         sheet = when {
             infoExcel.sheetIndex != null && workbook.getSheetAt(infoExcel.sheetIndex!!) != null ->
                 workbook.getSheetAt(infoExcel.sheetIndex!!)
@@ -108,19 +129,70 @@ class ExcelDataFileReader : Reader {
         return if (!this::sheet.isInitialized) null else (sheet.lastRowNum - sheet.firstRowNum)
     }
 
-    private fun guessCellType(cell: Cell): List<JDBCType> {
+    private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: Cell) {
+        val possibleTypes = guessCellType(cell)
+        //println("guessed ${possibleTypes.size} types ${possibleTypes}")
+        val existTypes = columnDefinition.possibleTypes
+        columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
+        val typeModifier = columnDefinition.typeModifier
+        if (columnDefinition.possibleTypes.contains(NCLOB) || columnDefinition.possibleTypes.contains(CLOB)) {
+            if (cell.stringCellValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = cell.stringCellValue.length
+            }
+            if (!typeModifier.isHasNonAsciiChar && !EncodingUtils.isAsciiText(cell.stringCellValue)) {
+                typeModifier.isHasNonAsciiChar = true
+            }
+        }
+        if (columnDefinition.possibleTypes.contains(DECIMAL) || columnDefinition.possibleTypes.contains(BIGINT)) {
+            val p = NumericUtils.detectPrecision(cell)
+            if (p.first > typeModifier.precision) {
+                typeModifier.precision = p.first
+            }
+            if (p.second > typeModifier.scale) {
+                typeModifier.scale = p.second
+            }
+        }
+    }
+
+    private fun guessCellType(cell: Cell): Set<JDBCType> {
         return when {
-            cell.cellType == CellType.BOOLEAN -> listOf(JDBCType.BOOLEAN)
-            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> listOf(JDBCType.TIMESTAMP)
+            cell.cellType == CellType.BOOLEAN -> setOf(BOOLEAN)
+            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> setOf(
+                TIMESTAMP_WITH_TIMEZONE
+            )
             cell.cellType == CellType.NUMERIC -> {
                 val nv = cell.numericCellValue
-                if (nv == nv.toLong().toDouble()) listOf(JDBCType.DOUBLE, JDBCType.BIGINT) else listOf(
-                    JDBCType.DOUBLE
-                )
+                val l: MutableSet<JDBCType> = guessFloatingPointTypes(nv).toMutableSet()
+                if (nv == nv.toLong().toDouble()) {
+                    l.addAll(guessIntegerTypes(nv.toLong()))
+                }
+                l
             }
-            cell.cellType == CellType.BLANK -> listOf()
-            else -> JDBCTypeUtils.guessTypes(cell.stringCellValue)
+            cell.cellType == CellType.BLANK -> setOf()
+            else -> JDBCTypeUtils.guessTypes(cell.stringCellValue).toSet()
         }
+    }
+
+    private fun guessIntegerTypes(value: Long): Set<JDBCType> {
+        val l = mutableSetOf(BIGINT)
+        if ((value <= Int.MAX_VALUE.toLong()) && (value >= Int.MIN_VALUE.toLong())) {
+            l.add(INTEGER)
+        }
+        if ((value <= Short.MAX_VALUE.toLong()) && (value >= Short.MIN_VALUE.toLong())) {
+            l.add(SMALLINT)
+        }
+        if ((value <= Byte.MAX_VALUE.toLong()) && (value >= Byte.MIN_VALUE.toLong())) {
+            l.add(TINYINT)
+        }
+        return l
+    }
+
+    private fun guessFloatingPointTypes(value: Double): Set<JDBCType> {
+        val l = mutableSetOf(DECIMAL, DOUBLE)
+        if ((value <= Float.MAX_VALUE.toDouble()) && (value >= Float.MIN_VALUE.toDouble())) {
+            l.add(FLOAT)
+        }
+        return l
     }
 
     private fun getCellValue(cell: Cell, type: JDBCType): Any? {
@@ -130,7 +202,7 @@ class ExcelDataFileReader : Reader {
                 cell.dateCellValue.toInstant(),
                 ZoneId.systemDefault()
             )
-            cell.cellType == CellType.NUMERIC -> if (type == JDBCType.BIGINT) cell.numericCellValue.toLong() else cell.numericCellValue
+            cell.cellType == CellType.NUMERIC -> if (type == BIGINT) cell.numericCellValue.toLong() else cell.numericCellValue
             cell.cellType == CellType.BLANK -> cell.stringCellValue
             else -> JDBCTypeUtils.toTypedValue(cell.stringCellValue, type)
         }

@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t;
 
-import com.hagoapp.f2t.database.definition.ColumnDefinition;
 import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +17,10 @@ public interface ParseObserver {
     default void onParseStart(@NotNull FileInfo fileInfo) {
     }
 
-    default void onColumnsParsed(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    default void onColumnsParsed(@NotNull List<FileColumnDefinition> columnDefinitionList) {
     }
 
-    default void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+    default void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
     }
 
     default void onRowRead(@NotNull DataRow row) {

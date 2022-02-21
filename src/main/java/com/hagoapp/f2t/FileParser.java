@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t;
 
-import com.hagoapp.f2t.database.definition.ColumnDefinition;
 import com.hagoapp.f2t.datafile.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -33,6 +32,20 @@ public class FileParser {
     private final List<ParseObserver> observers = new ArrayList<>();
     private long rowCountToInferType = -1;
     private final Logger logger = F2TLogger.getLogger();
+    private final Map<String, DataTypeDeterminer> columnDeterminerMap = new HashMap<>();
+    private DataTypeDeterminer defaultDeterminer = new LeastTypeDeterminer();
+
+    public DataTypeDeterminer getDefaultDeterminer() {
+        return defaultDeterminer;
+    }
+
+    public void setDefaultDeterminer(DataTypeDeterminer defaultDeterminer) {
+        this.defaultDeterminer = defaultDeterminer;
+    }
+
+    public void setupColumnDeterminer(String column, DataTypeDeterminer determiner) {
+        columnDeterminerMap.put(column, determiner);
+    }
 
     public long getRowCountToInferType() {
         return rowCountToInferType;
@@ -70,19 +83,21 @@ public class FileParser {
     public void parse(FileParserOption option) {
         ParseResult result = new ParseResult();
         try (Reader reader = ReaderFactory.getReader(fileInfo)) {
+            reader.setupTypeDeterminer(defaultDeterminer);
+            columnDeterminerMap.forEach(reader::setupColumnTypeDeterminer);
             notifyObserver("onParseStart", fileInfo);
             reader.open(fileInfo);
             Integer rowNo = reader.getRowCount();
             if (rowNo != null) {
                 notifyObserver("onRowCountDetermined", rowNo);
             }
-            List<ColumnDefinition> definitions = reader.findColumns();
+            List<FileColumnDefinition> definitions = reader.findColumns();
             notifyObserver("onColumnsParsed", definitions);
             if (!option.isInferColumnTypes()) {
                 endParse(result);
                 return;
             }
-            List<ColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
+            List<FileColumnDefinition> typedDefinitions = reader.inferColumnTypes(rowCountToInferType);
             notifyObserver("onColumnTypeDetermined", typedDefinitions);
             if (!option.isReadData()) {
                 endParse(result);
@@ -142,7 +157,7 @@ public class FileParser {
      * @return <Code>DataTable</Code> object including column definition and data
      * @throws F2TException if anything wrong
      */
-    public DataTable extractData() throws F2TException {
+    public DataTable<FileColumnDefinition> extractData() throws F2TException {
         ExtractorObserver observer = new ExtractorObserver();
         this.addObserver(observer);
         parse();
@@ -150,12 +165,12 @@ public class FileParser {
     }
 
     private static class ExtractorObserver implements ParseObserver {
-        private List<ColumnDefinition> columns = null;
+        private List<FileColumnDefinition> columns = null;
         private final List<DataRow> rows = new ArrayList<>();
         private Throwable error;
 
         @Override
-        public void onColumnTypeDetermined(@NotNull List<ColumnDefinition> columnDefinitionList) {
+        public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
             columns = columnDefinitionList;
         }
 
@@ -170,14 +185,14 @@ public class FileParser {
             return false;
         }
 
-        public DataTable getData() throws F2TException {
+        public DataTable<FileColumnDefinition> getData() throws F2TException {
             if (error != null) {
                 throw new F2TException("Error occurs during extracting: " + error.getMessage(), error);
             }
             if (columns == null) {
                 throw new F2TException("No data definition set");
             }
-            return new DataTable(columns, rows);
+            return new DataTable<>(columns, rows);
         }
     }
 }

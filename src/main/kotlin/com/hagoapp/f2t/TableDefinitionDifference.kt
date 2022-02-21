@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.database.definition
+package com.hagoapp.f2t
 
 import java.sql.JDBCType
 

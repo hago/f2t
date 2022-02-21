@@ -7,10 +7,10 @@
 package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.*
-import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.datafile.*
-import com.hagoapp.util.EncodingUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
+import com.hagoapp.util.EncodingUtils
+import com.hagoapp.util.NumericUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import java.io.FileInputStream
@@ -25,9 +25,11 @@ class CSVDataReader : Reader {
     private lateinit var format: CSVFormat
     private var currentRow = 0
     private val data = mutableListOf<List<String>>()
-    private lateinit var columns: Map<Int, ColumnDefinition>
+    private lateinit var columns: Map<Int, FileColumnDefinition>
     private var rowCount = -1
     private val logger = F2TLogger.getLogger()
+    private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
+    private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -45,6 +47,20 @@ class CSVDataReader : Reader {
         "CSVFormat.POSTGRESQL_TEXT",
         "CSVFormat.TDF"
     )
+
+    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+        defaultDeterminer = determiner
+        return this
+    }
+
+    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
+        columnDeterminerMap[column] = determiner
+        return this
+    }
+
+    private fun getDeterminer(column: String): DataTypeDeterminer {
+        return columnDeterminerMap[column] ?: defaultDeterminer
+    }
 
     override fun open(fileInfo: FileInfo) {
         this.fileInfo = fileInfo as FileInfoCsv
@@ -87,14 +103,14 @@ class CSVDataReader : Reader {
         }
     }
 
-    override fun findColumns(): List<ColumnDefinition> {
+    override fun findColumns(): List<FileColumnDefinition> {
         checkLoad()
-        return columns.values.sortedBy { it.index }
+        return columns.values.sortedBy { it.name }
     }
 
-    override fun inferColumnTypes(sampleRowCount: Long): List<ColumnDefinition> {
+    override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         checkLoad()
-        return columns.values.toList().sortedBy { it.index }
+        return columns.values.toList().sortedBy { it.name }
     }
 
     override fun getSupportedFileType(): Set<Int> {
@@ -116,7 +132,7 @@ class CSVDataReader : Reader {
         val row = DataRow(
             currentRow.toLong(),
             data[currentRow].mapIndexed { i, cell ->
-                DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).inferredType!!), i)
+                DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
         currentRow++
@@ -137,7 +153,7 @@ class CSVDataReader : Reader {
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
             columns = parser.headerMap.entries.map {
-                Pair(it.value, ColumnDefinition(it.value, it.key))
+                Pair(it.value, FileColumnDefinition(it.key))
             }.toMap()
             rowCount = 0
             parser.forEachIndexed { i, record ->
@@ -148,17 +164,35 @@ class CSVDataReader : Reader {
                 record.forEachIndexed { j, item ->
                     val cell = item.trim()
                     row.add(cell)
-                    val possibleTypes = JDBCTypeUtils.guessTypes(cell)
-                    val existTypes = columns.getValue(j).possibleTypes
-                    columns.getValue(j).possibleTypes =
-                        JDBCTypeUtils.combinePossibleTypes(existTypes.toList(), possibleTypes).toMutableSet()
+                    setupColumnDefinition(columns.getValue(j), cell)
                 }
                 data.add(row)
                 rowCount++
             }
             columns.values.forEach { column ->
-                column.inferredType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+                //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
+                column.dataType = getDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
             }
+        }
+    }
+
+    private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
+        val possibleTypes = JDBCTypeUtils.guessTypes(cell).toSet()
+        val existTypes = columnDefinition.possibleTypes
+        columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
+        val typeModifier = columnDefinition.typeModifier
+        if (cell.length > typeModifier.maxLength) {
+            typeModifier.maxLength = cell.length
+        }
+        val p = NumericUtils.detectPrecision(cell)
+        if (p.first > typeModifier.precision) {
+            typeModifier.precision = p.first
+        }
+        if (p.second > typeModifier.scale) {
+            typeModifier.scale = p.second
+        }
+        if (!typeModifier.isHasNonAsciiChar && !EncodingUtils.isAsciiText(cell)) {
+            typeModifier.isHasNonAsciiChar = true
         }
     }
 }

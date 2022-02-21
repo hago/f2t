@@ -9,8 +9,6 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
-import com.hagoapp.f2t.database.definition.ColumnDefinition
-import com.hagoapp.f2t.database.definition.TableDefinition
 import java.sql.*
 import java.util.*
 
@@ -60,7 +58,8 @@ class PgSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
+                        return if (ret.isNotEmpty()) ret
+                        else mapOf(getDefaultSchema() to listOf())
                     }
                 }
             }
@@ -141,12 +140,12 @@ class PgSqlConnection : DbConnection() {
         return name.replace("\"", "\"\"")
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
-        val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
-            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.inferredType!!)}"
-        }
+        val defStr = tableDefinition.columns.map { colDef ->
+            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.dataType)}"
+        }.joinToString(", ")
         val sql = "create table $tableFullName ($defStr)"
         //logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
@@ -163,7 +162,7 @@ class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename
             from pg_attribute as a
@@ -178,11 +177,8 @@ class PgSqlConnection : DbConnection() {
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    val type = mapDBTypeToJDBCType(rs.getString("typename"))
-                    tblColDef.add(
-                        ColumnDefinition(i, rs.getString("attname"), mutableSetOf(type), type)
-                    )
-                    i++
+                    var type = mapDBTypeToJDBCType(rs.getString("typename"))
+                    tblColDef.add(ColumnDefinition(rs.getString("attname")))
                 }
                 if (tblColDef.isEmpty()) {
                     throw F2TException(
@@ -216,7 +212,7 @@ class PgSqlConnection : DbConnection() {
             from pg_tables 
             where tablename = ? and schemaname = ? """
         ).use { stmt ->
-            val schema = table.schema.ifBlank { getDefaultSchema() }
+            val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->

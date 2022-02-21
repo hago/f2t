@@ -6,11 +6,12 @@
 
 package com.hagoapp.f2t.database
 
+import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.database.definition.TableDefinition
+import com.hagoapp.f2t.TableDefinition
 import org.slf4j.Logger
 import java.io.Closeable
 import java.sql.*
@@ -129,7 +130,7 @@ abstract class DbConnection : Closeable {
     /**
      * Create a new table on given name and column definitions.
      */
-    abstract fun createTable(table: TableName, tableDefinition: TableDefinition)
+    abstract fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>)
 
     /**
      * Find local database type on given JDBC type.
@@ -139,7 +140,7 @@ abstract class DbConnection : Closeable {
     /**
      * Fetch column definitions of given table.
      */
-    abstract fun getExistingTableDefinition(table: TableName): TableDefinition
+    abstract fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition>
 
     /**
      * Find JDBC type on database local type.
@@ -199,16 +200,16 @@ abstract class DbConnection : Closeable {
         rows.clear()
     }
 
-    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition) {
+    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val sql = """
                 insert into ${getFullTableName(table)} (${tableDefinition.columns.joinToString { normalizeName(it.name) }})
                 values (${tableDefinition.columns.joinToString { "?" }})
             """
         insertionMap[table] = sql
-        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.index }.map { col ->
-            val converter = getTypedDataConverters()[col.inferredType]
+        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.name }.map { col ->
+            val converter = getTypedDataConverters()[col.dataType]
             if (converter == null) {
-                createFieldSetter(col.inferredType!!)
+                createFieldSetter(col.dataType!!)
             } else {
                 createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
             }

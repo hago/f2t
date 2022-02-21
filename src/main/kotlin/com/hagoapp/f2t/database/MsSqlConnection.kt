@@ -6,9 +6,9 @@
 
 package com.hagoapp.f2t.database
 
-import com.hagoapp.f2t.database.definition.ColumnDefinition
+import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.database.definition.TableDefinition
+import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MsSqlConfig
 import java.sql.Connection
@@ -162,9 +162,9 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)}"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
         }
         val sql = "create table ${getFullTableName(table)} ($content);"
         logger.debug("create table using SQL: $sql")
@@ -184,7 +184,7 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """
                 select TYPE_NAME(c.system_type_id) as typeName, c.name
                 from  sys.schemas as s
@@ -202,7 +202,7 @@ class MsSqlConnection : DbConnection() {
                 }
 
                 return TableDefinition(tblColDef.entries.mapIndexed { i, col ->
-                    ColumnDefinition(i, col.key, mutableSetOf(col.value), col.value)
+                    ColumnDefinition(col.key, col.value)
                 }.toSet())
             }
         }

@@ -5,14 +5,16 @@
  */
 package com.hagoapp.f2t.datafile
 
-import com.hagoapp.f2t.database.definition.ColumnDefinition
 import com.hagoapp.f2t.DataRow
+import com.hagoapp.f2t.FileColumnDefinition
 import java.io.Closeable
 
 interface Reader : Closeable, Iterator<DataRow> {
     fun open(fileInfo: FileInfo)
     fun getRowCount(): Int?
-    fun findColumns(): List<ColumnDefinition>
-    fun inferColumnTypes(sampleRowCount: Long = -1): List<ColumnDefinition>
+    fun findColumns(): List<FileColumnDefinition>
+    fun inferColumnTypes(sampleRowCount: Long = -1): List<FileColumnDefinition>
     fun getSupportedFileType(): Set<Int>
+    fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader
+    fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader
 }

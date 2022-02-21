@@ -9,6 +9,9 @@ package com.hagoapp.f2t.excel
 import com.google.gson.Gson
 import com.hagoapp.f2t.FileParser
 import com.hagoapp.f2t.FileTestObserver
+import com.hagoapp.f2t.datafile.DataTypeDeterminer
+import com.hagoapp.f2t.datafile.LeastTypeDeterminer
+import com.hagoapp.f2t.datafile.MostTypeDeterminer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -21,28 +24,30 @@ class TypedExcelReadTest {
     private val observer = FileTestObserver()
 
     companion object {
-        private val testConfigFiles = listOf(
-            "./tests/excel/shuihudata.json",
-            "./tests/excel/shuihudata_xls.json"
+        private val testConfigFiles = mapOf(
+            "./tests/excel/shuihudata_untyped.json" to MostTypeDeterminer(),
+            "./tests/excel/shuihudata_untyped_xls.json" to MostTypeDeterminer(),
+            "./tests/excel/shuihudata_untyped_least.json" to LeastTypeDeterminer(),
+            "./tests/excel/shuihudata_untyped_xls_least.json" to LeastTypeDeterminer()
         )
-        private lateinit var testConfigs: List<ExcelTestConfig>
+        private lateinit var testConfigs: Map<ExcelTestConfig, DataTypeDeterminer>
 
         @BeforeAll
         @JvmStatic
         @Throws(IOException::class)
         fun loadConfig() {
-            testConfigs = testConfigFiles.map { testConfigFile ->
+            testConfigs = testConfigFiles.map { (testConfigFile, determiner) ->
                 FileInputStream(testConfigFile).use { fis ->
                     val json = String(fis.readAllBytes(), StandardCharsets.UTF_8)
                     val testConfig = Gson().fromJson(json, ExcelTestConfig::class.java)
                     val realExcel = File(
                         System.getProperty("user.dir"),
-                        testConfig.fileInfo.filename
+                        testConfig.fileInfo.filename!!
                     ).absolutePath
                     testConfig.fileInfo.filename = realExcel
-                    testConfig
+                    Pair(testConfig, determiner)
                 }
-            }
+            }.toMap()
         }
     }
 
@@ -50,8 +55,9 @@ class TypedExcelReadTest {
     fun readExcel() {
         observer.isRowDetail = true
         Assertions.assertDoesNotThrow {
-            testConfigs.forEach { testConfig ->
+            testConfigs.forEach { (testConfig, determiner)  ->
                 val parser = FileParser(testConfig.fileInfo)
+                parser.defaultDeterminer = determiner
                 parser.addObserver(observer)
                 parser.parse()
                 Assertions.assertEquals(
@@ -72,8 +78,9 @@ class TypedExcelReadTest {
 
     @Test
     fun extractExcel() {
-        testConfigs.forEach { testConfig ->
+        testConfigs.forEach { (testConfig, determiner) ->
             val parser = FileParser(testConfig.fileInfo)
+            parser.defaultDeterminer = determiner
             parser.addObserver(observer)
             val table = parser.extractData()
             Assertions.assertEquals(
@@ -85,7 +92,7 @@ class TypedExcelReadTest {
                 testConfig.expect.columnCount
             )
             Assertions.assertEquals(
-                table.columnDefinition.map { Pair(it.name, it.inferredType) }.toMap(),
+                table.columnDefinition.map { Pair(it.name, it.dataType) }.toMap(),
                 testConfig.expect.types
             )
         }

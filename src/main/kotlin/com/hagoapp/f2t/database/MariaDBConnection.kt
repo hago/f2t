@@ -10,8 +10,6 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MariaDbConfig
-import com.hagoapp.f2t.database.definition.ColumnDefinition
-import com.hagoapp.f2t.database.definition.TableDefinition
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
@@ -144,9 +142,9 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
-    override fun createTable(table: TableName, tableDefinition: TableDefinition) {
+    override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.inferredType!!)} null"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)} null"
         }
         val sql = """
             create table ${normalizeName(table.tableName)} ($content) 
@@ -169,7 +167,7 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
-    override fun getExistingTableDefinition(table: TableName): TableDefinition {
+    override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = "desc ${normalizeName(table.tableName)};"
         //logger.debug(sql)
         connection.prepareStatement(sql).use { stmt ->
@@ -179,7 +177,7 @@ class MariaDBConnection : DbConnection() {
                     def[rs.getString("Field")] = mapDBTypeToJDBCType(rs.getString("Type"))
                 }
                 return TableDefinition(def.entries.mapIndexed { i, entry ->
-                    ColumnDefinition(i, entry.key, mutableSetOf(entry.value), entry.value)
+                    ColumnDefinition(entry.key, entry.value)
                 }.toSet())
             }
         }

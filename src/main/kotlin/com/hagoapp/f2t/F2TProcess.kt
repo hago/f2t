@@ -10,8 +10,6 @@ import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.database.definition.ColumnDefinition
-import com.hagoapp.f2t.database.definition.TableDefinition
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import java.lang.reflect.Method
@@ -57,15 +55,14 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         parser.parse()
     }
 
-    override fun onColumnTypeDetermined(columnDefinitionList: List<ColumnDefinition?>) {
+    override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition?>) {
         val colDef = when {
             config.isAddBatch -> {
                 batchNum = Instant.now().toEpochMilli()
                 logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
                 columnDefinitionList.map { it!! }
                     .plus(
-                        ColumnDefinition(
-                            columnDefinitionList.size,
+                        FileColumnDefinition(
                             config.batchColumnName,
                             mutableSetOf(),
                             JDBCType.BIGINT
@@ -93,9 +90,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         } else {
             if (config.isCreateTableIfNeeded) {
                 val tblDef = TableDefinition(colDef.toSet())
-                result.tableDefinition = tblDef
+                result.tableDefinition = TableDefinition(colDef.toSet())
                 try {
-                    connection.createTable(table, tblDef)
+                    connection.createTable(table, result.tableDefinition!!)
                     connection.prepareInsertion(table, tblDef)
                     tableMatchedFile = true
                     logger.info("table $table created on ${parser.fileInfo.filename}")

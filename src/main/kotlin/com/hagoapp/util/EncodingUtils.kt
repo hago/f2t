@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 class EncodingUtils {
@@ -99,6 +100,20 @@ class EncodingUtils {
                 "MACCYRILLIC" -> "x-MacCyrillic"
                 "SHIFT_JIS" -> "Shift_JIS"
                 else -> default
+            }
+        }
+
+        fun isAsciiText(s: String?): Boolean {
+            if (s == null) {
+                return true
+            }
+            return try {
+                val encoder = StandardCharsets.US_ASCII.newEncoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                encoder.canEncode(s)
+            } catch (e: CharacterCodingException) {
+                false
             }
         }
     }

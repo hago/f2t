@@ -8,13 +8,13 @@
     "rowCount": 108,
     "columnCount": 8,
     "types": {
-      "座次": "BIGINT",
-      "星宿": "NCLOB",
-      "诨名": "NCLOB",
-      "姓名": "NCLOB",
+      "座次": "TINYINT",
+      "星宿": "NVARCHAR",
+      "诨名": "NVARCHAR",
+      "姓名": "NVARCHAR",
       "布尔": "BOOLEAN",
-      "浮点": "DECIMAL",
-      "整数": "BIGINT",
+      "浮点": "FLOAT",
+      "整数": "SMALLINT",
       "日期": "TIMESTAMP_WITH_TIMEZONE"
     }
   }
