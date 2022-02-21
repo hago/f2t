@@ -8,8 +8,9 @@ package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.datafile.*
-import com.hagoapp.util.EncodingUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
+import com.hagoapp.util.EncodingUtils
+import com.hagoapp.util.NumericUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import java.io.FileInputStream
@@ -163,10 +164,7 @@ class CSVDataReader : Reader {
                 record.forEachIndexed { j, item ->
                     val cell = item.trim()
                     row.add(cell)
-                    val possibleTypes = JDBCTypeUtils.guessTypes(cell)
-                    val existTypes = columns.getValue(j).possibleTypes
-                    columns.getValue(j).possibleTypes =
-                        JDBCTypeUtils.combinePossibleTypes(existTypes.toList(), possibleTypes).toMutableSet()
+                    setupColumnDefinition(columns.getValue(j), cell)
                 }
                 data.add(row)
                 rowCount++
@@ -175,6 +173,26 @@ class CSVDataReader : Reader {
                 //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
                 column.dataType = getDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
             }
+        }
+    }
+
+    private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
+        val possibleTypes = JDBCTypeUtils.guessTypes(cell).toSet()
+        val existTypes = columnDefinition.possibleTypes
+        columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
+        val typeModifier = columnDefinition.typeModifier
+        if (cell.length > typeModifier.maxLength) {
+            typeModifier.maxLength = cell.length
+        }
+        val p = NumericUtils.detectPrecision(cell)
+        if (p.first > typeModifier.precision) {
+            typeModifier.precision = p.first
+        }
+        if (p.second > typeModifier.scale) {
+            typeModifier.scale = p.second
+        }
+        if (!typeModifier.isHasNonAsciiChar && !EncodingUtils.isAsciiText(cell)) {
+            typeModifier.isHasNonAsciiChar = true
         }
     }
 }
