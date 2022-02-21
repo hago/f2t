@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
+import org.apache.poi.ss.formula.functions.Column
 import java.sql.*
 import java.util.*
 
@@ -192,8 +193,52 @@ class PgSqlConnection : DbConnection() {
                 }
                 val ret = TableDefinition(tblColDef.toSet())
                 ret.caseSensitive = isCaseSensitive()
+                ret.primaryKey = findUniqueConstraint(table, ret.columns, "p").firstOrNull()
+                ret.uniqueConstraints = findUniqueConstraint(table, ret.columns)
                 return ret
             }
+        }
+    }
+
+    private fun findUniqueConstraint(
+        table: TableName,
+        refColumns: Set<ColumnDefinition>,
+        type: String = "u"
+    ): Set<TableUniqueDefinition<ColumnDefinition>> {
+        val sql = """
+            select 
+            a.attname, con.conname 
+            from 
+            pg_catalog.pg_constraint as con
+            inner join pg_namespace as n on con.connamespace = n.oid
+            inner join pg_class as c on con.conrelid = c.oid
+            inner join pg_attribute a on a.attrelid = c.oid and array_position(con.conkey, a.attnum) >= 0
+            where 
+            n.nspname = ? and c.relname = ? and con.contype = ?
+            and a.attnum > 0 and not a.attisdropped and c.relkind= 'r'
+        """.trimIndent()
+        connection.prepareStatement(sql).use { st ->
+            st.setString(1, table.schema)
+            st.setString(2, table.tableName)
+            st.setString(3, type)
+            val map = mutableMapOf<String, MutableList<String>>()
+            st.executeQuery().use { rs ->
+                while (rs.next()) {
+                    val keyName = rs.getString("conname")
+                    val colName = rs.getString("attname")
+                    if (!map.contains(keyName)) {
+                        map[keyName] = mutableListOf(colName)
+                    } else {
+                        map.getValue(keyName).add(colName)
+                    }
+                }
+            }
+            val colMatcher = if (isCaseSensitive()) { a: String, b: String -> a == b }
+            else { a: String, b: String -> a.equals(b, true) }
+            return map.map { (constraint, colNames) ->
+                val columns = refColumns.filter { ref -> colNames.any { colMatcher.invoke(it, ref.name) } }
+                TableUniqueDefinition(constraint, columns.toSet(), isCaseSensitive())
+            }.toSet()
         }
     }
 
