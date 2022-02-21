@@ -66,7 +66,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
         }
     }
 
-    private fun determineFloatPointType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineFloatPointType(types: Set<JDBCType>): JDBCType {
         return if (types.contains(JDBCType.DECIMAL)) {
             JDBCType.DECIMAL
         } else if (types.contains(JDBCType.DOUBLE)) {
