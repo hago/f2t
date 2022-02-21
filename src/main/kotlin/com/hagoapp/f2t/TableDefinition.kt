@@ -11,7 +11,7 @@ import java.sql.JDBCType
 /**
  * This class represents definition of a table.
  */
-class TableDefinition<T:ColumnDefinition>(
+class TableDefinition<T : ColumnDefinition>(
     var columns: Set<T>,
     var caseSensitive: Boolean = true,
     var primaryKey: TableUniqueDefinition<T>? = null
