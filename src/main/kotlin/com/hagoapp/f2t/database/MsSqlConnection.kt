@@ -214,7 +214,6 @@ class MsSqlConnection : DbConnection() {
                     colDef.typeModifier.isNullable = rs.getBoolean("is_nullable")
                     tblColDef.add(colDef)
                 }
-
                 val ret = TableDefinition(tblColDef.toSet(), isCaseSensitive())
                 val uqKeys = findPrimaryKeyAndUniques(table, ret.columns)
                 ret.primaryKey = uqKeys.first
