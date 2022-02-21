@@ -11,11 +11,11 @@
     "columnCount": 8,
     "types": {
       "座次": "BIGINT",
-      "星宿": "CLOB",
-      "诨名": "CLOB",
-      "姓名": "CLOB",
+      "星宿": "NCLOB",
+      "诨名": "NCLOB",
+      "姓名": "NCLOB",
       "布尔": "BOOLEAN",
-      "浮点": "DOUBLE",
+      "浮点": "DECIMAL",
       "整数": "BIGINT",
       "日期": "TIMESTAMP_WITH_TIMEZONE"
     }

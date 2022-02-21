@@ -11,9 +11,9 @@
     "columnCount": 8,
     "types": {
       "座次": "TINYINT",
-      "星宿": "VARCHAR",
-      "诨名": "VARCHAR",
-      "姓名": "VARCHAR",
+      "星宿": "MVARCHAR",
+      "诨名": "NVARCHAR",
+      "姓名": "NVARCHAR",
       "布尔": "BOOLEAN",
       "浮点": "FLOAT",
       "整数": "INTEGER",
