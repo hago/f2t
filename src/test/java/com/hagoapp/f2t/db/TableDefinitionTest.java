@@ -48,8 +48,6 @@ public class TableDefinitionTest {
                 case DOUBLE:
                 case NUMERIC:
                 case DECIMAL:
-                    Assertions.assertTrue(colDef.getTypeModifier().getPrecision() +
-                            colDef.getTypeModifier().getScale() > 0);
                     break;
             }
         });
