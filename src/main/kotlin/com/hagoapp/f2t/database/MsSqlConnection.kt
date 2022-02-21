@@ -15,6 +15,7 @@ import com.hagoapp.f2t.database.config.MsSqlConfig
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 import java.sql.SQLException
 import java.util.*
 import kotlin.collections.component1
@@ -67,8 +68,7 @@ class MsSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return if (ret.isNotEmpty()) ret
-                        else mapOf(conf.databaseName to listOf())
+                        return ret.ifEmpty { mapOf(conf.databaseName to listOf()) }
                     }
                 }
             }
@@ -159,7 +159,7 @@ class MsSqlConnection : DbConnection() {
                 inner join sys.schemas T2 ON (T2.[schema_id] = T1.[uid])
                 WHERE xtype = 'U' and t2.name = ? and t1.name = ?"""
         connection.prepareStatement(sql).use { stmt ->
-            stmt.setString(1, if (table.schema.isBlank()) getDefaultSchema() else table.schema)
+            stmt.setString(1, table.schema.ifBlank { getDefaultSchema() })
             stmt.setString(2, table.tableName)
             stmt.executeQuery().use { rs ->
                 return rs.next()
@@ -180,11 +180,11 @@ class MsSqlConnection : DbConnection() {
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType): String {
         return when (aType) {
-            JDBCType.BOOLEAN -> "bit"
-            JDBCType.TIMESTAMP -> "datetimeoffset"
-            JDBCType.BIGINT -> "bigint"
-            JDBCType.INTEGER -> "int"
-            JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> "float"
+            BOOLEAN -> "bit"
+            TIMESTAMP -> "datetimeoffset"
+            BIGINT -> "bigint"
+            INTEGER -> "int"
+            DOUBLE, DECIMAL, FLOAT -> "float"
             else -> "ntext"
         }
     }
@@ -200,7 +200,7 @@ class MsSqlConnection : DbConnection() {
             """.trimIndent()
         connection.prepareStatement(sql).use { stmt ->
             stmt.setString(1, table.tableName)
-            stmt.setString(2, if (table.schema.isBlank()) getDefaultSchema() else table.schema)
+            stmt.setString(2, table.schema.ifBlank { getDefaultSchema() })
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
@@ -284,13 +284,29 @@ class MsSqlConnection : DbConnection() {
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
         return when {
-            typeName.compareTo("integer") == 0 -> JDBCType.INTEGER
-            typeName.compareTo("bigint") == 0 -> JDBCType.BIGINT
-            typeName.compareTo("bit") == 0 -> JDBCType.BOOLEAN
-            typeName.startsWith("datetimeoffset") -> JDBCType.TIMESTAMP
-            typeName.compareTo("float") == 0 || typeName.compareTo("real") == 0 ||
-                    typeName.startsWith("numeric") -> JDBCType.DOUBLE
-            else -> JDBCType.CLOB
+            typeName.startsWith("int") -> INTEGER
+            typeName == "tinyint" -> TINYINT
+            typeName == "smallint" -> SMALLINT
+            typeName == "uniqueidentifier" -> CHAR
+            typeName == "bigint" -> BIGINT
+            typeName == "bit" -> BOOLEAN
+            setOf("smallmoney", "money", "numeric").contains(typeName) -> NUMERIC
+            typeName.startsWith("datetime") || typeName.startsWith("smalldatetime") -> TIMESTAMP_WITH_TIMEZONE
+            typeName == "time" -> TIME
+            typeName == "date" -> DATE
+            typeName == "float" -> FLOAT
+            typeName == "real" -> DOUBLE
+            typeName.startsWith("decimal") -> DECIMAL
+            typeName == "char" -> CHAR
+            typeName == "nchar" -> NCHAR
+            typeName == "varchar" -> VARCHAR
+            typeName == "nvarchar" -> NVARCHAR
+            typeName == "text" -> CLOB
+            typeName == "ntext" -> NCLOB
+            typeName == "binary" -> BINARY
+            typeName == "varbinary" -> VARBINARY
+            typeName == "image" -> VARBINARY
+            else -> throw UnsupportedOperationException("Unsupported mssql type: $typeName")
         }
     }
 
