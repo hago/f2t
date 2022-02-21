@@ -26,7 +26,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
             types.contains(JDBCType.SMALLINT) || types.contains(JDBCType.TINYINT) ||
             types.contains(JDBCType.BIGINT)
         ) {
-            determineNumberType(types, modifier)
+            determineNumberType(types)
         } else if (types.contains(JDBCType.BOOLEAN)) {
             JDBCType.BOOLEAN
         } else if (types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE)) {
@@ -48,11 +48,11 @@ class MostTypeDeterminer : DataTypeDeterminer {
         }
     }
 
-    private fun determineNumberType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineNumberType(types: Set<JDBCType>): JDBCType {
         return if (!types.contains(JDBCType.INTEGER) && !types.contains(JDBCType.SMALLINT) &&
             !types.contains(JDBCType.TINYINT) && !types.contains(JDBCType.BIGINT)
         ) {
-            determineFloatPointType(types, modifier)
+            determineFloatPointType(types)
         } else {
             if (types.contains(JDBCType.BIGINT)) {
                 JDBCType.BIGINT
