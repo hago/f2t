@@ -73,6 +73,7 @@ public class ColumnTypeModifier {
                 "maxLength=" + maxLength +
                 ", precision=" + precision +
                 ", scale=" + scale +
+                ", nullable=" + nullable +
                 ", collation='" + collation + '\'' +
                 '}';
     }
