@@ -48,9 +48,6 @@ class TableDefinition<T : ColumnDefinition>(
         return TableDefinitionDifference(has, missing, typeDiffers)
     }
 
-    override fun toString(): String {
-        return "TableDefinition(columns=$columns)"
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -74,5 +71,14 @@ class TableDefinition<T : ColumnDefinition>(
         return result
     }
 
+    override fun toString(): String {
+        return """
+            TableDefinition(
+            columns=$columns, 
+            caseSensitive=$caseSensitive, 
+            primaryKey=$primaryKey, 
+            uniqueConstraints=$uniqueConstraints)
+            """
+    }
 
 }
