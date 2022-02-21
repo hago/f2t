@@ -9,6 +9,9 @@ package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
 import com.hagoapp.f2t.*;
+import com.hagoapp.f2t.datafile.DataTypeDeterminer;
+import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
+import com.hagoapp.f2t.datafile.MostTypeDeterminer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -18,53 +21,72 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CsvReadTest {
 
-    private static final String testConfigFile = "./tests/csv/shuihudata.json";
-    private static CsvTestConfig testConfig;
+    private static final Map<String, DataTypeDeterminer> testConfigFiles = Map.of(
+            "./tests/csv/shuihudata.json", new MostTypeDeterminer()
+            //"./tests/csv/shuihudata_least.json", new LeastTypeDeterminer()
+    );
+
+    private static final Map<CsvTestConfig, DataTypeDeterminer> testConfigs = new HashMap<>();
     private static final Logger logger = F2TLogger.getLogger();
 
     @BeforeAll
     public static void loadConfig() throws IOException {
-        try (FileInputStream fis = new FileInputStream(testConfigFile)) {
-            String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
-            testConfig = new Gson().fromJson(json, CsvTestConfig.class);
-            String realCsv = new File(System.getProperty("user.dir"),
-                    Objects.requireNonNull(testConfig.getFileInfo().getFilename())).getAbsolutePath();
-            logger.debug(realCsv);
-            testConfig.getFileInfo().setFilename(realCsv);
-            logger.debug(testConfig.toString());
+        for (var item : testConfigFiles.entrySet()) {
+            var testConfigFile = item.getKey();
+            try (FileInputStream fis = new FileInputStream(testConfigFile)) {
+                String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                var testConfig = new Gson().fromJson(json, CsvTestConfig.class);
+                String realCsv = new File(System.getProperty("user.dir"),
+                        Objects.requireNonNull(testConfig.getFileInfo().getFilename())).getAbsolutePath();
+                logger.debug(realCsv);
+                testConfig.getFileInfo().setFilename(realCsv);
+                logger.debug(testConfig.toString());
+                testConfigs.put(testConfig, item.getValue());
+            }
         }
     }
 
     @Test
-    public void readCsv() {
-        observer.setRowDetail(true);
-        Assertions.assertDoesNotThrow(() -> {
+    public void readCsv() throws IOException {
+        for (var item : testConfigs.entrySet()) {
+            var testConfig = item.getKey();
+            var determiner = item.getValue();
+            logger.debug("start csv read test using {}", determiner.getClass().getCanonicalName());
+            observer.setRowDetail(true);
             FileParser parser = new FileParser(testConfig.getFileInfo());
+            parser.setDefaultDeterminer(determiner);
             parser.addObserver(observer);
             parser.parse();
-            Assertions.assertEquals(observer.getRowCount(), testConfig.getExpect().getRowCount());
-            Assertions.assertEquals(observer.getColumns().size(), testConfig.getExpect().getColumnCount());
-            Assertions.assertEquals(observer.getColumns(), testConfig.getExpect().getTypes());
-        });
+            Assertions.assertEquals(testConfig.getExpect().getRowCount(), observer.getRowCount());
+            Assertions.assertEquals(testConfig.getExpect().getColumnCount(), observer.getColumns().size());
+            Assertions.assertEquals(testConfig.getExpect().getTypes(), observer.getColumns());
+        }
     }
 
     FileTestObserver observer = new FileTestObserver();
 
     @Test
     public void extractCsv() throws IOException, F2TException {
-        FileParser parser = new FileParser(testConfig.getFileInfo());
-        parser.addObserver(observer);
-        var table = parser.extractData();
-        Assertions.assertEquals(table.getRows().size(), testConfig.getExpect().getRowCount());
-        Assertions.assertEquals(table.getColumnDefinition().size(), testConfig.getExpect().getColumnCount());
-        Assertions.assertEquals(testConfig.getExpect().getTypes(), table.getColumnDefinition().stream()
-                .collect(Collectors.toMap(FileColumnDefinition::getName, FileColumnDefinition::getDataType))
-        );
-        System.out.println(table);
+        for (var item : testConfigs.entrySet()) {
+            var testConfig = item.getKey();
+            var determiner = item.getValue();
+            FileParser parser = new FileParser(testConfig.getFileInfo());
+            parser.setDefaultDeterminer(determiner);
+            parser.addObserver(observer);
+            var table = parser.extractData();
+            Assertions.assertEquals(table.getRows().size(), testConfig.getExpect().getRowCount());
+            Assertions.assertEquals(table.getColumnDefinition().size(), testConfig.getExpect().getColumnCount());
+            Assertions.assertEquals(testConfig.getExpect().getTypes(), table.getColumnDefinition().stream()
+                    .collect(Collectors.toMap(FileColumnDefinition::getName, FileColumnDefinition::getDataType))
+            );
+            System.out.println(table);
+        }
     }
 }
