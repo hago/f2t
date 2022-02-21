@@ -164,7 +164,7 @@ class PgSqlConnection : DbConnection() {
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """select
-            a.attname, format_type(a.atttypid, a.atttypmod) as typename
+            a.attname, format_type(a.atttypid, a.atttypmod) as typename, a.attnotnull
             from pg_attribute as a
             inner join pg_class as c on c.oid = a.attrelid
             inner join pg_namespace as n on n.oid = c.relnamespace
@@ -173,20 +173,44 @@ class PgSqlConnection : DbConnection() {
             val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
-            var i = 0
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    var type = mapDBTypeToJDBCType(rs.getString("typename"))
-                    tblColDef.add(ColumnDefinition(rs.getString("attname")))
+                    val typeStr = rs.getString("typename")
+                    val colDef = ColumnDefinition(rs.getString("attname"), mapDBTypeToJDBCType(typeStr))
+                    colDef.typeModifier.isNullable = !rs.getBoolean("attnotnull")
+                    val i = parseModifier(typeStr)
+                    colDef.typeModifier.maxLength = i.first
+                    colDef.typeModifier.precision = i.second
+                    colDef.typeModifier.scale = i.third
+                    tblColDef.add(colDef)
                 }
                 if (tblColDef.isEmpty()) {
                     throw F2TException(
                         "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
                     )
                 }
-                return TableDefinition(tblColDef.toSet())
+                val ret = TableDefinition(tblColDef.toSet())
+                ret.caseSensitive = isCaseSensitive()
+                return ret
             }
+        }
+    }
+
+    private fun parseModifier(typeStr: String): Triple<Int, Int, Int> {
+        return when {
+            typeStr.startsWith("character") -> {
+                val m = Regex(".+?\\((\\d+)\\)").matchEntire(typeStr)
+                if ((m != null) && m.groupValues.isNotEmpty()) Triple(m.groupValues.last().toInt(), 0, 0)
+                else Triple(0, 0, 0)
+            }
+            typeStr.startsWith("numeric") -> {
+                val m = Regex(".+?\\((\\d+),(\\d+)\\)").matchEntire(typeStr)
+                if ((m != null) && (m.groupValues.size > 2))
+                    Triple(0, m.groupValues[1].toInt(), m.groupValues[2].toInt())
+                else Triple(0, 0, 0)
+            }
+            else -> Triple(0, 0, 0)
         }
     }
 
