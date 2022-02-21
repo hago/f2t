@@ -34,13 +34,13 @@ class MostTypeDeterminer : DataTypeDeterminer {
         } else if (types.contains(JDBCType.CHAR) || types.contains(JDBCType.VARCHAR) || types.contains(JDBCType.CLOB) ||
             types.contains(JDBCType.NCHAR) || types.contains(JDBCType.NVARCHAR) || types.contains(JDBCType.NCLOB)
         ) {
-            determineTextType(types, modifier)
+            determineTextType(modifier)
         } else {
             JDBCType.VARBINARY
         }
     }
 
-    private fun determineTextType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineTextType(modifier: ColumnTypeModifier): JDBCType {
         return if (modifier.isHasNonAsciiChar) {
             JDBCType.NCLOB
         } else {
