@@ -9,12 +9,17 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.TableDefinition
+import com.hagoapp.f2t.TableUniqueDefinition
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MsSqlConfig
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
+import java.sql.SQLException
 import java.util.*
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 class MsSqlConnection : DbConnection() {
 
@@ -186,7 +191,8 @@ class MsSqlConnection : DbConnection() {
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = """
-                select TYPE_NAME(c.system_type_id) as typeName, c.name
+                select TYPE_NAME(c.system_type_id) as typeName, c.name, o.object_id,
+                c.max_length, c.precision, c.scale, c.collation_name, c.is_nullable
                 from  sys.schemas as s
                 inner join sys.objects as o on s.schema_id = o.schema_id
                 inner join sys.columns as c on o.object_id = c.object_id
@@ -196,16 +202,84 @@ class MsSqlConnection : DbConnection() {
             stmt.setString(1, table.tableName)
             stmt.setString(2, if (table.schema.isBlank()) getDefaultSchema() else table.schema)
             stmt.executeQuery().use { rs ->
-                val tblColDef = mutableMapOf<String, JDBCType>()
+                val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
-                    tblColDef[rs.getString("name")] = mapDBTypeToJDBCType(rs.getString("typeName"))
+                    val name = rs.getNString("name")
+                    val type = mapDBTypeToJDBCType(rs.getNString("typeName"))
+                    val colDef = ColumnDefinition(name, type)
+                    colDef.typeModifier.maxLength = rs.getInt("max_length")
+                    colDef.typeModifier.precision = rs.getInt("precision")
+                    colDef.typeModifier.scale = rs.getInt("scale")
+                    colDef.typeModifier.collation = rs.getString("collation_name")
+                    colDef.typeModifier.isNullable = rs.getBoolean("is_nullable")
+                    tblColDef.add(colDef)
                 }
 
-                return TableDefinition(tblColDef.entries.mapIndexed { i, col ->
-                    ColumnDefinition(col.key, col.value)
-                }.toSet())
+                val ret = TableDefinition(tblColDef.toSet(), isCaseSensitive())
+                val uqKeys = findPrimaryKeyAndUniques(table, ret.columns)
+                ret.primaryKey = uqKeys.first
+                ret.uniqueConstraints = uqKeys.second
+                return ret
             }
         }
+    }
+
+    private fun getUniqueKeyConstraints(table: TableName, type: String): Map<String, List<String>> {
+        val sql = "SELECT kc.type, i.index_id, kc.name as index_name, c.name as column_name " +
+                "from sys.objects as o " +
+                "inner join sys.indexes as i on o.object_id = i.object_id " +
+                "inner join sys.index_columns as ic on o.object_id = ic.object_id and i.index_id = ic.index_id " +
+                "inner join sys.key_constraints as kc on i.name = kc.name " +
+                "inner join sys.columns as c on c.object_id = o.object_id and c.column_id = ic.column_id " +
+                "inner join sys.schemas as s on s.schema_id = o.schema_id " +
+                "where o.name = ? and s.name = ? and kc.type = ?"
+        val ret: MutableMap<String, MutableList<String>> = HashMap()
+        try {
+            connection.prepareStatement(sql).use { st ->
+                st.setString(1, table.tableName)
+                st.setString(2, table.schema)
+                st.setString(3, type)
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val keyName = rs.getNString("index_name")
+                        val colName = rs.getNString("column_name")
+                        if (!ret.containsKey(keyName)) {
+                            ret[keyName] = ArrayList()
+                        }
+                        ret.getValue(keyName).add(colName)
+                    }
+                }
+                return ret
+            }
+        } catch (e: SQLException) {
+            throw IllegalStateException("Table definition query error", e)
+        }
+    }
+
+    private fun findPrimaryKeyAndUniques(
+        table: TableName, refColumns: Set<ColumnDefinition>
+    ): Pair<TableUniqueDefinition<ColumnDefinition>?, Set<TableUniqueDefinition<ColumnDefinition>>> {
+        val pk = fromColumns(getUniqueKeyConstraints(table, "PK"), refColumns).firstOrNull()
+        val uqs = fromColumns(getUniqueKeyConstraints(table, "UQ"), refColumns).toSet()
+        return Pair(pk, uqs)
+    }
+
+    private fun fromColumns(
+        uniques: Map<String, List<String>>,
+        refColumns: Set<ColumnDefinition>
+    ): List<TableUniqueDefinition<ColumnDefinition>> {
+        if (uniques.isEmpty()) {
+            return listOf()
+        }
+        val colMatcher = if (isCaseSensitive()) { a: String, b: String -> a == b }
+        else { a: String, b: String -> a.equals(b, true) }
+        val ret = mutableListOf<TableUniqueDefinition<ColumnDefinition>>()
+        for ((keyName, columns) in uniques) {
+            val colDef = refColumns.filter { ref -> columns.any { col -> colMatcher.invoke(ref.name, col) } }.toSet()
+            val unique = TableUniqueDefinition(keyName, colDef, isCaseSensitive())
+            ret.add(unique)
+        }
+        return ret
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {

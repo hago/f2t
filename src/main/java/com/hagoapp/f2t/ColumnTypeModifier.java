@@ -17,6 +17,7 @@ public class ColumnTypeModifier {
     private int scale = 0;
     private String collation;
     private boolean hasNonAsciiChar = false;
+    private boolean nullable = true;
 
     public int getMaxLength() {
         return maxLength;
@@ -56,6 +57,14 @@ public class ColumnTypeModifier {
 
     public void setHasNonAsciiChar(boolean hasNonAsciiChar) {
         this.hasNonAsciiChar = hasNonAsciiChar;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public void setNullable(boolean nullable) {
+        this.nullable = nullable;
     }
 
     @Override
