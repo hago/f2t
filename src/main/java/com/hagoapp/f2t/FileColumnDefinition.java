@@ -44,7 +44,7 @@ public class FileColumnDefinition extends ColumnDefinition {
     public String toString() {
         return "FileColumnDefinition{" +
                 "possibleTypes=" + possibleTypes +
-                ", Parent=" + super.toString() +
-                '}';
+                ", parent={" + super.toString() +
+                "}}";
     }
 }

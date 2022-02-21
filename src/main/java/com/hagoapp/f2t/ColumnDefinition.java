@@ -54,9 +54,9 @@ public class ColumnDefinition {
     @Override
     public String toString() {
         return "ColumnDefinition{" +
-                ", name='" + name + '\'' +
-                ", inferredType=" + dataType +
-                ", typeModifier=" + typeModifier + '\'' +
+                "name='" + name + '\'' +
+                ", dataType=" + dataType +
+                ", typeModifier=" + typeModifier +
                 '}';
     }
 }
