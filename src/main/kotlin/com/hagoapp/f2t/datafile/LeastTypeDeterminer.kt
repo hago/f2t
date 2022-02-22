@@ -26,7 +26,7 @@ class LeastTypeDeterminer : DataTypeDeterminer {
             types.contains(JDBCType.SMALLINT) || types.contains(JDBCType.TINYINT) ||
             types.contains(JDBCType.BIGINT)
         ) {
-            determineNumberType(types, modifier)
+            determineNumberType(types)
         } else if (types.contains(JDBCType.BOOLEAN)) {
             JDBCType.BOOLEAN
         } else if (types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE)) {
@@ -34,13 +34,13 @@ class LeastTypeDeterminer : DataTypeDeterminer {
         } else if (types.contains(JDBCType.CHAR) || types.contains(JDBCType.VARCHAR) || types.contains(JDBCType.CLOB) ||
             types.contains(JDBCType.NCHAR) || types.contains(JDBCType.NVARCHAR) || types.contains(JDBCType.NCLOB)
         ) {
-            determineTextType(types, modifier)
+            determineTextType(modifier)
         } else {
             JDBCType.VARBINARY
         }
     }
 
-    private fun determineTextType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineTextType(modifier: ColumnTypeModifier): JDBCType {
         return if (modifier.isHasNonAsciiChar) {
             JDBCType.NVARCHAR
         } else {
@@ -48,11 +48,11 @@ class LeastTypeDeterminer : DataTypeDeterminer {
         }
     }
 
-    private fun determineNumberType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineNumberType(types: Set<JDBCType>): JDBCType {
         return if (!types.contains(JDBCType.INTEGER) && !types.contains(JDBCType.SMALLINT) &&
             !types.contains(JDBCType.TINYINT) && !types.contains(JDBCType.BIGINT)
         ) {
-            determineFloatPointType(types, modifier)
+            determineFloatPointType(types)
         } else {
             if (types.contains(JDBCType.TINYINT)) {
                 JDBCType.TINYINT
@@ -66,7 +66,7 @@ class LeastTypeDeterminer : DataTypeDeterminer {
         }
     }
 
-    private fun determineFloatPointType(types: Set<JDBCType>, modifier: ColumnTypeModifier): JDBCType {
+    private fun determineFloatPointType(types: Set<JDBCType>): JDBCType {
         return if (types.contains(JDBCType.FLOAT)) {
             JDBCType.FLOAT
         } else if (types.contains(JDBCType.DOUBLE)) {
