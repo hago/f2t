@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
+import com.hagoapp.f2t.util.ColumnMatcher
 import org.apache.poi.ss.formula.functions.Column
 import java.sql.*
 import java.util.*
@@ -233,8 +234,7 @@ class PgSqlConnection : DbConnection() {
                     }
                 }
             }
-            val colMatcher = if (isCaseSensitive()) { a: String, b: String -> a == b }
-            else { a: String, b: String -> a.equals(b, true) }
+            val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
             return map.map { (constraint, colNames) ->
                 val columns = refColumns.filter { ref -> colNames.any { colMatcher.invoke(it, ref.name) } }
                 TableUniqueDefinition(constraint, columns.toSet(), isCaseSensitive())

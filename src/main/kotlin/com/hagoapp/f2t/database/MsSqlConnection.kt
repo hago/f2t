@@ -12,6 +12,7 @@ import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.TableUniqueDefinition
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MsSqlConfig
+import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
@@ -270,8 +271,7 @@ class MsSqlConnection : DbConnection() {
         if (uniques.isEmpty()) {
             return listOf()
         }
-        val colMatcher = if (isCaseSensitive()) { a: String, b: String -> a == b }
-        else { a: String, b: String -> a.equals(b, true) }
+        val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
         val ret = mutableListOf<TableUniqueDefinition<ColumnDefinition>>()
         for ((keyName, columns) in uniques) {
             val colDef = refColumns.filter { ref -> columns.any { col -> colMatcher.invoke(ref.name, col) } }.toSet()
