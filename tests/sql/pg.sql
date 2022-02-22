@@ -2,6 +2,7 @@ create table if not exists demo (
     id serial not null,
     "name" varchar(100),
     "description" text,
+    isdead bool,
     age smallint,
     "number" int,
     long bigint,
