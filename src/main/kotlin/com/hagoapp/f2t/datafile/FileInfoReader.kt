@@ -10,7 +10,7 @@ import com.google.gson.GsonBuilder
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
+import org.reflections.scanners.Scanners
 import java.io.FileInputStream
 import java.io.InputStream
 
@@ -22,7 +22,7 @@ class FileInfoReader {
         private val logger = F2TLogger.getLogger()
 
         init {
-            val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
+            val r = Reflections(F2TException::class.java.packageName, Scanners.SubTypes)
             r.getSubTypesOf(FileInfo::class.java).forEach { clz ->
                 val constructor = clz.getConstructor()
                 val template = constructor.newInstance()

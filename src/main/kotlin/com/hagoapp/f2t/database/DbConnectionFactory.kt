@@ -10,7 +10,7 @@ import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
+import org.reflections.scanners.Scanners
 
 class DbConnectionFactory {
     companion object {
@@ -19,7 +19,7 @@ class DbConnectionFactory {
         private val logger = F2TLogger.getLogger()
 
         init {
-            val r = Reflections(F2TException::class.java.packageName, SubTypesScanner())
+            val r = Reflections(F2TException::class.java.packageName, Scanners.SubTypes)
             r.getSubTypesOf(DbConnection::class.java).forEach { t ->
                 try {
                     val template = t.getConstructor().newInstance()
