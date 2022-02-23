@@ -144,12 +144,22 @@ class ExcelDataFileReader : Reader {
             }
         }
         if (columnDefinition.possibleTypes.contains(DECIMAL) || columnDefinition.possibleTypes.contains(BIGINT)) {
-            val p = NumericUtils.detectPrecision(cell)
+            val p = NumericUtils.detectPrecision(cell.numericCellValue)
             if (p.first > typeModifier.precision) {
                 typeModifier.precision = p.first
             }
             if (p.second > typeModifier.scale) {
                 typeModifier.scale = p.second
+            }
+            val strValue = cell.numericCellValue.toString()
+            if (strValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = strValue.length
+            }
+        }
+        if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
+            val strValue = getDateCellValue(cell).format(JDBCTypeUtils.getDefaultDateTimeFormatter())
+            if (strValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = strValue.length
             }
         }
     }
@@ -198,13 +208,15 @@ class ExcelDataFileReader : Reader {
     private fun getCellValue(cell: Cell, type: JDBCType): Any? {
         return when {
             cell.cellType == CellType.BOOLEAN -> cell.booleanCellValue
-            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> ZonedDateTime.ofInstant(
-                cell.dateCellValue.toInstant(),
-                ZoneId.systemDefault()
-            )
+            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> getDateCellValue(cell)
             cell.cellType == CellType.NUMERIC -> if (type == BIGINT) cell.numericCellValue.toLong() else cell.numericCellValue
             cell.cellType == CellType.BLANK -> cell.stringCellValue
             else -> JDBCTypeUtils.toTypedValue(cell.stringCellValue, type)
         }
+    }
+
+    private fun getDateCellValue(cell: Cell): ZonedDateTime {
+        val v = cell.dateCellValue
+        return ZonedDateTime.ofInstant(v.toInstant(), ZoneId.systemDefault())
     }
 }
