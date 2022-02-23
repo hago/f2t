@@ -34,7 +34,7 @@ public class String2StringCompareTest {
             fc.setDataType(i.getFirst());
             var dc = new ColumnDefinition();
             dc.setDataType(i.getSecond());
-            var r = ColumnComparator.Companion.create(fc, dc).dataCanLoadFrom(fc, dc);
+            var r = ColumnComparator.Companion.compare(fc, dc);
             Assertions.assertTrue(r.isTypeMatched() && r.getCanLoadDataFrom());
         }
     }

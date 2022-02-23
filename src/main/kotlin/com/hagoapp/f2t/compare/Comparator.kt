@@ -41,8 +41,7 @@ class Comparator {
                 }
             }
             for ((fileCol, dbCol) in shared) {
-                val comparator = ColumnComparator.create(fileCol, dbCol)
-                val result = comparator.dataCanLoadFrom(fileCol, dbCol)
+                val result = ColumnComparator.compare(fileCol, dbCol)
                 if (!result.isTypeMatched) {
                     typeConflicted[fileCol] = dbCol
                 } else if (!result.canLoadDataFrom) {

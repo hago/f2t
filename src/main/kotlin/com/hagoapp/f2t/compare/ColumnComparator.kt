@@ -13,25 +13,29 @@ import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.sql.JDBCType
 
-interface ColumnComparator {
-    fun dataCanLoadFrom(
-        fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
-    ): CompareColumnResult
+class ColumnComparator {
 
-    fun supportSourceTypes(): Set<JDBCType>
-    fun supportDestinationTypes(): Set<JDBCType>
+    interface Comparator {
+        fun dataCanLoadFrom(
+            fileColumnDefinition: FileColumnDefinition,
+            dbColumnDefinition: ColumnDefinition
+        ): CompareColumnResult
+
+        fun supportSourceTypes(): Set<JDBCType>
+        fun supportDestinationTypes(): Set<JDBCType>
+
+    }
 
     companion object {
 
-        private val comparators = mutableMapOf<String, ColumnComparator>()
+        private val comparators = mutableMapOf<String, Comparator>()
         private val logger = F2TLogger.getLogger()
 
         init {
             Reflections(
                 ColumnComparator::class.java.packageName,
                 Scanners.SubTypes
-            ).getSubTypesOf(ColumnComparator::class.java).forEach { clz ->
+            ).getSubTypesOf(Comparator::class.java).forEach { clz ->
                 logger.debug("${clz.canonicalName} is found for ColumnComparator")
                 val instance = clz.getConstructor().newInstance()
                 val sources = instance.supportSourceTypes().sorted()
@@ -53,9 +57,13 @@ interface ColumnComparator {
             return "$src --> $dest"
         }
 
-        fun create(fileColumnDefinition: FileColumnDefinition, dbColumnDefinition: ColumnDefinition): ColumnComparator {
-            return comparators[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
+        fun compare(
+            fileColumnDefinition: FileColumnDefinition,
+            dbColumnDefinition: ColumnDefinition
+        ): CompareColumnResult {
+            val comparator = comparators[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
                 ?: throw UnsupportedOperationException("${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType} not supported")
+            return comparator.dataCanLoadFrom(fileColumnDefinition, dbColumnDefinition)
         }
     }
 }

@@ -13,7 +13,7 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class Int2StringComparator : ColumnComparator {
+class Int2StringComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition
