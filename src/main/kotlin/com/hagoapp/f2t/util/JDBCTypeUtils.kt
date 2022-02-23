@@ -184,6 +184,9 @@ class JDBCTypeUtils {
             }
         }
 
+        fun getDefaultDateTimeFormatter(): DateTimeFormatter {
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        }
     }
 
 }
