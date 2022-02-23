@@ -13,10 +13,10 @@ class NumericUtils {
             return try {
                 s.toDouble()
                 val ss = s.split("\\.").toTypedArray()
-                if (ss.size != 2) {
-                    Pair(0, 0)
-                } else {
-                    Pair(ss[0].length, ss[1].length)
+                when (ss.size) {
+                    1 -> Pair(ss[0].length, 0)
+                    2 -> Pair(ss[0].length, ss[1].length)
+                    else -> Pair(0, 0)
                 }
             } catch (ignored: NumberFormatException) {
                 Pair(0, 0)
