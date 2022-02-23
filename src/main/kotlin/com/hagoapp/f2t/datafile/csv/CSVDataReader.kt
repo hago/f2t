@@ -67,15 +67,16 @@ class CSVDataReader : Reader {
         prepare(this.fileInfo)
         val charset = charsetForFile(fileInfo)
         for (i in formats.indices) {
-            FileInputStream(fileInfo.filename).use { fi ->
+            FileInputStream(fileInfo.filename!!).use { fi ->
                 try {
                     val fmt = formats[i]
                     parseCSV(fi, charset, fmt)
                     this.format = fmt
                     this.loaded = true
                     currentRow = 0
+                    logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} successfully")
                 } catch (ex: Exception) {
-                    ex.printStackTrace()
+                    logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} failed, try next format")
                 }
             }
             if (this.loaded) break
@@ -152,9 +153,7 @@ class CSVDataReader : Reader {
 
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
-            columns = parser.headerMap.entries.map {
-                Pair(it.value, FileColumnDefinition(it.key))
-            }.toMap()
+            columns = parser.headerMap.entries.associate { Pair(it.value, FileColumnDefinition(it.key)) }
             rowCount = 0
             parser.forEachIndexed { i, record ->
                 if (record.size() != columns.size) {
