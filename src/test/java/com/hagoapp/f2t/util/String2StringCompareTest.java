@@ -8,6 +8,7 @@ package com.hagoapp.f2t.util;
 
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
+import com.hagoapp.f2t.Quartet;
 import com.hagoapp.f2t.compare.ColumnComparator;
 import kotlin.Triple;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +36,47 @@ public class String2StringCompareTest {
             var dc = new ColumnDefinition();
             dc.setDataType(i.getSecond());
             var r = ColumnComparator.Companion.compare(fc, dc);
-            Assertions.assertTrue(r.isTypeMatched() && r.getCanLoadDataFrom());
+            Assertions.assertEquals(r.isTypeMatched() && r.getCanLoadDataFrom(), i.getThird());
+        }
+    }
+
+    private final List<Quartet<JDBCType, Integer, JDBCType, Boolean>> stringClobCases = List.of(
+            new Quartet<>(CHAR, 1000000, CLOB, true),
+            new Quartet<>(VARCHAR, 99999999, NCLOB, true),
+            new Quartet<>(VARCHAR, 798798739, CLOB, true),
+            new Quartet<>(CHAR, Integer.MAX_VALUE, NCLOB, true)
+    );
+
+    @Test
+    public void string2TextColumnTest() {
+        for (var i : stringClobCases) {
+            var fc = new FileColumnDefinition();
+            fc.setDataType(i.getFirst());
+            fc.getTypeModifier().setMaxLength(i.getSecond());
+            var dc = new ColumnDefinition();
+            dc.setDataType(i.getThird());
+            var r = ColumnComparator.Companion.compare(fc, dc);
+            Assertions.assertEquals(r.isTypeMatched() && r.getCanLoadDataFrom(), i.getFourth());
+        }
+    }
+
+    private final List<Quartet<JDBCType, JDBCType, Integer, Boolean>> clobStringCases = List.of(
+            new Quartet<>(CLOB, CHAR, 1000000, false),
+            new Quartet<>(CLOB, VARCHAR, 99999999, false),
+            new Quartet<>(NCLOB, CHAR, 798798739, false),
+            new Quartet<>(NCLOB, VARCHAR, Integer.MAX_VALUE, false)
+    );
+
+    @Test
+    public void text2StringColumnTest() {
+        for (var i : clobStringCases) {
+            var fc = new FileColumnDefinition();
+            fc.setDataType(i.getFirst());
+            var dc = new ColumnDefinition();
+            dc.setDataType(i.getSecond());
+            dc.getTypeModifier().setMaxLength(i.getThird());
+            var r = ColumnComparator.Companion.compare(fc, dc);
+            Assertions.assertEquals(r.isTypeMatched() && r.getCanLoadDataFrom(), i.getFourth());
         }
     }
 }
