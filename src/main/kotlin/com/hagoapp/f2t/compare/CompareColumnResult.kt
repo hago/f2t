@@ -8,5 +8,5 @@ package com.hagoapp.f2t.compare
 
 data class CompareColumnResult(
     val isTypeMatched: Boolean,
-    val isDataLoadableFrom: Boolean
+    val canLoadDataFrom: Boolean
 )

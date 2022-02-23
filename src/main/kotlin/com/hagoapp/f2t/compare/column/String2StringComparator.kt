@@ -13,26 +13,32 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class Int2StringComparator : ColumnComparator {
+class String2StringComparator : ColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition
     ): CompareColumnResult {
-        if ((dbColumnDefinition.dataType == CLOB) || (dbColumnDefinition.dataType == NCLOB)) {
-            return CompareColumnResult(isTypeMatched = false, canLoadDataFrom = true)
+        return when {
+            dbColumnDefinition.dataType == CLOB || dbColumnDefinition.dataType == NCLOB -> CompareColumnResult(
+                isTypeMatched = true,
+                true
+            )
+            fileColumnDefinition.dataType == CLOB || fileColumnDefinition.dataType == NCLOB -> CompareColumnResult(
+                isTypeMatched = true,
+                false
+            )
+            else -> CompareColumnResult(
+                true,
+                fileColumnDefinition.typeModifier.maxLength <= dbColumnDefinition.typeModifier.maxLength
+            )
         }
-        return CompareColumnResult(
-            isTypeMatched = false,
-            canLoadDataFrom = fileColumnDefinition.typeModifier.maxLength - dbColumnDefinition.typeModifier.maxLength >= 0
-        )
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(TINYINT, SMALLINT, INTEGER, BIGINT)
+        return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
         return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
     }
-
 }

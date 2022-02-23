@@ -45,7 +45,7 @@ class Comparator {
                 val result = comparator.dataCanLoadFrom(fileCol, dbCol)
                 if (!result.isTypeMatched) {
                     typeConflicted[fileCol] = dbCol
-                } else if (!result.isDataLoadableFrom) {
+                } else if (!result.canLoadDataFrom) {
                     mayTruncate[fileCol] = dbCol
                 }
             }
