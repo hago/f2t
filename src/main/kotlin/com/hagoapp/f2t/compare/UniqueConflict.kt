@@ -8,18 +8,16 @@ package com.hagoapp.f2t.compare
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.TableUniqueDefinition
-import com.hagoapp.f2t.util.ColumnMatcher
 
-data class UniqueConflict<T : ColumnDefinition>(val uniqueConstraint: TableUniqueDefinition<T>) {
-    private val values = mutableMapOf<String, Any>()
-    private val colMatcher = ColumnMatcher.getColumnMatcher(uniqueConstraint.caseSensitive)
-    fun setConflictColumn(column: String, value: Any) {
-        if (uniqueConstraint.columns.any { colMatcher.invoke(it.name, column) }) {
-            values[column] = value
-        }
+data class UniqueConflict(
+    val uniqueConstraint: TableUniqueDefinition<ColumnDefinition>,
+    val duplicateValues: List<Map<String, Any?>>
+) {
+    fun getValueOfColumn(column: String): List<Any?> {
+        return duplicateValues.map { it[column] }
     }
 
-    fun getConflictValues(): Map<String, Any> {
-        return values
+    fun isConflicted(): Boolean {
+        return duplicateValues.isNotEmpty()
     }
 }
