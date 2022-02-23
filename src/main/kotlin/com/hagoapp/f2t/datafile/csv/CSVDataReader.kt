@@ -183,6 +183,10 @@ class CSVDataReader : Reader {
         if (cell.length > typeModifier.maxLength) {
             typeModifier.maxLength = cell.length
         }
+        val dt = JDBCTypeUtils.stringToDateTimeOrNull(cell)?.format(JDBCTypeUtils.getDefaultDateTimeFormatter())
+        if ((dt != null) && (dt.length > typeModifier.maxLength)) {
+            typeModifier.maxLength = dt.length
+        }
         val p = NumericUtils.detectPrecision(cell)
         if (p.first > typeModifier.precision) {
             typeModifier.precision = p.first
