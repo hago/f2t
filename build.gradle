@@ -22,7 +22,7 @@ dependencies {
 
     implementation 'com.github.albfernandez:juniversalchardet:2.4.0'
     implementation 'com.google.code.gson:gson:2.9.0'
-    implementation group: 'org.reflections', name: 'reflections', version: '0.9.11'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
