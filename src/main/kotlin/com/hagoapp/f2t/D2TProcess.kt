@@ -15,8 +15,7 @@ import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.time.Instant
 
-class D2TProcess(dTable: DataTable<ColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
-    private var dataTable: DataTable<ColumnDefinition> = dTable
+class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = F2TLogger.getLogger()
