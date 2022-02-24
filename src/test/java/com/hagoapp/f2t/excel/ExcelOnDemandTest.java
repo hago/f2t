@@ -27,14 +27,14 @@ public class ExcelOnDemandTest {
     @BeforeAll
     private static void loadFile() {
         var f = System.getProperty(Constants.ON_DEMAND_EXCEL_FILE);
-        var fi = new FileInfoExcel();
-        fi.setFilename(f);
+        info = new FileInfoExcel();
+        info.setFilename(f);
         if (System.getProperties().contains(Constants.ON_DEMAND_EXCEL_SHEET_INDEX)) {
-            fi.setSheetIndex(Integer.getInteger(Constants.ON_DEMAND_EXCEL_SHEET_INDEX));
+            info.setSheetIndex(Integer.getInteger(Constants.ON_DEMAND_EXCEL_SHEET_INDEX));
         } else if (System.getProperties().containsKey(Constants.ON_DEMAND_EXCEL_SHEET_NAME)) {
-            fi.setSheetName(System.getProperty(Constants.ON_DEMAND_EXCEL_SHEET_NAME));
+            info.setSheetName(System.getProperty(Constants.ON_DEMAND_EXCEL_SHEET_NAME));
         } else {
-            fi.setSheetIndex(0);
+            info.setSheetIndex(0);
         }
     }
 
@@ -42,6 +42,7 @@ public class ExcelOnDemandTest {
 
     @Test
     public void readTest() throws IOException {
+        observer.setRowDetail(true);
         var fp = new FileParser(info);
         fp.setDefaultDeterminer(new LeastTypeDeterminer());
         fp.addObserver(observer);

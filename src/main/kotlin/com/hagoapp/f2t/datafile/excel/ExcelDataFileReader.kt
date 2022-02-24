@@ -98,16 +98,13 @@ class ExcelDataFileReader : Reader {
         }
         currentRow++
         val rawRow = sheet.getRow(currentRow + sheet.firstRowNum)
-        val cells = mutableListOf<Cell>()
-        for (colIndex in columns.keys.indices) {
-            cells.add(rawRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK))
+        val dataCells = columns.keys.map { colIndex ->
+            val rawCell = rawRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
+            val cellValue = getCellValue(rawCell, columns.getValue(colIndex).dataType)
+            //println("${columns.getValue(colIndex).name}: $cellValue")
+            DataCell(DataCell(cellValue, colIndex))
         }
-        return DataRow(
-            currentRow.toLong() - 1,
-            cells.mapIndexed { i, cell ->
-                DataCell(getCellValue(cell, columns.getValue(i).dataType!!), i)
-            }
-        )
+        return DataRow(currentRow.toLong() - 1, dataCells)
     }
 
     override fun open(fileInfo: FileInfo) {
@@ -205,13 +202,19 @@ class ExcelDataFileReader : Reader {
         return l
     }
 
+    private val defaultFormatter = DataFormatter()
+    private val cellToString = { cell: Cell ->
+        defaultFormatter.formatCellValue(cell)
+    }
+
     private fun getCellValue(cell: Cell, type: JDBCType): Any? {
         return when {
             cell.cellType == CellType.BOOLEAN -> cell.booleanCellValue
             (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> getDateCellValue(cell)
-            cell.cellType == CellType.NUMERIC -> if (type == BIGINT) cell.numericCellValue.toLong() else cell.numericCellValue
-            cell.cellType == CellType.BLANK -> cell.stringCellValue
-            else -> JDBCTypeUtils.toTypedValue(cell.stringCellValue, type)
+            cell.cellType == CellType.NUMERIC -> if (type == BIGINT) cell.numericCellValue.toLong()
+            else JDBCTypeUtils.toTypedValue(cellToString(cell), type)
+            cell.cellType == CellType.BLANK -> cellToString(cell)
+            else -> JDBCTypeUtils.toTypedValue(cellToString(cell), type)
         }
     }
 
