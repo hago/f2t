@@ -54,25 +54,17 @@ class TypedExcelReadTest {
     @Test
     fun readExcel() {
         observer.isRowDetail = true
-        Assertions.assertDoesNotThrow {
-            testConfigs.forEach { (testConfig, determiner)  ->
-                val parser = FileParser(testConfig.fileInfo)
-                parser.defaultDeterminer = determiner
-                parser.addObserver(observer)
-                parser.parse()
-                Assertions.assertEquals(
-                    observer.rowCount,
-                    testConfig.expect.rowCount
-                )
-                Assertions.assertEquals(
-                    observer.columns.size,
-                    testConfig.expect.columnCount
-                )
-                Assertions.assertEquals(
-                    observer.columns,
-                    testConfig.expect.types
-                )
-            }
+        testConfigs.forEach { (testConfig, determiner) ->
+            val parser = FileParser(testConfig.fileInfo)
+            parser.defaultDeterminer = determiner
+            parser.addObserver(observer)
+            parser.parse()
+            Assertions.assertEquals(testConfig.expect.rowCount, observer.rowCount)
+            Assertions.assertEquals(testConfig.expect.columnCount, observer.columns.size)
+            Assertions.assertEquals(
+                testConfig.expect.types,
+                observer.columns.values.associate { (def, _) -> Pair(def.name, def.dataType) }
+            )
         }
     }
 
@@ -83,17 +75,11 @@ class TypedExcelReadTest {
             parser.defaultDeterminer = determiner
             parser.addObserver(observer)
             val table = parser.extractData()
+            Assertions.assertEquals(testConfig.expect.rowCount, table.rows.size)
+            Assertions.assertEquals(testConfig.expect.columnCount, table.columnDefinition.size)
             Assertions.assertEquals(
-                table.rows.size,
-                testConfig.expect.rowCount
-            )
-            Assertions.assertEquals(
-                table.columnDefinition.size,
-                testConfig.expect.columnCount
-            )
-            Assertions.assertEquals(
-                table.columnDefinition.map { Pair(it.name, it.dataType) }.toMap(),
-                testConfig.expect.types
+                testConfig.expect.types,
+                table.columnDefinition.map { Pair(it.name, it.dataType) }.toMap()
             )
         }
     }

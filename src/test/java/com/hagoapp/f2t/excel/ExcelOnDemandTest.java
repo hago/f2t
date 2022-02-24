@@ -48,6 +48,6 @@ public class ExcelOnDemandTest {
         fp.addObserver(observer);
         fp.parse();
         Assertions.assertTrue(observer.getRowCount() > 0);
-        System.out.println(observer.getColumns());
+        System.out.println(observer.getColumns().values());
     }
 }

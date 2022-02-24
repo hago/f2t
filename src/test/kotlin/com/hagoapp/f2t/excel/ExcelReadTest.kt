@@ -59,17 +59,11 @@ class ExcelReadTest {
             parser.defaultDeterminer = determiner
             parser.addObserver(observer)
             parser.parse()
-            Assertions.assertEquals(
-                testConfig.expect.rowCount,
-                observer.rowCount
-            )
-            Assertions.assertEquals(
-                testConfig.expect.columnCount,
-                observer.columns.size
-            )
+            Assertions.assertEquals(testConfig.expect.rowCount, observer.rowCount)
+            Assertions.assertEquals(testConfig.expect.columnCount, observer.columns.size)
             Assertions.assertEquals(
                 testConfig.expect.types,
-                observer.columns
+                observer.columns.values.associate { (def, _) -> Pair(def.name, def.dataType) }
             )
         }
     }

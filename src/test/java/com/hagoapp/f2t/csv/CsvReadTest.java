@@ -66,7 +66,12 @@ public class CsvReadTest {
             parser.parse();
             Assertions.assertEquals(testConfig.getExpect().getRowCount(), observer.getRowCount());
             Assertions.assertEquals(testConfig.getExpect().getColumnCount(), observer.getColumns().size());
-            Assertions.assertEquals(testConfig.getExpect().getTypes(), observer.getColumns());
+            Assertions.assertEquals(testConfig.getExpect().getTypes(), observer.getColumns().values().stream()
+                    .collect(Collectors.toMap(
+                            p -> p.getFirst().getName(),
+                            p -> p.getFirst().getDataType()
+                    ))
+            );
         }
     }
 

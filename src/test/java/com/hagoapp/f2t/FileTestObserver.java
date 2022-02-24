@@ -15,17 +15,19 @@ package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.sql.JDBCType;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FileTestObserver implements ParseObserver {
     private int rowCount;
-    private Map<String, JDBCType> columns;
+    private final Map<String, Pair<FileColumnDefinition, Integer>> columns = new HashMap<>();
     private boolean rowDetail = false;
     private final Logger logger = F2TLogger.getLogger();
 
@@ -34,7 +36,7 @@ public class FileTestObserver implements ParseObserver {
         return rowCount;
     }
 
-    public Map<String, JDBCType> getColumns() {
+    public Map<String, Pair<FileColumnDefinition, Integer>> getColumns() {
         return columns;
     }
 
@@ -54,19 +56,19 @@ public class FileTestObserver implements ParseObserver {
     @Override
     public void onColumnsParsed(@NotNull List<FileColumnDefinition> columnDefinitionList) {
         logger.info("column parsed");
-        columns = columnDefinitionList.stream().collect(Collectors.toMap(
-                FileColumnDefinition::getName,
-                col -> JDBCType.NULL
-        ));
+        for (int i = 0; i < columnDefinitionList.size(); i++) {
+            var def = columnDefinitionList.get(i);
+            columns.put(def.getName(), new Pair<>(def, i));
+        }
     }
 
     @Override
     public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
         logger.info("column definition determined");
-        columns = columnDefinitionList.stream().collect(Collectors.toMap(
-                FileColumnDefinition::getName,
-                col -> col.getDataType() != null ? col.getDataType() : JDBCType.NULL
-        ));
+        for (int i = 0; i < columnDefinitionList.size(); i++) {
+            var def = columnDefinitionList.get(i);
+            columns.put(def.getName(), new Pair<>(def, i));
+        }
     }
 
     @Override
