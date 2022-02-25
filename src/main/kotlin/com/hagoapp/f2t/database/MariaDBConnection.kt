@@ -160,9 +160,13 @@ class MariaDBConnection : DbConnection() {
         return when (aType) {
             JDBCType.BOOLEAN -> "boolean"
             JDBCType.TIMESTAMP -> "timestamp"
-            JDBCType.BIGINT -> "bigint"
+            JDBCType.TINYINT -> "tinyint"
+            JDBCType.SMALLINT -> "smallint"
             JDBCType.INTEGER -> "int"
-            JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> "double"
+            JDBCType.BIGINT -> "bigint"
+            JDBCType.DOUBLE -> "double"
+            JDBCType.DECIMAL -> "decimal"
+            JDBCType.FLOAT -> "float"
             else -> "longtext"
         }
     }
@@ -176,7 +180,7 @@ class MariaDBConnection : DbConnection() {
                 while (rs.next()) {
                     def[rs.getString("Field")] = mapDBTypeToJDBCType(rs.getString("Type"))
                 }
-                return TableDefinition(def.entries.mapIndexed { i, entry ->
+                return TableDefinition(def.entries.mapIndexed { _, entry ->
                     ColumnDefinition(entry.key, entry.value)
                 }.toSet())
             }
@@ -185,12 +189,20 @@ class MariaDBConnection : DbConnection() {
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
         return when (typeName.substringBefore('(').lowercase()) {
-            "tinyint", "bit" -> JDBCType.BOOLEAN
-            "int", "smallint", "mediumint" -> JDBCType.INTEGER
+            "boolean" -> JDBCType.BOOLEAN
+            "tinyint" -> JDBCType.TINYINT
+            "smallint" -> JDBCType.SMALLINT
+            "int", "mediumint" -> JDBCType.INTEGER
             "bigint" -> JDBCType.BIGINT
-            "float", "double" -> JDBCType.DOUBLE
-            "timestamp", "datetime", "decimal" -> JDBCType.TIMESTAMP
-            else -> JDBCType.CLOB
+            "float" -> JDBCType.FLOAT
+            "double" -> JDBCType.DOUBLE
+            "decimal", "dec", "numeric", "fixed" -> JDBCType.DECIMAL
+            "timestamp", "datetime", "date", "time" -> JDBCType.TIMESTAMP_WITH_TIMEZONE
+            "char" -> JDBCType.CHAR
+            "varchar" -> JDBCType.VARCHAR
+            "text", "longtext" -> JDBCType.CLOB
+            "binary", "blob", "char byte" -> JDBCType.VARBINARY
+            else -> throw java.lang.UnsupportedOperationException("unsupported type $typeName")
         }
     }
 
