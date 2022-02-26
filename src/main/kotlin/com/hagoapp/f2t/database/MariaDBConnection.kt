@@ -10,6 +10,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MariaDbConfig
+import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
@@ -171,20 +172,113 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
+    private data class DescResult(
+        val field: String,
+        val typeName: String,
+        val type: JDBCType,
+        val isNullable: Boolean
+    )
+
     override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = "desc ${normalizeName(table.tableName)};"
         //logger.debug(sql)
         connection.prepareStatement(sql).use { stmt ->
             stmt.executeQuery().use { rs ->
-                val def = mutableMapOf<String, JDBCType>()
+                val def = mutableListOf<DescResult>()
                 while (rs.next()) {
-                    def[rs.getString("Field")] = mapDBTypeToJDBCType(rs.getString("Type"))
+                    val dr = DescResult(
+                        rs.getString("Field"),
+                        rs.getString("Type"),
+                        mapDBTypeToJDBCType(rs.getString("Type")),
+                        rs.getBoolean("Null")
+                    )
+                    def.add(dr)
                 }
-                return TableDefinition(def.entries.mapIndexed { _, entry ->
-                    ColumnDefinition(entry.key, entry.value)
+                val td = TableDefinition(def.map { desc ->
+                    val cd = ColumnDefinition(desc.field, desc.type)
+                    setupColumnDefinition(cd, desc.typeName, desc.isNullable)
+                    cd
                 }.toSet())
+                val uniques = getIndexes(table, td.columns)
+                td.primaryKey = uniques.first
+                td.uniqueConstraints = uniques.second
+                return td
             }
         }
+    }
+
+    private fun setupColumnDefinition(columnDefinition: ColumnDefinition, typeName: String, nullable: Boolean) {
+        val tm = columnDefinition.typeModifier
+        tm.isNullable = nullable
+        if (typeName.startsWith("char") || typeName.startsWith("varchar") ||
+            typeName.startsWith("decimal")
+        ) {
+            val extra = parseModifier(typeName)
+            tm.maxLength = extra.first
+            tm.precision = extra.second
+            tm.scale = extra.third
+        }
+    }
+
+    private fun parseModifier(typeStr: String): Triple<Int, Int, Int> {
+        return when {
+            typeStr.startsWith("character") -> {
+                val m = Regex(".+?\\((\\d+)\\)").matchEntire(typeStr)
+                if ((m != null) && m.groupValues.isNotEmpty()) Triple(m.groupValues.last().toInt(), 0, 0)
+                else Triple(0, 0, 0)
+            }
+            typeStr.startsWith("numeric") -> {
+                val m = Regex(".+?\\((\\d+),(\\d+)\\)").matchEntire(typeStr)
+                if ((m != null) && (m.groupValues.size > 2))
+                    Triple(0, m.groupValues[1].toInt(), m.groupValues[2].toInt())
+                else Triple(0, 0, 0)
+            }
+            else -> Triple(0, 0, 0)
+        }
+    }
+    
+    private fun getIndexes(
+        table: TableName,
+        refColumns: Set<ColumnDefinition>
+    ): Pair<TableUniqueDefinition<ColumnDefinition>?, Set<TableUniqueDefinition<ColumnDefinition>>> {
+        val sql = "show indexes from ${normalizeName(table.tableName)}"
+        connection.prepareStatement(sql).use { stmt ->
+            val keys = mutableMapOf<String, MutableSet<String>>()
+            stmt.executeQuery().use { rs ->
+                while (rs.next()) {
+                    if (rs.getInt("Non_unique") != 0) {
+                        continue
+                    }
+                    val keyName = rs.getString("Key_name")
+                    val colName = rs.getString("Column_name")
+                    if (keys.containsKey(keyName)) {
+                        keys.getValue(keyName).add(colName)
+                    } else {
+                        keys[keyName] = mutableSetOf(colName)
+                    }
+                }
+            }
+            return Pair(
+                keys.filter { (key, _) -> key == "PRIMARY" }.firstNotNullOfOrNull {
+                    buildUniqueDef(it.key, it.value, refColumns)
+                },
+                keys.filter { (key, _) -> key != "PRIMARY" }.map {
+                    buildUniqueDef(it.key, it.value, refColumns)
+                }.toSet()
+            )
+        }
+    }
+
+    private fun buildUniqueDef(
+        name: String,
+        columns: Set<String>,
+        refColumns: Set<ColumnDefinition>
+    ): TableUniqueDefinition<ColumnDefinition> {
+        val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
+        val tud = TableUniqueDefinition(name, columns.map { col ->
+            refColumns.first { colMatcher(col, it.name) }
+        }.toSet(), isCaseSensitive())
+        return tud
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
