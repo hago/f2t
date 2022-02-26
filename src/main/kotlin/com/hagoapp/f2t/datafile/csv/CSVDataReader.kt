@@ -17,6 +17,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.sql.JDBCType
 
 class CSVDataReader : Reader {
 
@@ -30,6 +31,7 @@ class CSVDataReader : Reader {
     private val logger = F2TLogger.getLogger()
     private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
     private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
+    private var skipTypeInfer = false
 
     private var formats: List<CSVFormat> = listOf<CSVFormat>(
         CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
@@ -55,6 +57,11 @@ class CSVDataReader : Reader {
 
     override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
         columnDeterminerMap[column] = determiner
+        return this
+    }
+
+    override fun skipTypeInfer(): Reader {
+        skipTypeInfer = true
         return this
     }
 
@@ -154,6 +161,9 @@ class CSVDataReader : Reader {
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
             columns = parser.headerMap.entries.associate { Pair(it.value, FileColumnDefinition(it.key)) }
+            if (skipTypeInfer) {
+                columns.values.forEach { it.possibleTypes = setOf(JDBCType.NCHAR, JDBCType.NVARCHAR, JDBCType.NCLOB) }
+            }
             rowCount = 0
             parser.forEachIndexed { i, record ->
                 if (record.size() != columns.size) {
@@ -163,7 +173,9 @@ class CSVDataReader : Reader {
                 record.forEachIndexed { j, item ->
                     val cell = item.trim()
                     row.add(cell)
-                    setupColumnDefinition(columns.getValue(j), cell)
+                    if (!skipTypeInfer) {
+                        setupColumnDefinition(columns.getValue(j), cell)
+                    }
                 }
                 data.add(row)
                 rowCount++

@@ -17,4 +17,5 @@ interface Reader : Closeable, Iterator<DataRow> {
     fun getSupportedFileType(): Set<Int>
     fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader
     fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader
+    fun skipTypeInfer(): Reader
 }

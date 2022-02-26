@@ -30,7 +30,16 @@ object ReaderFactory {
 
     @JvmStatic
     fun getReader(fileInfo: FileInfo): Reader {
+        return getReader(fileInfo, false)
+    }
+
+    @JvmStatic
+    fun getReader(fileInfo: FileInfo, skipTypeInfer: Boolean = false): Reader {
         val constructor = readerMap[fileInfo.type] ?: throw F2TException("file type ${fileInfo.type} is not supported")
-        return constructor.newInstance()
+        val reader = constructor.newInstance()
+        if (skipTypeInfer) {
+            reader.skipTypeInfer()
+        }
+        return reader
     }
 }

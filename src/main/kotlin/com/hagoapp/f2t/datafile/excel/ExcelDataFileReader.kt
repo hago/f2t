@@ -29,11 +29,12 @@ class ExcelDataFileReader : Reader {
     private lateinit var columns: Map<Int, FileColumnDefinition>
     private var determiner: DataTypeDeterminer? = null
     private val columnDeterminer = mutableMapOf<String, DataTypeDeterminer>()
+    private var skipTypeInfer = false
 
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, FileColumnDefinition(cell.stringCellValue))
+                Pair(i, FileColumnDefinition(cellToString(cell)))
             }.toMap()
         }
         return columns.values.sortedBy { it.name }
@@ -41,15 +42,20 @@ class ExcelDataFileReader : Reader {
 
     override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         if (!this::columns.isInitialized || columns.values.any { it.dataType == null }) {
-            val lastRowNum = if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
-            for (i in sheet.firstRowNum + 1..lastRowNum) {
-                val row = sheet.getRow(i)
-                if (row.lastCellNum > columns.size) {
-                    throw F2TException("format error in ${infoExcel.filename}, line $i contains more cells than field row")
-                }
-                for (colIndex in columns.keys.indices) {
-                    val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-                    setupColumnDefinition(columns.getValue(colIndex), cell)
+            if (skipTypeInfer) {
+                columns.values.forEach { it.possibleTypes = setOf(NCHAR, NVARCHAR, NCLOB) }
+            } else {
+                val lastRowNum =
+                    if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
+                for (i in sheet.firstRowNum + 1..lastRowNum) {
+                    val row = sheet.getRow(i)
+                    if (row.lastCellNum > columns.size) {
+                        throw F2TException("format error in ${infoExcel.filename}, line $i contains more cells than field row")
+                    }
+                    for (colIndex in columns.keys.indices) {
+                        val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
+                        setupColumnDefinition(columns.getValue(colIndex), cell)
+                    }
                 }
             }
             columns.values.forEach { column ->
@@ -72,6 +78,11 @@ class ExcelDataFileReader : Reader {
 
     override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
         columnDeterminer[column] = determiner
+        return this
+    }
+
+    override fun skipTypeInfer(): Reader {
+        skipTypeInfer = true
         return this
     }
 
