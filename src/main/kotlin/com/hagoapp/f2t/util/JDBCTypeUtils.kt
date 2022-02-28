@@ -138,12 +138,7 @@ class JDBCTypeUtils {
                 dl.add(JDBCType.VARCHAR)
                 dl.add(JDBCType.CHAR)
             }
-            if (value.toIntOrNull() != null) {
-                dl.add(JDBCType.INTEGER)
-            }
-            if (value.toLongOrNull() != null) {
-                dl.add(JDBCType.BIGINT)
-            }
+            dl.addAll(guessIntTypes(value))
             if (value.toFloatOrNull() != null) {
                 dl.add(JDBCType.FLOAT)
             }
@@ -160,6 +155,24 @@ class JDBCTypeUtils {
                 dl.add(JDBCType.TIMESTAMP_WITH_TIMEZONE)
             }
             return dl
+        }
+
+        private fun guessIntTypes(value: String): Set<JDBCType> {
+            val ret = mutableSetOf<JDBCType>()
+            val l = value.toLongOrNull()
+            if (l != null) {
+                ret.add(JDBCType.BIGINT)
+                if ((l <= Int.MAX_VALUE.toLong()) && (l >= Int.MIN_VALUE.toLong())) {
+                    ret.add(JDBCType.INTEGER)
+                }
+                if ((l <= 32767L) && (l >= -32768L)) {
+                    ret.add(JDBCType.SMALLINT)
+                }
+                if ((l <= 127L) && (l >= -128L)) {
+                    ret.add(JDBCType.TINYINT)
+                }
+            }
+            return ret
         }
 
         private val possibleTrueValues = listOf("true", "yes", "y", "t")
