@@ -25,8 +25,8 @@ class FileInfoCsv : FileInfo() {
                 throw F2TException("$value is not valid charset", e)
             }
         }
-    var quote = '"'
-    var delimiter = ','
+    var quote: Char? = '"'
+    var delimiter: Char = ','
     override fun getFileTypeValue(): Int {
         return FILE_TYPE_CSV
     }
