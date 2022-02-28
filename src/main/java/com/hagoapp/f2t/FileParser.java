@@ -82,7 +82,7 @@ public class FileParser {
 
     public void parse(FileParserOption option) {
         ParseResult result = new ParseResult();
-        try (Reader reader = ReaderFactory.getReader(fileInfo)) {
+        try (Reader reader = ReaderFactory.Companion.getReader(fileInfo)) {
             reader.setupTypeDeterminer(defaultDeterminer);
             columnDeterminerMap.forEach(reader::setupColumnTypeDeterminer);
             notifyObserver("onParseStart", fileInfo);
