@@ -21,4 +21,15 @@ public class Quintet<A, B, C, D, E> extends Quartet<A, B, C, D> {
     public void setFifth(E fifth) {
         this.fifth = fifth;
     }
+
+    @Override
+    public String toString() {
+        return "Quartet{" +
+                "first=" + getFirst() +
+                ", second=" + getSecond() +
+                ", third=" + getThird() +
+                ", fourth=" + getFourth() +
+                "fifth=" + fifth +
+                '}';
+    }
 }

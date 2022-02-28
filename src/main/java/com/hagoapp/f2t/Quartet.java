@@ -62,4 +62,14 @@ public class Quartet<A, B, C, D> {
     public void setFourth(D fourth) {
         this.fourth = fourth;
     }
+
+    @Override
+    public String toString() {
+        return "Quartet{" +
+                "first=" + first +
+                ", second=" + second +
+                ", third=" + third +
+                ", fourth=" + fourth +
+                '}';
+    }
 }
