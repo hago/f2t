@@ -13,33 +13,25 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class String2StringComparator : ColumnComparator.Comparator {
+class ToBooleanComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return when  {
-            dbColumnDefinition.dataType == CLOB || dbColumnDefinition.dataType == NCLOB -> CompareColumnResult(
-                isTypeMatched = true,
-                true
-            )
-            fileColumnDefinition.dataType == CLOB || fileColumnDefinition.dataType == NCLOB -> CompareColumnResult(
-                isTypeMatched = true,
-                false
-            )
-            else -> CompareColumnResult(
-                true,
-                fileColumnDefinition.typeModifier.maxLength <= dbColumnDefinition.typeModifier.maxLength
-            )
-        }
+        return CompareColumnResult(isTypeMatched = false, false)
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
+        return setOf(
+            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
+            SMALLINT, TINYINT, INTEGER, BIGINT,
+            FLOAT, DOUBLE, DECIMAL,
+            TIMESTAMP_WITH_TIMEZONE
+        )
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
+        return setOf(BOOLEAN)
     }
 }

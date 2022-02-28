@@ -13,33 +13,31 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class String2StringComparator : ColumnComparator.Comparator {
+class FromBooleanComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return when  {
-            dbColumnDefinition.dataType == CLOB || dbColumnDefinition.dataType == NCLOB -> CompareColumnResult(
-                isTypeMatched = true,
-                true
-            )
-            fileColumnDefinition.dataType == CLOB || fileColumnDefinition.dataType == NCLOB -> CompareColumnResult(
-                isTypeMatched = true,
-                false
-            )
-            else -> CompareColumnResult(
-                true,
-                fileColumnDefinition.typeModifier.maxLength <= dbColumnDefinition.typeModifier.maxLength
-            )
+        return when (dbColumnDefinition.dataType) {
+            BOOLEAN -> CompareColumnResult(isTypeMatched = true, true)
+            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP ->
+                CompareColumnResult(isTypeMatched = false, false)
+            else -> CompareColumnResult(isTypeMatched = false, true)
         }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
+        return setOf(BOOLEAN)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(CHAR, VARCHAR, NCHAR, NVARCHAR, CLOB, NCLOB)
+        return setOf(
+            BOOLEAN,
+            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
+            SMALLINT, TINYINT, INTEGER, BIGINT,
+            FLOAT, DOUBLE, DECIMAL,
+            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+        )
     }
 }
