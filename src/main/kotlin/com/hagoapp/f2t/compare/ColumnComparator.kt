@@ -18,7 +18,8 @@ class ColumnComparator {
     interface Comparator {
         fun dataCanLoadFrom(
             fileColumnDefinition: FileColumnDefinition,
-            dbColumnDefinition: ColumnDefinition
+            dbColumnDefinition: ColumnDefinition,
+            vararg extra: String
         ): CompareColumnResult
 
         fun supportSourceTypes(): Set<JDBCType>

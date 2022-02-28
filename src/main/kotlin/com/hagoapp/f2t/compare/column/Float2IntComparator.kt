@@ -22,7 +22,8 @@ class Float2IntComparator: ColumnComparator.Comparator {
     )
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         val limitPair = ranges.getValue(dbColumnDefinition.dataType)
         val lengthPair = Pair(limitPair.first.toString().length, limitPair.second.toString().length)

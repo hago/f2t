@@ -26,7 +26,8 @@ class Int2IntComparator : ColumnComparator.Comparator {
 
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         val r0 = ranks.getValue(fileColumnDefinition.dataType)
         val r1 = ranks.getValue(dbColumnDefinition.dataType)

@@ -16,7 +16,8 @@ import java.sql.JDBCType.*
 class String2StringComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         return when (dbColumnDefinition.dataType) {
             CLOB, NCLOB -> CompareColumnResult(

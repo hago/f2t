@@ -22,7 +22,8 @@ class Int2FloatComparator: ColumnComparator.Comparator {
     )
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         val maxLength = ranges.getValue(dbColumnDefinition.dataType).toString().length
         return if (dbColumnDefinition.dataType == DECIMAL) CompareColumnResult(

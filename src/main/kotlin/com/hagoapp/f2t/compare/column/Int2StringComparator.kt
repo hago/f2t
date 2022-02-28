@@ -16,7 +16,8 @@ import java.sql.JDBCType.*
 class Int2StringComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         if ((dbColumnDefinition.dataType == CLOB) || (dbColumnDefinition.dataType == NCLOB)) {
             return CompareColumnResult(isTypeMatched = false, canLoadDataFrom = true)

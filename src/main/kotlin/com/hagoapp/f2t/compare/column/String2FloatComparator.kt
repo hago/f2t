@@ -16,7 +16,8 @@ import java.sql.JDBCType.*
 class String2FloatComparator: ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
-        dbColumnDefinition: ColumnDefinition
+        dbColumnDefinition: ColumnDefinition,
+        vararg extra: String
     ): CompareColumnResult {
         return CompareColumnResult(isTypeMatched = false, false)
     }
