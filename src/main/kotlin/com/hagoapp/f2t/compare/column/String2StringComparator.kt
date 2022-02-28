@@ -18,14 +18,10 @@ class String2StringComparator : ColumnComparator.Comparator {
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition
     ): CompareColumnResult {
-        return when {
-            dbColumnDefinition.dataType == CLOB || dbColumnDefinition.dataType == NCLOB -> CompareColumnResult(
+        return when (dbColumnDefinition.dataType) {
+            CLOB, NCLOB -> CompareColumnResult(
                 isTypeMatched = true,
                 true
-            )
-            fileColumnDefinition.dataType == CLOB || fileColumnDefinition.dataType == NCLOB -> CompareColumnResult(
-                isTypeMatched = true,
-                false
             )
             else -> CompareColumnResult(
                 true,

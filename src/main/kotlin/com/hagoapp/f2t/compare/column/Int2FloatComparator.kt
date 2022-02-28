@@ -26,10 +26,10 @@ class Int2FloatComparator: ColumnComparator.Comparator {
     ): CompareColumnResult {
         val maxLength = ranges.getValue(dbColumnDefinition.dataType).toString().length
         return if (dbColumnDefinition.dataType == DECIMAL) CompareColumnResult(
-            isTypeMatched = true,
+            isTypeMatched = false,
             maxLength <= dbColumnDefinition.typeModifier.precision
         )
-        else CompareColumnResult(isTypeMatched = true, true)
+        else CompareColumnResult(isTypeMatched = false, true)
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
