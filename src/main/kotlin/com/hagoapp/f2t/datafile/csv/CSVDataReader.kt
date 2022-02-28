@@ -13,6 +13,7 @@ import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
+import org.mozilla.universalchardet.UnicodeBOMInputStream
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -74,16 +75,18 @@ class CSVDataReader : Reader {
         prepare(this.fileInfo)
         val charset = charsetForFile(fileInfo)
         for (i in formats.indices) {
-            FileInputStream(fileInfo.filename!!).use { fi ->
-                try {
-                    val fmt = formats[i]
-                    parseCSV(fi, charset, fmt)
-                    this.format = fmt
-                    this.loaded = true
-                    currentRow = 0
-                    logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} successfully")
-                } catch (ex: Exception) {
-                    logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} failed, try next format")
+            FileInputStream(fileInfo.filename!!).use { raw ->
+                UnicodeBOMInputStream(raw, true).use { fi ->
+                    try {
+                        val fmt = formats[i]
+                        parseCSV(fi, charset, fmt)
+                        this.format = fmt
+                        this.loaded = true
+                        currentRow = 0
+                        logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} successfully")
+                    } catch (ex: Exception) {
+                        logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} failed, try next format")
+                    }
                 }
             }
             if (this.loaded) break
