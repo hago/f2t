@@ -22,6 +22,21 @@ import java.sql.JDBCType
 
 class CSVDataReader : Reader {
 
+    companion object {
+        private val PREDEFINED_FORMAT_NAMES = listOf(
+            "CSVFormat.DEFAULT",
+            "CSVFormat.RFC4180",
+            "CSVFormat.EXCEL",
+            "CSVFormat.INFORMIX_UNLOAD",
+            "CSVFormat.INFORMIX_UNLOAD_CSV",
+            "CSVFormat.MYSQL",
+            "CSVFormat.ORACLE",
+            "CSVFormat.POSTGRESQL_CSV",
+            "CSVFormat.POSTGRESQL_TEXT",
+            "CSVFormat.TDF"
+        )
+    }
+
     private lateinit var fileInfo: FileInfoCsv
     private var loaded = false
     private lateinit var format: CSVFormat
@@ -33,23 +48,19 @@ class CSVDataReader : Reader {
     private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
     private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
     private var skipTypeInfer = false
-
-    private var formats: List<CSVFormat> = listOf<CSVFormat>(
-        CSVFormat.DEFAULT, CSVFormat.RFC4180, CSVFormat.EXCEL, CSVFormat.INFORMIX_UNLOAD, CSVFormat.INFORMIX_UNLOAD_CSV,
-        CSVFormat.MYSQL, CSVFormat.ORACLE, CSVFormat.POSTGRESQL_CSV, CSVFormat.POSTGRESQL_TEXT, CSVFormat.TDF
+    private var predefinedFormats = listOf<CSVFormat>(
+        CSVFormat.DEFAULT,
+        CSVFormat.RFC4180,
+        CSVFormat.EXCEL,
+        CSVFormat.INFORMIX_UNLOAD,
+        CSVFormat.INFORMIX_UNLOAD_CSV,
+        CSVFormat.MYSQL,
+        CSVFormat.ORACLE,
+        CSVFormat.POSTGRESQL_CSV,
+        CSVFormat.POSTGRESQL_TEXT,
+        CSVFormat.TDF
     )
-    private val formatNames: List<String> = listOf(
-        "CSVFormat.DEFAULT",
-        "CSVFormat.RFC4180",
-        "CSVFormat.EXCEL",
-        "CSVFormat.INFORMIX_UNLOAD",
-        "CSVFormat.INFORMIX_UNLOAD_CSV",
-        "CSVFormat.MYSQL",
-        "CSVFormat.ORACLE",
-        "CSVFormat.POSTGRESQL_CSV",
-        "CSVFormat.POSTGRESQL_TEXT",
-        "CSVFormat.TDF"
-    )
+    private lateinit var formats: List<CSVFormat>
 
     override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
         defaultDeterminer = determiner
@@ -83,9 +94,9 @@ class CSVDataReader : Reader {
                         this.format = fmt
                         this.loaded = true
                         currentRow = 0
-                        logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} successfully")
+                        logger.debug("parsing csv: ${fileInfo.filename} using ${PREDEFINED_FORMAT_NAMES[i]} successfully")
                     } catch (ex: Exception) {
-                        logger.debug("parsing csv: ${fileInfo.filename} using ${formatNames[i]} failed, try next format")
+                        logger.debug("parsing csv: ${fileInfo.filename} using ${PREDEFINED_FORMAT_NAMES[i]} failed, try next format")
                     }
                 }
             }
@@ -151,13 +162,9 @@ class CSVDataReader : Reader {
     }
 
     private fun prepare(fileInfo: FileInfoCsv) {
-        val customizeCSVFormat = { fmt: CSVFormat ->
+        this.formats = predefinedFormats.map { fmt ->
             fmt.withFirstRecordAsHeader().withDelimiter(fileInfo.delimiter)
-                //logger.debug("set limiter to ${extra.delimiter} for csv parser")
                 .withQuote((fileInfo.quote))
-        }
-        this.formats = this.formats.map { fmt ->
-            customizeCSVFormat(fmt)
         }
     }
 
