@@ -11,7 +11,7 @@
     "columnCount": 8,
     "types": {
       "座次": "TINYINT",
-      "星宿": "MVARCHAR",
+      "星宿": "NVARCHAR",
       "诨名": "NVARCHAR",
       "姓名": "NVARCHAR",
       "布尔": "BOOLEAN",
