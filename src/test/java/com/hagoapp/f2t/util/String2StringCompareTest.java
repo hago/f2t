@@ -72,6 +72,7 @@ public class String2StringCompareTest {
     @Test
     public void text2StringColumnTest() {
         for (var i : clobStringCases) {
+            System.out.println(i);
             var fc = new FileColumnDefinition();
             fc.setDataType(i.getFirst());
             var dc = new ColumnDefinition();
