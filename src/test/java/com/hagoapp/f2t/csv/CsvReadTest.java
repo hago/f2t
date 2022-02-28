@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 public class CsvReadTest {
 
     private static final Map<String, DataTypeDeterminer> testConfigFiles = Map.of(
-            "./tests/csv/shuihudata.json", new MostTypeDeterminer()
-            //"./tests/csv/shuihudata_least.json", new LeastTypeDeterminer()
+            "./tests/csv/shuihudata.json", new MostTypeDeterminer(),
+            "./tests/csv/shuihudata_least.json", new LeastTypeDeterminer()
     );
 
     private static final Map<CsvTestConfig, DataTypeDeterminer> testConfigs = new HashMap<>();
