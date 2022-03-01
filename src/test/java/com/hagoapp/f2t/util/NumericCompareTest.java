@@ -33,7 +33,7 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void Float2IntTest() {
+    public void float2IntTest() {
         for (var i : float2IntCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst().getFirst());
@@ -61,10 +61,56 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void Int2FloatTest() {
+    public void int2FloatTest() {
         for (var i : int2FloatCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst());
+            var dbCol = new ColumnDefinition();
+            dbCol.setDataType(i.getSecond().getFirst());
+            dbCol.getTypeModifier().setPrecision(i.getSecond().getSecond());
+            dbCol.getTypeModifier().setScale(i.getSecond().getThird());
+            var result = ColumnComparator.Companion.compare(fileCol, dbCol);
+            Assertions.assertEquals(i.getThird(), result.getCanLoadDataFrom());
+        }
+    }
+
+    private final List<Triple<JDBCType, JDBCType, Boolean>> int2IntCases = List.of(
+            new Triple<>(TINYINT, SMALLINT, true),
+            new Triple<>(SMALLINT, SMALLINT, true),
+            new Triple<>(SMALLINT, INTEGER, true),
+            new Triple<>(INTEGER, BIGINT, true),
+            new Triple<>(BIGINT, SMALLINT, false),
+            new Triple<>(BIGINT, INTEGER, false),
+            new Triple<>(INTEGER, SMALLINT, false),
+            new Triple<>(SMALLINT, TINYINT, false)
+    );
+
+    @Test
+    public void int2IntTest() {
+        for (var i : int2IntCases) {
+            var fileCol = new FileColumnDefinition();
+            fileCol.setDataType(i.getFirst());
+            var dbCol = new ColumnDefinition();
+            dbCol.setDataType(i.getSecond());
+            var result = ColumnComparator.Companion.compare(fileCol, dbCol);
+            Assertions.assertEquals(i.getThird(), result.getCanLoadDataFrom());
+        }
+    }
+
+    private final List<Triple<Triple<JDBCType, Integer, Integer>, Triple<JDBCType, Integer, Integer>, Boolean>> float2FloatCases = List.of(
+            new Triple<>(new Triple<>(FLOAT, 10, 2), new Triple<>(FLOAT, 4, 3), false),
+            new Triple<>(new Triple<>(FLOAT, 10, 2), new Triple<>(FLOAT, 11, 3), true),
+            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 4, 3), false),
+            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 11, 4), false)
+    );
+
+    @Test
+    public void float2FloatTest() {
+        for (var i : float2FloatCases) {
+            var fileCol = new FileColumnDefinition();
+            fileCol.setDataType(i.getFirst().getFirst());
+            fileCol.getTypeModifier().setPrecision(i.getFirst().getSecond());
+            fileCol.getTypeModifier().setScale(i.getFirst().getThird());
             var dbCol = new ColumnDefinition();
             dbCol.setDataType(i.getSecond().getFirst());
             dbCol.getTypeModifier().setPrecision(i.getSecond().getSecond());
