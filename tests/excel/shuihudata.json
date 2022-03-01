@@ -13,7 +13,7 @@
       "诨名": "NCLOB",
       "姓名": "NCLOB",
       "布尔": "BOOLEAN",
-      "浮点": "DECIMAL",
+      "浮点": "DOUBLE",
       "整数": "BIGINT",
       "日期": "TIMESTAMP_WITH_TIMEZONE"
     }
