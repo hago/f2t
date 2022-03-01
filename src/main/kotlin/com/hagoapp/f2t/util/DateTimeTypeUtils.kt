@@ -15,6 +15,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.Temporal
 
 class DateTimeTypeUtils {
     companion object {
@@ -112,6 +113,70 @@ class DateTimeTypeUtils {
                 }
             }
             return d
+        }
+
+        @JvmStatic
+        fun stringToTemporalOrNull(input: String): Temporal? {
+            return stringToTemporalOrNull(input, emptySet())
+        }
+
+        @JvmStatic
+        fun stringToTemporalOrNull(input: String, extraFormats: Set<String> = emptySet()): Temporal? {
+            val dt = stringToDateTimeOrNull(input, extraFormats)
+            if (dt != null) {
+                return dt;
+            }
+            val d = stringToDateTimeOrNull(input, extraFormats)
+            if (d != null) {
+                return d;
+            }
+            val t = stringToDateTimeOrNull(input, extraFormats)
+            if (t != null) {
+                return t;
+            }
+            return null;
+        }
+
+        @JvmStatic
+        fun isDateTime(input: String): Boolean {
+            return stringToDateTimeOrNull(input) != null
+        }
+
+        @JvmStatic
+        fun isDateTime(input: String, extraFormats: Set<String>): Boolean {
+            return stringToDateTimeOrNull(input, extraFormats) != null
+        }
+
+        @JvmStatic
+        fun isDate(input: String): Boolean {
+            return stringToDateOrNull(input) != null
+        }
+
+        @JvmStatic
+        fun isDate(input: String, extraFormats: Set<String>): Boolean {
+            return stringToDateOrNull(input, extraFormats) != null
+        }
+
+        @JvmStatic
+        fun isTime(input: String): Boolean {
+            return stringToTimeOrNull(input) != null
+        }
+
+        @JvmStatic
+        fun isTime(input: String, extraFormats: Set<String>): Boolean {
+            return stringToTimeOrNull(input, extraFormats) != null
+        }
+
+        fun getDefaultDateTimeFormatter(): DateTimeFormatter {
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        }
+
+        fun getDefaultDateFormatter(): DateTimeFormatter {
+            return DateTimeFormatter.ISO_OFFSET_DATE;
+        }
+
+        fun getDefaultTimeFormatter(): DateTimeFormatter {
+            return DateTimeFormatter.ISO_OFFSET_TIME;
         }
     }
 }

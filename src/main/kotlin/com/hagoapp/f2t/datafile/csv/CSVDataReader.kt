@@ -8,6 +8,7 @@ package com.hagoapp.f2t.datafile.csv
 
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.datafile.*
+import com.hagoapp.f2t.util.DateTimeTypeUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
 import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
@@ -19,6 +20,10 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.sql.JDBCType
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZonedDateTime
+import java.time.temporal.Temporal
 
 class CSVDataReader : Reader {
 
@@ -156,6 +161,7 @@ class CSVDataReader : Reader {
         val row = DataRow(
             currentRow.toLong(),
             data[currentRow].mapIndexed { i, cell ->
+                //logger.debug("convert '$cell' to ${columns.getValue(i).dataType!!}")
                 DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
@@ -196,21 +202,21 @@ class CSVDataReader : Reader {
                 //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
                 column.dataType = getDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
             }
+            logger.debug("inferred: ${columns.values.associate { Pair(it.name, it.dataType) }}")
         }
     }
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
-        if (cell.isBlank()) {
-            return
-        }
-        val possibleTypes = JDBCTypeUtils.guessTypes(cell).toSet()
+        val possibleTypes = if (cell.isNotBlank()) JDBCTypeUtils.guessTypes(cell).toSet() else emptySet()
+        logger.debug("value '{}' could be types: {}", cell, possibleTypes)
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
+        logger.debug("combined '{}'", columnDefinition.possibleTypes)
         val typeModifier = columnDefinition.typeModifier
         if (cell.length > typeModifier.maxLength) {
             typeModifier.maxLength = cell.length
         }
-        val dt = JDBCTypeUtils.stringToDateTimeOrNull(cell)?.format(JDBCTypeUtils.getDefaultDateTimeFormatter())
+        val dt = formatDateTime(DateTimeTypeUtils.stringToTemporalOrNull(cell))
         if ((dt != null) && (dt.length > typeModifier.maxLength)) {
             typeModifier.maxLength = dt.length
         }
@@ -223,6 +229,19 @@ class CSVDataReader : Reader {
         }
         if (!typeModifier.isContainsNonAscii && !EncodingUtils.isAsciiText(cell)) {
             typeModifier.isContainsNonAscii = true
+        }
+        if (!typeModifier.isNullable && cell.isEmpty()) {
+            typeModifier.isNullable = true
+        }
+    }
+
+    private fun formatDateTime(value: Temporal?): String? {
+        return when (value) {
+            null -> null
+            is ZonedDateTime -> value.format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
+            is LocalDate -> value.format(DateTimeTypeUtils.getDefaultDateFormatter())
+            is LocalTime -> value.format(DateTimeTypeUtils.getDefaultTimeFormatter())
+            else -> value.toString()
         }
     }
 }

@@ -11,6 +11,7 @@ import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.datafile.*
+import com.hagoapp.f2t.util.DateTimeTypeUtils
 import com.hagoapp.f2t.util.JDBCTypeUtils
 import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
@@ -165,7 +166,7 @@ class ExcelDataFileReader : Reader {
             }
         }
         if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
-            val strValue = getDateCellValue(cell).format(JDBCTypeUtils.getDefaultDateTimeFormatter())
+            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
             if (strValue.length > typeModifier.maxLength) {
                 typeModifier.maxLength = strValue.length
             }

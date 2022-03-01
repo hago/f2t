@@ -9,11 +9,6 @@ package com.hagoapp.f2t.util
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.util.EncodingUtils
 import java.sql.JDBCType
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 class JDBCTypeUtils {
     companion object {
@@ -39,77 +34,33 @@ class JDBCTypeUtils {
             }
         }
 
-        fun guessMostAccurateType(types: List<JDBCType>): JDBCType {
-            return when {
-                types.isEmpty() -> JDBCType.CLOB
-                types.size == 1 -> types[0]
-                types.contains(JDBCType.BOOLEAN) -> JDBCType.BOOLEAN
-                types.contains(JDBCType.INTEGER) || types.contains(JDBCType.BIGINT) -> JDBCType.BIGINT
-                types.contains(JDBCType.DOUBLE) || types.contains(JDBCType.FLOAT)
-                        || types.contains(JDBCType.DECIMAL) -> JDBCType.DOUBLE
-                types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE) -> JDBCType.TIMESTAMP_WITH_TIMEZONE
-                else -> JDBCType.CLOB
-            }
-        }
-
-        private val dateTimeFormatters: List<DateTimeFormatter> = listOf(
-            DateTimeFormatter.BASIC_ISO_DATE,
-            DateTimeFormatter.ISO_DATE,
-            DateTimeFormatter.ISO_DATE_TIME,
-            DateTimeFormatter.ISO_INSTANT,
-            DateTimeFormatter.ISO_LOCAL_DATE,
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
-            DateTimeFormatter.ISO_LOCAL_TIME,
-            DateTimeFormatter.ISO_OFFSET_DATE,
-            DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            DateTimeFormatter.ISO_ORDINAL_DATE,
-            DateTimeFormatter.ISO_TIME,
-            DateTimeFormatter.ISO_OFFSET_TIME,
-            DateTimeFormatter.ISO_WEEK_DATE,
-            DateTimeFormatter.ISO_ZONED_DATE_TIME,
-            DateTimeFormatter.RFC_1123_DATE_TIME,
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a").withZone(ZoneId.systemDefault())
-        )
-
-        fun stringToDateTime(input: String): ZonedDateTime {
-            val d = stringToDateTimeOrNull(input)
-            return d ?: throw F2TException("$input can't be converted to Timestamp")
-        }
-
-        fun stringToDateTimeOrNull(input: String): ZonedDateTime? {
-            var d: ZonedDateTime? = null
-            for (dtFmt in dateTimeFormatters) {
-                try {
-                    d = ZonedDateTime.ofInstant(Instant.from(dtFmt.parse(input)), ZoneId.systemDefault())
-                    break
-                } catch (ex: DateTimeParseException) {
-                    //
-                }
-            }
-            return d
-        }
-
         fun toTypedValue(value: Any?, outType: JDBCType): Any? {
             return when (value) {
                 null -> null
-                is String -> stringToTypedValue(
-                    value,
-                    outType
-                )
+                is String -> stringToTypedValue(value, outType)
                 else -> value
             }
         }
 
-        private fun stringToTypedValue(value: String, outType: JDBCType): Any {
+        private val JDBC_TEXT_TYPES = listOf(
+            JDBCType.CHAR, JDBCType.VARCHAR, JDBCType.CLOB,
+            JDBCType.NCHAR, JDBCType.NVARCHAR, JDBCType.NCLOB
+        )
+
+        private fun stringToTypedValue(value: String, outType: JDBCType): Any? {
+            if (value.isBlank() && !JDBC_TEXT_TYPES.contains(outType)) {
+                return null
+            }
             return when (outType) {
+                JDBCType.TINYINT -> value.toByte()
+                JDBCType.SMALLINT -> value.toShort()
                 JDBCType.INTEGER -> value.toInt()
                 JDBCType.BIGINT -> value.toLong()
                 JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> value.toDouble()
-                JDBCType.TIMESTAMP_WITH_TIMEZONE -> stringToDateTime(
-                    value
-                )
+                JDBCType.TIMESTAMP_WITH_TIMEZONE -> DateTimeTypeUtils.stringToDateTimeOrNull(value)!!
                 JDBCType.BOOLEAN -> toBoolean(value)
+                JDBCType.DATE -> DateTimeTypeUtils.stringToDateOrNull(value)!!
+                JDBCType.TIME -> DateTimeTypeUtils.stringToTimeOrNull(value)!!
                 else -> value
             }
         }
@@ -143,10 +94,22 @@ class JDBCTypeUtils {
             if (isPossibleBooleanValue(value)) {
                 dl.add(JDBCType.BOOLEAN)
             }
-            if (stringToDateTimeOrNull(value) != null) {
-                dl.add(JDBCType.TIMESTAMP_WITH_TIMEZONE)
-            }
+            dl.addAll(guessDateTimeTypes(value))
             return dl
+        }
+
+        private fun guessDateTimeTypes(value: String): Set<JDBCType> {
+            val ret = mutableSetOf<JDBCType>()
+            if (DateTimeTypeUtils.isDateTime(value)) {
+                ret.add(JDBCType.TIMESTAMP_WITH_TIMEZONE)
+            }
+            if (DateTimeTypeUtils.isDate(value)) {
+                ret.add(JDBCType.DATE)
+            }
+            if (DateTimeTypeUtils.isTime(value)) {
+                ret.add(JDBCType.TIME)
+            }
+            return ret
         }
 
         private fun guessIntTypes(value: String): Set<JDBCType> {
@@ -202,10 +165,6 @@ class JDBCTypeUtils {
                 possibleFalseValues.any { it.compareTo(x, true) == 0 } -> false
                 else -> x.toBoolean()
             }
-        }
-
-        fun getDefaultDateTimeFormatter(): DateTimeFormatter {
-            return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
     }
 
