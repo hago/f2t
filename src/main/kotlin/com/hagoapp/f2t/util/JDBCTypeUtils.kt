@@ -139,15 +139,7 @@ class JDBCTypeUtils {
                 dl.add(JDBCType.CHAR)
             }
             dl.addAll(guessIntTypes(value))
-            if (value.toFloatOrNull() != null) {
-                dl.add(JDBCType.FLOAT)
-            }
-            if (value.toDoubleOrNull() != null) {
-                dl.add(JDBCType.DOUBLE)
-            }
-            if (value.toBigDecimalOrNull() != null) {
-                dl.add(JDBCType.DECIMAL)
-            }
+            dl.addAll(guessFloatTypes(value))
             if (isPossibleBooleanValue(value)) {
                 dl.add(JDBCType.BOOLEAN)
             }
@@ -170,6 +162,21 @@ class JDBCTypeUtils {
                 }
                 if ((l <= 127L) && (l >= -128L)) {
                     ret.add(JDBCType.TINYINT)
+                }
+            }
+            return ret
+        }
+
+        private fun guessFloatTypes(value: String): Set<JDBCType> {
+            val ret = mutableSetOf<JDBCType>()
+            val l = value.toBigDecimalOrNull()
+            if (l != null) {
+                ret.add(JDBCType.DECIMAL)
+                if ((l <= Double.MAX_VALUE.toBigDecimal()) && (l >= Double.MIN_VALUE.toBigDecimal())) {
+                    ret.add(JDBCType.DOUBLE)
+                }
+                if ((l <= Float.MAX_VALUE.toBigDecimal()) && (l >= Float.MIN_VALUE.toBigDecimal())) {
+                    ret.add(JDBCType.FLOAT)
                 }
             }
             return ret
