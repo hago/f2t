@@ -16,7 +16,7 @@ public class ColumnTypeModifier {
     private int precision = 0;
     private int scale = 0;
     private String collation;
-    private boolean hasNonAsciiChar = false;
+    private boolean containsNonAscii = false;
     private boolean nullable = true;
 
     public int getMaxLength() {
@@ -51,12 +51,12 @@ public class ColumnTypeModifier {
         this.collation = collation;
     }
 
-    public boolean isHasNonAsciiChar() {
-        return hasNonAsciiChar;
+    public boolean isContainsNonAscii() {
+        return containsNonAscii;
     }
 
-    public void setHasNonAsciiChar(boolean hasNonAsciiChar) {
-        this.hasNonAsciiChar = hasNonAsciiChar;
+    public void setContainsNonAscii(boolean containsNonAscii) {
+        this.containsNonAscii = containsNonAscii;
     }
 
     public boolean isNullable() {

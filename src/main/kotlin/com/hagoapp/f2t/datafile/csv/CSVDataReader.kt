@@ -219,8 +219,8 @@ class CSVDataReader : Reader {
         if (p.second > typeModifier.scale) {
             typeModifier.scale = p.second
         }
-        if (!typeModifier.isHasNonAsciiChar && !EncodingUtils.isAsciiText(cell)) {
-            typeModifier.isHasNonAsciiChar = true
+        if (!typeModifier.isContainsNonAscii && !EncodingUtils.isAsciiText(cell)) {
+            typeModifier.isContainsNonAscii = true
         }
     }
 }

@@ -147,8 +147,8 @@ class ExcelDataFileReader : Reader {
             if (cell.stringCellValue.length > typeModifier.maxLength) {
                 typeModifier.maxLength = cell.stringCellValue.length
             }
-            if (!typeModifier.isHasNonAsciiChar && !EncodingUtils.isAsciiText(cell.stringCellValue)) {
-                typeModifier.isHasNonAsciiChar = true
+            if (!typeModifier.isContainsNonAscii && !EncodingUtils.isAsciiText(cell.stringCellValue)) {
+                typeModifier.isContainsNonAscii = true
             }
         }
         if (columnDefinition.possibleTypes.contains(DECIMAL) || columnDefinition.possibleTypes.contains(BIGINT)) {

@@ -18,7 +18,7 @@ class LeastTypeDeterminer : DataTypeDeterminer {
         modifier: ColumnTypeModifier
     ): JDBCType {
         return if (types.isEmpty()) {
-            if (modifier.isHasNonAsciiChar) JDBCType.NVARCHAR else JDBCType.NCLOB
+            if (modifier.isContainsNonAscii) JDBCType.NVARCHAR else JDBCType.NCLOB
         } else if (types.size == 1) {
             types.first()
         } else if (types.contains(JDBCType.DOUBLE) || types.contains(JDBCType.FLOAT) ||
@@ -41,7 +41,7 @@ class LeastTypeDeterminer : DataTypeDeterminer {
     }
 
     private fun determineTextType(modifier: ColumnTypeModifier): JDBCType {
-        return if (modifier.isHasNonAsciiChar) {
+        return if (modifier.isContainsNonAscii) {
             JDBCType.NVARCHAR
         } else {
             JDBCType.VARCHAR
