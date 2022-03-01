@@ -124,17 +124,17 @@ class DateTimeTypeUtils {
         fun stringToTemporalOrNull(input: String, extraFormats: Set<String> = emptySet()): Temporal? {
             val dt = stringToDateTimeOrNull(input, extraFormats)
             if (dt != null) {
-                return dt;
+                return dt
             }
             val d = stringToDateTimeOrNull(input, extraFormats)
             if (d != null) {
-                return d;
+                return d
             }
             val t = stringToDateTimeOrNull(input, extraFormats)
             if (t != null) {
-                return t;
+                return t
             }
-            return null;
+            return null
         }
 
         @JvmStatic
@@ -168,15 +168,15 @@ class DateTimeTypeUtils {
         }
 
         fun getDefaultDateTimeFormatter(): DateTimeFormatter {
-            return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME
         }
 
         fun getDefaultDateFormatter(): DateTimeFormatter {
-            return DateTimeFormatter.ISO_OFFSET_DATE;
+            return DateTimeFormatter.ISO_OFFSET_DATE
         }
 
         fun getDefaultTimeFormatter(): DateTimeFormatter {
-            return DateTimeFormatter.ISO_OFFSET_TIME;
+            return DateTimeFormatter.ISO_OFFSET_TIME
         }
     }
 }
