@@ -18,7 +18,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
         modifier: ColumnTypeModifier
     ): JDBCType {
         return if (types.isEmpty()) {
-            if (modifier.isContainsNonAscii) JDBCType.NVARCHAR else JDBCType.NCLOB
+            determineTextType(modifier)
         } else if (types.size == 1) {
             types.first()
         } else if (types.contains(JDBCType.DOUBLE) || types.contains(JDBCType.FLOAT) ||
@@ -29,6 +29,10 @@ class MostTypeDeterminer : DataTypeDeterminer {
             determineNumberType(types)
         } else if (types.contains(JDBCType.BOOLEAN)) {
             JDBCType.BOOLEAN
+        } else if (types.contains(JDBCType.DATE)) {
+            JDBCType.DATE
+        } else if (types.contains(JDBCType.TIME)) {
+            JDBCType.TIME
         } else if (types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE)) {
             JDBCType.TIMESTAMP_WITH_TIMEZONE
         } else if (types.contains(JDBCType.CHAR) || types.contains(JDBCType.VARCHAR) || types.contains(JDBCType.CLOB) ||
@@ -36,7 +40,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
         ) {
             determineTextType(modifier)
         } else {
-            JDBCType.VARBINARY
+            throw NotImplementedError("types $types not supported yet")
         }
     }
 
