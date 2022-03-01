@@ -96,7 +96,7 @@ class CSVDataReader : Reader {
                         currentRow = 0
                         logger.debug("parsing csv: ${fileInfo.filename} using ${PREDEFINED_FORMAT_NAMES[i]} successfully")
                     } catch (ex: Exception) {
-                        logger.debug("parsing csv: ${fileInfo.filename} using ${PREDEFINED_FORMAT_NAMES[i]} failed, try next format")
+                        logger.error("parsing csv: ${fileInfo.filename} using ${PREDEFINED_FORMAT_NAMES[i]} failed: $ex, try next format")
                     }
                 }
             }
