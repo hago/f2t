@@ -25,7 +25,7 @@ class Int2FloatComparator: ColumnComparator.Comparator {
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        val maxLength = ranges.getValue(dbColumnDefinition.dataType).toString().length
+        val maxLength = ranges.getValue(fileColumnDefinition.dataType).toString().length
         return if (dbColumnDefinition.dataType == DECIMAL) CompareColumnResult(
             isTypeMatched = false,
             maxLength <= dbColumnDefinition.typeModifier.precision
