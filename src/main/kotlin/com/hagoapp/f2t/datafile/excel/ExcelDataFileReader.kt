@@ -181,37 +181,15 @@ class ExcelDataFileReader : Reader {
             )
             cell.cellType == CellType.NUMERIC -> {
                 val nv = cell.numericCellValue
-                val l: MutableSet<JDBCType> = guessFloatingPointTypes(nv).toMutableSet()
+                val l: MutableSet<JDBCType> = JDBCTypeUtils.guessFloatTypes(nv).toMutableSet()
                 if (nv == nv.toLong().toDouble()) {
-                    l.addAll(guessIntegerTypes(nv.toLong()))
+                    l.addAll(JDBCTypeUtils.guessIntTypes(nv.toLong()))
                 }
                 l
             }
             cell.cellType == CellType.BLANK -> setOf()
             else -> JDBCTypeUtils.guessTypes(cell.stringCellValue).toSet()
         }
-    }
-
-    private fun guessIntegerTypes(value: Long): Set<JDBCType> {
-        val l = mutableSetOf(BIGINT)
-        if ((value <= Int.MAX_VALUE.toLong()) && (value >= Int.MIN_VALUE.toLong())) {
-            l.add(INTEGER)
-        }
-        if ((value <= Short.MAX_VALUE.toLong()) && (value >= Short.MIN_VALUE.toLong())) {
-            l.add(SMALLINT)
-        }
-        if ((value <= Byte.MAX_VALUE.toLong()) && (value >= Byte.MIN_VALUE.toLong())) {
-            l.add(TINYINT)
-        }
-        return l
-    }
-
-    private fun guessFloatingPointTypes(value: Double): Set<JDBCType> {
-        val l = mutableSetOf(DECIMAL, DOUBLE)
-        if ((value <= Float.MAX_VALUE.toDouble()) && (value >= Float.MIN_VALUE.toDouble())) {
-            l.add(FLOAT)
-        }
-        return l
     }
 
     private val defaultFormatter = DataFormatter()

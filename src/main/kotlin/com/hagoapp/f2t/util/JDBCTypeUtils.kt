@@ -12,16 +12,6 @@ import java.sql.JDBCType
 
 class JDBCTypeUtils {
     companion object {
-        fun combinePossibleTypes(a: List<JDBCType>, b: List<JDBCType>): List<JDBCType> {
-            return when {
-                a.isEmpty() -> b
-                b.isEmpty() -> a
-                else -> {
-                    val l = a.intersect(b).toList()
-                    if (l.isEmpty()) listOf(JDBCType.CLOB) else l
-                }
-            }
-        }
 
         fun combinePossibleTypes(a: Set<JDBCType>, b: Set<JDBCType>): Set<JDBCType> {
             return when {
@@ -65,17 +55,6 @@ class JDBCTypeUtils {
             }
         }
 
-        private fun <T> numberToTypedValue(value: T, outType: JDBCType): Any {
-            return when (value) {
-                is Int, is Long -> when (outType) {
-                    JDBCType.INTEGER, JDBCType.BIGINT, JDBCType.FLOAT,
-                    JDBCType.DOUBLE, JDBCType.DECIMAL -> value
-                    else -> throw F2TException("$value can't be converted into numeric type")
-                }
-                else -> value as Any
-            }
-        }
-
         fun guessTypes(value: String?): List<JDBCType> {
             val dl = mutableListOf<JDBCType>()
             if (value == null) {
@@ -113,17 +92,20 @@ class JDBCTypeUtils {
         }
 
         private fun guessIntTypes(value: String): Set<JDBCType> {
+            return guessIntTypes(value.toLongOrNull())
+        }
+
+        fun guessIntTypes(l: Long?): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
-            val l = value.toLongOrNull()
             if (l != null) {
                 ret.add(JDBCType.BIGINT)
                 if ((l <= Int.MAX_VALUE.toLong()) && (l >= Int.MIN_VALUE.toLong())) {
                     ret.add(JDBCType.INTEGER)
                 }
-                if ((l <= 32767L) && (l >= -32768L)) {
+                if ((l <= Short.MAX_VALUE.toLong()) && (l >= Short.MIN_VALUE.toLong())) {
                     ret.add(JDBCType.SMALLINT)
                 }
-                if ((l <= 127L) && (l >= -128L)) {
+                if ((l <= Byte.MAX_VALUE.toLong()) && (l >= Byte.MIN_VALUE.toLong())) {
                     ret.add(JDBCType.TINYINT)
                 }
             }
@@ -136,9 +118,17 @@ class JDBCTypeUtils {
             if (l != null) {
                 ret.add(JDBCType.DECIMAL)
                 if ((l <= Double.MAX_VALUE.toBigDecimal()) && (l >= Double.MIN_VALUE.toBigDecimal())) {
-                    ret.add(JDBCType.DOUBLE)
+                    ret.addAll(guessFloatTypes(l.toDouble()))
                 }
-                if ((l <= Float.MAX_VALUE.toBigDecimal()) && (l >= Float.MIN_VALUE.toBigDecimal())) {
+            }
+            return ret
+        }
+
+        fun guessFloatTypes(value: Double?): Set<JDBCType> {
+            val ret = mutableSetOf<JDBCType>()
+            if (value != null) {
+                ret.add(JDBCType.DOUBLE)
+                if ((value <= Float.MAX_VALUE.toDouble()) && (value >= Float.MIN_VALUE.toDouble())) {
                     ret.add(JDBCType.FLOAT)
                 }
             }
