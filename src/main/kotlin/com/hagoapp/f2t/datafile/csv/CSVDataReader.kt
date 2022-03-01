@@ -112,11 +112,13 @@ class CSVDataReader : Reader {
     }
 
     private fun charsetForFile(fileInfo: FileInfoCsv): Charset {
-        return when {
+        val enc = when {
             fileInfo.encoding != null -> Charset.forName(fileInfo.encoding)
             fileInfo.filename == null -> StandardCharsets.UTF_8
             else -> Charset.forName(EncodingUtils.guessEncoding(fileInfo.filename!!))
         }
+        logger.debug("file encoding is $enc")
+        return enc
     }
 
     private fun checkLoad() {
