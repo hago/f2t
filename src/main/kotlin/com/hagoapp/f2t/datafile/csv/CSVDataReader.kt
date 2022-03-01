@@ -198,6 +198,9 @@ class CSVDataReader : Reader {
     }
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
+        if (cell.isBlank()) {
+            return
+        }
         val possibleTypes = JDBCTypeUtils.guessTypes(cell).toSet()
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
