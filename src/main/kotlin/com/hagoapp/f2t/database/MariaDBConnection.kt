@@ -210,24 +210,20 @@ class MariaDBConnection : DbConnection() {
     private fun setupColumnDefinition(columnDefinition: ColumnDefinition, typeName: String, nullable: Boolean) {
         val tm = columnDefinition.typeModifier
         tm.isNullable = nullable
-        if (typeName.startsWith("char") || typeName.startsWith("varchar") ||
-            typeName.startsWith("decimal")
-        ) {
-            val extra = parseModifier(typeName)
-            tm.maxLength = extra.first
-            tm.precision = extra.second
-            tm.scale = extra.third
-        }
+        val extra = parseModifier(typeName)
+        tm.maxLength = extra.first
+        tm.precision = extra.second
+        tm.scale = extra.third
     }
 
     private fun parseModifier(typeStr: String): Triple<Int, Int, Int> {
         return when {
-            typeStr.startsWith("character") -> {
+            typeStr.startsWith("char") || typeStr.startsWith("varchar") -> {
                 val m = Regex(".+?\\((\\d+)\\)").matchEntire(typeStr)
                 if ((m != null) && m.groupValues.isNotEmpty()) Triple(m.groupValues.last().toInt(), 0, 0)
                 else Triple(0, 0, 0)
             }
-            typeStr.startsWith("numeric") -> {
+            typeStr.startsWith("decimal") -> {
                 val m = Regex(".+?\\((\\d+),(\\d+)\\)").matchEntire(typeStr)
                 if ((m != null) && (m.groupValues.size > 2))
                     Triple(0, m.groupValues[1].toInt(), m.groupValues[2].toInt())
@@ -236,7 +232,7 @@ class MariaDBConnection : DbConnection() {
             else -> Triple(0, 0, 0)
         }
     }
-    
+
     private fun getIndexes(
         table: TableName,
         refColumns: Set<ColumnDefinition>
@@ -291,7 +287,9 @@ class MariaDBConnection : DbConnection() {
             "float" -> JDBCType.FLOAT
             "double" -> JDBCType.DOUBLE
             "decimal", "dec", "numeric", "fixed" -> JDBCType.DECIMAL
-            "timestamp", "datetime", "date", "time" -> JDBCType.TIMESTAMP_WITH_TIMEZONE
+            "timestamp", "datetime" -> JDBCType.TIMESTAMP_WITH_TIMEZONE
+            "date" -> JDBCType.DATE
+            "time" -> JDBCType.TIME
             "char" -> JDBCType.CHAR
             "varchar" -> JDBCType.VARCHAR
             "text", "longtext" -> JDBCType.CLOB
