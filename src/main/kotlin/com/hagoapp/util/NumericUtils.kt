@@ -6,6 +6,8 @@
 
 package com.hagoapp.util
 
+import java.math.BigDecimal
+
 class NumericUtils {
     companion object {
         fun detectPrecision(input: Any): Pair<Int, Int> {
@@ -21,6 +23,16 @@ class NumericUtils {
             } catch (ignored: NumberFormatException) {
                 Pair(0, 0)
             }
+        }
+        
+        fun isInDoubleRange(input: BigDecimal): Boolean {
+            return input < Double.MAX_VALUE.toBigDecimal() &&
+                    input > Double.MIN_VALUE.toBigDecimal()
+        }
+
+        fun isInFloatRange(input: BigDecimal): Boolean {
+            return input < Float.MAX_VALUE.toBigDecimal() &&
+                    input > Float.MIN_VALUE.toBigDecimal()
         }
     }
 }
