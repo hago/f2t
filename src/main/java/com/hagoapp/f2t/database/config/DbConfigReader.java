@@ -46,8 +46,6 @@ public class DbConfigReader {
                 return gson.fromJson(json, PgSqlConfig.class);
             case MariaDb:
                 return gson.fromJson(json, MariaDbConfig.class);
-            case Hive:
-                return gson.fromJson(json, HiveConfig.class);
             case MsSqlServer:
                 return gson.fromJson(json, MsSqlConfig.class);
             default:

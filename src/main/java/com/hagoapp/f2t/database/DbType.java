@@ -9,6 +9,5 @@ package com.hagoapp.f2t.database;
 public enum DbType {
     PostgreSql,
     MsSqlServer,
-    MariaDb,
-    Hive
+    MariaDb
 }
