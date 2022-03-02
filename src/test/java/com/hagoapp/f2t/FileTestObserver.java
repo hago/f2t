@@ -65,6 +65,7 @@ public class FileTestObserver implements ParseObserver {
     @Override
     public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
         logger.info("column definition determined");
+        logger.info("columns: {}", columnDefinitionList);
         for (int i = 0; i < columnDefinitionList.size(); i++) {
             var def = columnDefinitionList.get(i);
             columns.put(def.getName(), new Pair<>(def, i));
