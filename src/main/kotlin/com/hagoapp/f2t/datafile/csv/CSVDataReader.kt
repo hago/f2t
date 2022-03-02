@@ -227,11 +227,24 @@ class CSVDataReader : Reader {
         if (p.second > typeModifier.scale) {
             typeModifier.scale = p.second
         }
+        setRange(columnDefinition, cell)
         if (!typeModifier.isContainsNonAscii && !EncodingUtils.isAsciiText(cell)) {
             typeModifier.isContainsNonAscii = true
         }
         if (!typeModifier.isNullable && cell.isEmpty()) {
             typeModifier.isNullable = true
+        }
+    }
+
+    private fun setRange(columnDefinition: FileColumnDefinition, cell: String) {
+        val num = cell.toBigDecimalOrNull()
+        if (num != null) {
+            if ((columnDefinition.maximum == null) || (columnDefinition.maximum < num)) {
+                columnDefinition.maximum = num
+            }
+            if ((columnDefinition.minimum == null) || (columnDefinition.minimum > num)) {
+                columnDefinition.minimum = num
+            }
         }
     }
 

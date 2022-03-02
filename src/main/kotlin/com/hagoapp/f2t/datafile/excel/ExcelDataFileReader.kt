@@ -17,6 +17,7 @@ import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
 import org.apache.poi.ss.usermodel.*
 import java.io.FileInputStream
+import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.time.ZoneId
@@ -165,10 +166,33 @@ class ExcelDataFileReader : Reader {
                 typeModifier.maxLength = strValue.length
             }
         }
-        if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
+        if (columnDefinition.possibleTypes.contains(DATE)) {
+            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateFormatter())
+            if (strValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = strValue.length
+            }
+        } else if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
             val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
             if (strValue.length > typeModifier.maxLength) {
                 typeModifier.maxLength = strValue.length
+            }
+        } else if (columnDefinition.possibleTypes.contains(TIME)) {
+            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultTimeFormatter())
+            if (strValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = strValue.length
+            }
+        }
+        setRange(columnDefinition, cellToString(cell))
+    }
+
+    private fun setRange(columnDefinition: FileColumnDefinition, cell: String) {
+        val num = cell.toBigDecimalOrNull()
+        if (num != null) {
+            if ((columnDefinition.maximum == null) || (columnDefinition.maximum < num)) {
+                columnDefinition.maximum = num
+            }
+            if ((columnDefinition.minimum == null) || (columnDefinition.minimum > num)) {
+                columnDefinition.minimum = num
             }
         }
     }

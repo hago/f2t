@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t;
 
+import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.util.HashSet;
 import java.util.Set;
@@ -37,6 +38,8 @@ public class FileColumnDefinition extends ColumnDefinition {
 
     private Set<JDBCType> possibleTypes = new HashSet<>();
     private int order;
+    private BigDecimal minimum;
+    private BigDecimal maximum;
 
     public int getOrder() {
         return order;
@@ -44,6 +47,22 @@ public class FileColumnDefinition extends ColumnDefinition {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public BigDecimal getMinimum() {
+        return minimum;
+    }
+
+    public void setMinimum(BigDecimal minimum) {
+        this.minimum = minimum;
+    }
+
+    public BigDecimal getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(BigDecimal maximum) {
+        this.maximum = maximum;
     }
 
     public Set<JDBCType> getPossibleTypes() {
@@ -59,6 +78,8 @@ public class FileColumnDefinition extends ColumnDefinition {
         return "FileColumnDefinition{" +
                 "possibleTypes=" + possibleTypes +
                 ", order=" + order +
+                ", minimum=" + minimum +
+                ", maximum=" + maximum +
                 ", parent={" + super.toString() +
                 "}}";
     }
