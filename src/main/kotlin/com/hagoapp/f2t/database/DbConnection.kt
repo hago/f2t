@@ -32,7 +32,7 @@ abstract class DbConnection : Closeable {
     /**
      * Tell user what kind of db config is required
      */
-    abstract fun getSupportedDbType(): DbType
+    abstract fun getSupportedDbType(): String
 
     /**
      * Whether the config is valid to lead a successful connection.

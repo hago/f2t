@@ -7,9 +7,8 @@
 
 package com.hagoapp.f2t.database.config;
 
-import com.hagoapp.f2t.database.DbType;
-
 public class MariaDbConfig extends DbConfig {
+    public static final String DATABASE_TYPE_MARIADB = "MariaDB";
     private static final String STORE_ENGINE_INNODB = "innodb";
     private String host;
     private Integer port = 3306;
@@ -18,7 +17,7 @@ public class MariaDbConfig extends DbConfig {
 
     public MariaDbConfig() {
         super();
-        dbType = DbType.MariaDb;
+        dbType = DATABASE_TYPE_MARIADB;
     }
 
     public String getStoreEngine() {

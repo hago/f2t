@@ -35,8 +35,8 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun getSupportedDbType(): DbType {
-        return DbType.MsSqlServer
+    override fun getSupportedDbType(): String {
+        return MsSqlConfig.DATABASE_TYPE_MSSQL
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {

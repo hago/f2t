@@ -27,8 +27,8 @@ class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun getSupportedDbType(): DbType {
-        return DbType.PostgreSql
+    override fun getSupportedDbType(): String {
+        return PgSqlConfig.DATABASE_TYPE_POSTGRESQL
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {

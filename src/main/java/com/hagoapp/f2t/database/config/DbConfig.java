@@ -13,15 +13,14 @@
 package com.hagoapp.f2t.database.config;
 
 import com.hagoapp.f2t.JsonStringify;
-import com.hagoapp.f2t.database.DbType;
 
 public class DbConfig implements JsonStringify {
-    protected DbType dbType;
+    protected String dbType;
     protected String username;
     protected String password;
     protected String databaseName;
 
-    public DbType getDbType() {
+    public String getDbType() {
         return dbType;
     }
 

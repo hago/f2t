@@ -6,13 +6,13 @@
 
 package com.hagoapp.f2t.database.config;
 
-import com.hagoapp.f2t.database.DbType;
-
 public class MsSqlConfig extends DbConfig {
+
+    public static final String DATABASE_TYPE_MSSQL = "Microsoft SQL Sever";
 
     public MsSqlConfig() {
         super();
-        dbType = DbType.MsSqlServer;
+        dbType = DATABASE_TYPE_MSSQL;
     }
 
     private String host;

@@ -9,12 +9,44 @@ package com.hagoapp.f2t.database.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hagoapp.f2t.F2TException;
+import com.hagoapp.f2t.F2TLogger;
+import com.hagoapp.f2t.database.DbConnection;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.slf4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DbConfigReader {
+
+    private final static Map<String, Class<? extends DbConfig>> dbConfigMap = new HashMap<>();
+    private final static Logger logger = F2TLogger.getLogger();
+
+    static {
+        var clazz = new Reflections("com.hagoapp", Scanners.SubTypes).getSubTypesOf(DbConfig.class);
+        for (var clz : clazz) {
+            try {
+                var instance = clz.getConstructor().newInstance();
+                var i = instance.getDbType();
+                if (dbConfigMap.containsKey(i)) {
+                    logger.warn("duplicate database type {} for {}  and {}, {} is ignored", i,
+                            dbConfigMap.get(i).getCanonicalName(), clz.getCanonicalName(), clz.getCanonicalName());
+                } else {
+                    logger.info("db type {} for {}", i, clz.getCanonicalName());
+                    dbConfigMap.put(i.toLowerCase(), clz);
+                }
+            } catch (InstantiationException | IllegalAccessException |
+                    InvocationTargetException | NoSuchMethodException e) {
+                logger.error("error {} occurs in instantiating {}", e.getMessage(), clz.getCanonicalName());
+            }
+        }
+    }
+
     public static DbConfig readConfig(String filename) throws F2TException {
         try (FileInputStream fis = new FileInputStream(filename)) {
             return readConfig(fis);
@@ -41,15 +73,12 @@ public class DbConfigReader {
         if (baseConfig == null) {
             throw new F2TException("Not a valid db config, check whether 'dbType' existed and valid.");
         }
-        switch (baseConfig.getDbType()) {
-            case PostgreSql:
-                return gson.fromJson(json, PgSqlConfig.class);
-            case MariaDb:
-                return gson.fromJson(json, MariaDbConfig.class);
-            case MsSqlServer:
-                return gson.fromJson(json, MsSqlConfig.class);
-            default:
-                throw new F2TException(String.format("DB config type %s not supported", baseConfig.getDbType().name()));
+        var i = baseConfig.getDbType().toLowerCase();
+        var clz = dbConfigMap.get(i);
+        if (clz == null) {
+            throw new F2TException(String.format("DB config type %s not supported", i));
+        } else {
+            return gson.fromJson(json, clz);
         }
     }
 }

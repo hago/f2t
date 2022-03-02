@@ -15,15 +15,15 @@ import org.reflections.scanners.Scanners
 class DbConnectionFactory {
     companion object {
 
-        private val typedConnectionMapper = mutableMapOf<DbType, Class<out DbConnection>>()
+        private val typedConnectionMapper = mutableMapOf<String, Class<out DbConnection>>()
         private val logger = F2TLogger.getLogger()
 
         init {
-            val r = Reflections(F2TException::class.java.packageName, Scanners.SubTypes)
+            val r = Reflections("com.hagoapp", Scanners.SubTypes)
             r.getSubTypesOf(DbConnection::class.java).forEach { t ->
                 try {
                     val template = t.getConstructor().newInstance()
-                    typedConnectionMapper[template.getSupportedDbType()] = t
+                    typedConnectionMapper[template.getSupportedDbType().lowercase()] = t
                     logger.info("DbConnection ${t.canonicalName} registered")
                 } catch (e: Exception) {
                     logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
@@ -33,8 +33,8 @@ class DbConnectionFactory {
 
         @JvmStatic
         fun createDbConnection(dbConfig: DbConfig): DbConnection {
-            return when (val clz = typedConnectionMapper[dbConfig.dbType]) {
-                null -> throw F2TException("Unknown database type: ${dbConfig.dbType.name}")
+            return when (val clz = typedConnectionMapper[dbConfig.dbType.lowercase()]) {
+                null -> throw F2TException("Unknown database type: ${dbConfig.dbType}")
                 else -> {
                     val con = clz.getConstructor().newInstance()
                     con.open(dbConfig)

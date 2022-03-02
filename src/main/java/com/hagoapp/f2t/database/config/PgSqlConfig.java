@@ -6,15 +6,14 @@
 
 package com.hagoapp.f2t.database.config;
 
-import com.hagoapp.f2t.database.DbType;
-
 public class PgSqlConfig extends DbConfig {
+    public static final String DATABASE_TYPE_POSTGRESQL = "PostgreSQL";
     private String host;
     private int port = 5432;
 
     public PgSqlConfig() {
         super();
-        this.dbType = DbType.PostgreSql;
+        this.dbType = DATABASE_TYPE_POSTGRESQL;
     }
 
     public String getHost() {
