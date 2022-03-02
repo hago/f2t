@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.database.config.DbConfig
+import com.hagoapp.f2t.database.config.DbConfigReader
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 
@@ -29,6 +30,12 @@ class DbConnectionFactory {
                     logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
                 }
             }
+        }
+
+        @JvmStatic
+        fun createDbConnection(configName: String): DbConnection {
+            val config = DbConfigReader.readConfig(configName)
+            return createDbConnection(config)
         }
 
         @JvmStatic
