@@ -178,7 +178,7 @@ class CSVDataReader : Reader {
 
     private fun parseCSV(ist: InputStream, charset: Charset, format: CSVFormat) {
         CSVParser.parse(ist, charset, format).use { parser ->
-            columns = parser.headerMap.entries.associate { Pair(it.value, FileColumnDefinition(it.key)) }
+            columns = parser.headerMap.entries.associate { Pair(it.value, FileColumnDefinition(it.key, it.value)) }
             if (skipTypeInfer) {
                 columns.values.forEach { it.possibleTypes = setOf(JDBCType.NCHAR, JDBCType.NVARCHAR, JDBCType.NCLOB) }
             }
@@ -208,10 +208,10 @@ class CSVDataReader : Reader {
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
         val possibleTypes = if (cell.isNotBlank()) JDBCTypeUtils.guessTypes(cell).toSet() else emptySet()
-        logger.debug("value '{}' could be types: {}", cell, possibleTypes)
+        //logger.debug("value '{}' could be types: {}", cell, possibleTypes)
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
-        logger.debug("combined '{}'", columnDefinition.possibleTypes)
+        //logger.debug("combined '{}'", columnDefinition.possibleTypes)
         val typeModifier = columnDefinition.typeModifier
         if (cell.length > typeModifier.maxLength) {
             typeModifier.maxLength = cell.length

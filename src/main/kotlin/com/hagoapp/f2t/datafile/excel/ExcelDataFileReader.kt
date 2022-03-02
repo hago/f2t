@@ -35,7 +35,7 @@ class ExcelDataFileReader : Reader {
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, FileColumnDefinition(cellToString(cell)))
+                Pair(i, FileColumnDefinition(cellToString(cell), i))
             }.toMap()
         }
         return columns.values.sortedBy { it.name }

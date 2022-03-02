@@ -20,6 +20,11 @@ public class FileColumnDefinition extends ColumnDefinition {
         super(name);
     }
 
+    public FileColumnDefinition(String name, int order) {
+        super(name);
+        this.order = order;
+    }
+
     public FileColumnDefinition(String name, Set<JDBCType> possibleTypes) {
         super(name);
         this.possibleTypes = possibleTypes;
@@ -31,6 +36,15 @@ public class FileColumnDefinition extends ColumnDefinition {
     }
 
     private Set<JDBCType> possibleTypes = new HashSet<>();
+    private int order;
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
     public Set<JDBCType> getPossibleTypes() {
         return possibleTypes;
@@ -44,6 +58,7 @@ public class FileColumnDefinition extends ColumnDefinition {
     public String toString() {
         return "FileColumnDefinition{" +
                 "possibleTypes=" + possibleTypes +
+                ", order=" + order +
                 ", parent={" + super.toString() +
                 "}}";
     }
