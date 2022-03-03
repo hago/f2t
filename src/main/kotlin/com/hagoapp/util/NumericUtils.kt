@@ -24,15 +24,23 @@ class NumericUtils {
                 Pair(0, 0)
             }
         }
-        
-        fun isInDoubleRange(input: BigDecimal): Boolean {
+
+        fun isDecimalInDoubleRange(input: BigDecimal): Boolean {
             return input < Double.MAX_VALUE.toBigDecimal() &&
                     input > Double.MIN_VALUE.toBigDecimal()
         }
 
-        fun isInFloatRange(input: BigDecimal): Boolean {
+        fun isDecimalInFloatRange(input: BigDecimal): Boolean {
             return input < Float.MAX_VALUE.toBigDecimal() &&
                     input > Float.MIN_VALUE.toBigDecimal()
+        }
+
+        fun isDecimalIntegralValue(input: BigDecimal): Boolean {
+            return input == input.toBigInteger().toBigDecimal()
+        }
+
+        fun isDecimalLongValue(input: BigDecimal): Boolean {
+            return input == input.toBigInteger().toBigDecimal()
         }
     }
 }
