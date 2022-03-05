@@ -24,7 +24,9 @@ class FromTimestampComparator : ColumnComparator.Comparator {
         val formatter = if (extra.isEmpty()) DateTimeFormatter.ISO_DATE_TIME
         else DateTimeFormatter.ofPattern(extra[0])
         return when (dbColumnDefinition.dataType) {
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP -> CompareColumnResult(isTypeMatched = true, true)
+            TIMESTAMP -> CompareColumnResult(isTypeMatched = true, true)
+            DATE -> CompareColumnResult(isTypeMatched = false, true)
+            TIME -> CompareColumnResult(isTypeMatched = false, false)
             CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
             CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
                 isTypeMatched = false,
@@ -44,7 +46,7 @@ class FromTimestampComparator : ColumnComparator.Comparator {
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+            DATE, TIME, TIMESTAMP
         )
     }
 }
