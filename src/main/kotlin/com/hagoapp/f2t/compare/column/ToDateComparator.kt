@@ -20,7 +20,7 @@ class ToDateComparator : ColumnComparator.Comparator {
         vararg extra: String
     ): CompareColumnResult {
         return CompareColumnResult(
-            isTypeMatched = fileColumnDefinition.dataType == dbColumnDefinition.dataType,
+            isTypeMatched = false,
             when {
                 fileColumnDefinition.dataType == DATE ||
                         fileColumnDefinition.dataType == TIMESTAMP ||
@@ -39,7 +39,7 @@ class ToDateComparator : ColumnComparator.Comparator {
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+            TIMESTAMP_WITH_TIMEZONE, TIME, TIMESTAMP
         )
     }
 

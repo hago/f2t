@@ -12,21 +12,28 @@ import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
-class FromDateComparator: ColumnComparator.Comparator {
+class FromDateComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return CompareColumnResult(
-            isTypeMatched = true,
-            when (dbColumnDefinition.dataType) {
-                DATE, TIMESTAMP, TIMESTAMP_WITH_TIMEZONE,
-                CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB -> true
-                else -> false
-            }
-        )
+        val formatter = if (extra.isEmpty()) DateTimeFormatter.ISO_DATE
+        else DateTimeFormatter.ofPattern(extra[0])
+        return when (dbColumnDefinition.dataType) {
+            // DATE -> CompareColumnResult(isTypeMatched = true, true) not going to happen
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE, NVARCHAR, NCLOB -> CompareColumnResult(
+                isTypeMatched = false, true
+            )
+            CHAR, VARCHAR, CLOB, NCHAR -> CompareColumnResult(
+                isTypeMatched = false,
+                formatter.format(Instant.now()).length <= dbColumnDefinition.typeModifier.maxLength
+            )
+            else -> CompareColumnResult(isTypeMatched = false, false)
+        }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
@@ -39,7 +46,7 @@ class FromDateComparator: ColumnComparator.Comparator {
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+            TIMESTAMP_WITH_TIMEZONE, TIME, TIMESTAMP
         )
     }
 }
