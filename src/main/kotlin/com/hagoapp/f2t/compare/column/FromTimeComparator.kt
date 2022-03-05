@@ -39,7 +39,7 @@ class FromTimeComparator : ColumnComparator.Comparator {
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+            TIMESTAMP_WITH_TIMEZONE, DATE, TIMESTAMP
         )
     }
 }

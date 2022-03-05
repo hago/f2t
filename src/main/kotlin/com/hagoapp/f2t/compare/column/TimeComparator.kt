@@ -11,35 +11,21 @@ import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.compare.CompareColumnResult
 import java.sql.JDBCType
-import java.sql.JDBCType.*
 
-class ToTimeComparator : ColumnComparator.Comparator {
+class TimeComparator : ColumnComparator.Comparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return CompareColumnResult(
-            isTypeMatched = false,
-            when {
-                fileColumnDefinition.dataType == TIME -> true
-                fileColumnDefinition.possibleTypes.contains(TIME) -> true
-                else -> false
-            }
-        )
+        return CompareColumnResult(isTypeMatched = true, true)
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(
-            BOOLEAN,
-            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
-            SMALLINT, TINYINT, INTEGER, BIGINT,
-            FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIMESTAMP
-        )
+        return setOf(JDBCType.TIME)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(TIME)
+        return setOf(JDBCType.TIME)
     }
 }
