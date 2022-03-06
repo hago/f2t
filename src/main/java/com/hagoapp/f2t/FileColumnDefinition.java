@@ -40,6 +40,7 @@ public class FileColumnDefinition extends ColumnDefinition {
     private int order;
     private BigDecimal minimum;
     private BigDecimal maximum;
+    private boolean containsEmpty = false;
 
     public int getOrder() {
         return order;
@@ -65,6 +66,14 @@ public class FileColumnDefinition extends ColumnDefinition {
         this.maximum = maximum;
     }
 
+    public boolean isContainsEmpty() {
+        return containsEmpty;
+    }
+
+    public void setContainsEmpty(boolean containsEmpty) {
+        this.containsEmpty = containsEmpty;
+    }
+
     public Set<JDBCType> getPossibleTypes() {
         return possibleTypes;
     }
@@ -80,6 +89,7 @@ public class FileColumnDefinition extends ColumnDefinition {
                 ", order=" + order +
                 ", minimum=" + minimum +
                 ", maximum=" + maximum +
+                ", containsEmpty=" + containsEmpty +
                 ", parent={" + super.toString() +
                 "}}";
     }

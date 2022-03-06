@@ -183,6 +183,9 @@ class ExcelDataFileReader : Reader {
             }
         }
         setRange(columnDefinition, cellToString(cell))
+        if (!columnDefinition.isContainsEmpty && cellToString(cell).isEmpty()) {
+            columnDefinition.isContainsEmpty = true
+        }
     }
 
     private fun setRange(columnDefinition: FileColumnDefinition, cell: String) {

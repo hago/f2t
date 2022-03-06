@@ -234,6 +234,9 @@ class CSVDataReader : Reader {
         if (!typeModifier.isNullable && cell.isEmpty()) {
             typeModifier.isNullable = true
         }
+        if (!columnDefinition.isContainsEmpty && cell.isEmpty()) {
+            columnDefinition.isContainsEmpty = true
+        }
     }
 
     private fun setRange(columnDefinition: FileColumnDefinition, cell: String) {
