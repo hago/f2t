@@ -178,5 +178,32 @@ class DateTimeTypeUtils {
         fun getDefaultTimeFormatter(): DateTimeFormatter {
             return DateTimeFormatter.ISO_OFFSET_TIME
         }
+
+        fun getDateTimeFormatter(format: String?): DateTimeFormatter {
+            return try {
+                format ?: DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                DateTimeFormatter.ofPattern(format)
+            } catch (e: java.lang.IllegalArgumentException) {
+                DateTimeFormatter.ISO_OFFSET_DATE_TIME
+            }
+        }
+
+        fun getDateFormatter(format: String?): DateTimeFormatter {
+            return try {
+                format ?: DateTimeFormatter.ISO_OFFSET_DATE
+                DateTimeFormatter.ofPattern(format)
+            } catch (e: java.lang.IllegalArgumentException) {
+                return DateTimeFormatter.ISO_OFFSET_DATE
+            }
+        }
+
+        fun getDTimeFormatter(format: String?): DateTimeFormatter {
+            return try {
+                format ?: DateTimeFormatter.ISO_OFFSET_TIME
+                DateTimeFormatter.ofPattern(format)
+            } catch (e: java.lang.IllegalArgumentException) {
+                return DateTimeFormatter.ISO_OFFSET_TIME
+            }
+        }
     }
 }
