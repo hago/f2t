@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t.util
 
-import com.hagoapp.f2t.F2TException
 import com.hagoapp.util.EncodingUtils
 import java.sql.JDBCType
 
@@ -48,7 +47,7 @@ class JDBCTypeUtils {
                 JDBCType.BIGINT -> value.toLong()
                 JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> value.toDouble()
                 JDBCType.TIMESTAMP_WITH_TIMEZONE -> DateTimeTypeUtils.stringToDateTimeOrNull(value)!!
-                JDBCType.BOOLEAN -> toBoolean(value)
+                JDBCType.BOOLEAN -> BooleanTypeUtils.toBoolean(value)
                 JDBCType.DATE -> DateTimeTypeUtils.stringToDateOrNull(value)!!
                 JDBCType.TIME -> DateTimeTypeUtils.stringToTimeOrNull(value)!!
                 else -> value
@@ -70,7 +69,7 @@ class JDBCTypeUtils {
             }
             dl.addAll(guessIntTypes(value))
             dl.addAll(guessFloatTypes(value))
-            if (isPossibleBooleanValue(value)) {
+            if (BooleanTypeUtils.isPossibleBooleanValue(value)) {
                 dl.add(JDBCType.BOOLEAN)
             }
             dl.addAll(guessDateTimeTypes(value))
@@ -135,27 +134,6 @@ class JDBCTypeUtils {
             return ret
         }
 
-        private val possibleTrueValues = listOf("true", "yes", "y", "t")
-        private val possibleFalseValues = listOf("false", "no", "n", "f")
-
-        private fun isPossibleBooleanValue(value: String?): Boolean {
-            val x = value?.trim()
-            return when {
-                x == null -> true
-                possibleTrueValues.any { it.compareTo(x, true) == 0 } -> true
-                possibleFalseValues.any { it.compareTo(x, true) == 0 } -> true
-                else -> false
-            }
-        }
-
-        private fun toBoolean(value: String): Boolean {
-            val x = value.trim()
-            return when {
-                possibleTrueValues.any { it.compareTo(x, true) == 0 } -> true
-                possibleFalseValues.any { it.compareTo(x, true) == 0 } -> false
-                else -> x.toBoolean()
-            }
-        }
     }
 
 }
