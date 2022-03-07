@@ -67,7 +67,7 @@ class ColumnComparator {
                                 logger.debug("${clz.canonicalName} supports $src -> $dest")
                                 val key = calcKey(src, dest)
                                 if (comparators.containsKey(key)) {
-                                    logger.warn("comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${comparators[key]!!::class.java.canonicalName}")
+                                    logger.warn("comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${comparators.getValue(key)::class.java.canonicalName}")
                                     logger.warn("comparator: $src -> $dest: ${comparators[key]!!::class.java.canonicalName} is override")
                                 }
                                 comparators[key] = instance
@@ -89,7 +89,7 @@ class ColumnComparator {
                                 logger.debug("${clz.canonicalName} supports $src -> $dest")
                                 val key = calcKey(src, dest)
                                 if (converters.containsKey(key)) {
-                                    logger.warn("converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${converters[key]!!::class.java.canonicalName}")
+                                    logger.warn("converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${converters.getValue(key)::class.java.canonicalName}")
                                     logger.warn("converter: $src -> $dest: ${converters[key]!!::class.java.canonicalName} is override")
                                 }
                                 converters[key] = instance
