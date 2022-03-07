@@ -8,13 +8,13 @@ package com.hagoapp.f2t.compare.column
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
-import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.compare.CompareColumnResult
+import com.hagoapp.f2t.compare.TypedColumnComparator
 import com.hagoapp.util.NumericUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class String2IntComparator : ColumnComparator.Comparator {
+class String2IntComparator : TypedColumnComparator {
 
     companion object {
         private val intRanges = mapOf(

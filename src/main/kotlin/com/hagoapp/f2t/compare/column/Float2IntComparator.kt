@@ -8,12 +8,12 @@ package com.hagoapp.f2t.compare.column
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
-import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.compare.CompareColumnResult
+import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class Float2IntComparator: ColumnComparator.Comparator {
+class Float2IntComparator: TypedColumnComparator {
     private val ranges = mapOf(
         TINYINT to Pair(127, -128),
         SMALLINT to Pair(32767, -32768),
