@@ -27,28 +27,76 @@ class ColumnComparator {
 
     }
 
+    interface Converter {
+        fun convert(
+            src: Any?,
+            fileColumnDefinition: FileColumnDefinition,
+            dbColumnDefinition: ColumnDefinition,
+            vararg extra: String
+        ): Any?
+
+        fun supportSourceTypes(): Set<JDBCType>
+        fun supportDestinationTypes(): Set<JDBCType>
+    }
+
     companion object {
 
         private val comparators = mutableMapOf<String, Comparator>()
+        private val converters = mutableMapOf<String, Converter>()
         private val logger = F2TLogger.getLogger()
 
         init {
-            Reflections(
-                ColumnComparator::class.java.packageName,
-                Scanners.SubTypes
-            ).getSubTypesOf(Comparator::class.java).forEach { clz ->
-                logger.debug("${clz.canonicalName} is found for ColumnComparator")
-                val instance = clz.getConstructor().newInstance()
-                val sources = instance.supportSourceTypes().sorted()
-                val destinations = instance.supportDestinationTypes().sorted()
-                sources.forEach { src ->
-                    destinations.forEach { dest ->
-                        logger.debug("${clz.canonicalName} supports $src -> $dest")
-                        val key = calcKey(src, dest)
-                        if (comparators.containsKey(key)) {
-                            logger.warn("conflicted: $src -> $dest: ${clz.canonicalName} -- ${comparators[key]!!::class.java.canonicalName}")
+            registerComparatorsAndConverters(ColumnComparator::class.java.packageName)
+        }
+
+        /**
+         * Allow user to register own registers and converters.
+         *
+         * @param packageNames  the package name to search for implementations.
+         */
+        fun registerComparatorsAndConverters(vararg packageNames: String) {
+            for (packageName in packageNames) {
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(Comparator::class.java).forEach { clz ->
+                    try {
+                        logger.debug("${clz.canonicalName} is found for ColumnComparator")
+                        val instance = clz.getConstructor().newInstance()
+                        val sources = instance.supportSourceTypes().sorted()
+                        val destinations = instance.supportDestinationTypes().sorted()
+                        sources.forEach { src ->
+                            destinations.forEach { dest ->
+                                logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                val key = calcKey(src, dest)
+                                if (comparators.containsKey(key)) {
+                                    logger.warn("comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${comparators[key]!!::class.java.canonicalName}")
+                                    logger.warn("comparator: $src -> $dest: ${comparators[key]!!::class.java.canonicalName} is override")
+                                }
+                                comparators[key] = instance
+                            }
                         }
-                        comparators[key] = instance
+                    } catch (e: Exception) {
+                        logger.error("error occurs in instantiating ${clz.canonicalName}")
+                    }
+                }
+
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(Converter::class.java).forEach { clz ->
+                    try {
+                        logger.debug("${clz.canonicalName} is found for ColumnConverter")
+                        val instance = clz.getConstructor().newInstance()
+                        val sources = instance.supportSourceTypes().sorted()
+                        val destinations = instance.supportDestinationTypes().sorted()
+                        sources.forEach { src ->
+                            destinations.forEach { dest ->
+                                logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                val key = calcKey(src, dest)
+                                if (converters.containsKey(key)) {
+                                    logger.warn("converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${converters[key]!!::class.java.canonicalName}")
+                                    logger.warn("converter: $src -> $dest: ${converters[key]!!::class.java.canonicalName} is override")
+                                }
+                                converters[key] = instance
+                            }
+                        }
+                    } catch (e: Exception) {
+                        logger.error("error occurs in instantiating ${clz.canonicalName}")
                     }
                 }
             }
