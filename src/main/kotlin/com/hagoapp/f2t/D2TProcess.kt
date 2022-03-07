@@ -77,7 +77,7 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
             val rows = dataTable.rows.map { dataRow ->
                 DataRow(dataRow.rowNo, dataRow.cells.toMutableList().plus(DataCell(batchNumber, batchIndex)))
             }
-            dataTable = DataTable<ColumnDefinition>(newDefinitions, rows)
+            dataTable = DataTable(newDefinitions, rows)
         }
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
