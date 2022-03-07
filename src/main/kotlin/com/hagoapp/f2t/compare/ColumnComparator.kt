@@ -27,8 +27,8 @@ class ColumnComparator {
 
     }
 
-    interface Converter {
-        fun convert(
+    interface Transformer {
+        fun transform(
             src: Any?,
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition,
@@ -42,7 +42,7 @@ class ColumnComparator {
     companion object {
 
         private val comparators = mutableMapOf<String, Comparator>()
-        private val converters = mutableMapOf<String, Converter>()
+        private val transformers = mutableMapOf<String, Transformer>()
         private val logger = F2TLogger.getLogger()
 
         init {
@@ -67,8 +67,18 @@ class ColumnComparator {
                                 logger.debug("${clz.canonicalName} supports $src -> $dest")
                                 val key = calcKey(src, dest)
                                 if (comparators.containsKey(key)) {
-                                    logger.warn("comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${comparators.getValue(key)::class.java.canonicalName}")
-                                    logger.warn("comparator: $src -> $dest: ${comparators[key]!!::class.java.canonicalName} is override")
+                                    logger.warn(
+                                        "comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                            comparators.getValue(
+                                                key
+                                            )::class.java.canonicalName
+                                        }"
+                                    )
+                                    logger.warn(
+                                        "comparator: $src -> $dest: ${
+                                            comparators.getValue(key)::class.java.canonicalName
+                                        } is override"
+                                    )
                                 }
                                 comparators[key] = instance
                             }
@@ -78,7 +88,7 @@ class ColumnComparator {
                     }
                 }
 
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(Converter::class.java).forEach { clz ->
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(Transformer::class.java).forEach { clz ->
                     try {
                         logger.debug("${clz.canonicalName} is found for ColumnConverter")
                         val instance = clz.getConstructor().newInstance()
@@ -88,11 +98,21 @@ class ColumnComparator {
                             destinations.forEach { dest ->
                                 logger.debug("${clz.canonicalName} supports $src -> $dest")
                                 val key = calcKey(src, dest)
-                                if (converters.containsKey(key)) {
-                                    logger.warn("converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${converters.getValue(key)::class.java.canonicalName}")
-                                    logger.warn("converter: $src -> $dest: ${converters[key]!!::class.java.canonicalName} is override")
+                                if (transformers.containsKey(key)) {
+                                    logger.warn(
+                                        "converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                            transformers.getValue(
+                                                key
+                                            )::class.java.canonicalName
+                                        }"
+                                    )
+                                    logger.warn(
+                                        "converter: $src -> $dest: ${
+                                            transformers.getValue(key)::class.java.canonicalName
+                                        } is override"
+                                    )
                                 }
-                                converters[key] = instance
+                                transformers[key] = instance
                             }
                         }
                     } catch (e: Exception) {
@@ -111,8 +131,23 @@ class ColumnComparator {
             dbColumnDefinition: ColumnDefinition
         ): CompareColumnResult {
             val comparator = comparators[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
-                ?: throw UnsupportedOperationException("${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType} not supported")
+                ?: throw UnsupportedOperationException("compare ${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType} not supported")
             return comparator.dataCanLoadFrom(fileColumnDefinition, dbColumnDefinition)
+        }
+
+        fun transform(
+            src: Any?,
+            fileColumnDefinition: FileColumnDefinition,
+            dbColumnDefinition: ColumnDefinition,
+            vararg extra: String
+        ): Any? {
+            val transformer = transformers[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
+            return if (transformer == null) {
+                logger.warn("transform ${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType} not supported")
+                src
+            } else {
+                transformer.transform(src, fileColumnDefinition, dbColumnDefinition, *extra)
+            }
         }
     }
 }
