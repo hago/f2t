@@ -8,12 +8,12 @@ package com.hagoapp.f2t.compare.transform
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
-import com.hagoapp.f2t.compare.ColumnComparator
+import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class Int2FloatTransformer : ColumnComparator.Transformer {
+class Int2FloatTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,
         fileColumnDefinition: FileColumnDefinition,

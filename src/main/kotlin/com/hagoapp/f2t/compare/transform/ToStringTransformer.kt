@@ -8,13 +8,13 @@ package com.hagoapp.f2t.compare.transform
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
-import com.hagoapp.f2t.compare.ColumnComparator
+import com.hagoapp.f2t.compare.TypedColumnTransformer
 import com.hagoapp.f2t.util.DateTimeTypeUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.time.temporal.Temporal
 
-class ToStringTransformer : ColumnComparator.Transformer {
+class ToStringTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,
         fileColumnDefinition: FileColumnDefinition,

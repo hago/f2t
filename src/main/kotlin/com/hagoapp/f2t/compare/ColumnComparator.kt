@@ -15,22 +15,10 @@ import java.sql.JDBCType
 
 class ColumnComparator {
 
-    interface Transformer {
-        fun transform(
-            src: Any?,
-            fileColumnDefinition: FileColumnDefinition,
-            dbColumnDefinition: ColumnDefinition,
-            vararg extra: String
-        ): Any?
-
-        fun supportSourceTypes(): Set<JDBCType>
-        fun supportDestinationTypes(): Set<JDBCType>
-    }
-
     companion object {
 
         private val comparators = mutableMapOf<String, TypedColumnComparator>()
-        private val transformers = mutableMapOf<String, Transformer>()
+        private val transformers = mutableMapOf<String, TypedColumnTransformer>()
         private val logger = F2TLogger.getLogger()
 
         init {
@@ -76,7 +64,7 @@ class ColumnComparator {
                     }
                 }
 
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(Transformer::class.java).forEach { clz ->
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnTransformer::class.java).forEach { clz ->
                     try {
                         logger.debug("${clz.canonicalName} is found for ColumnConverter")
                         val instance = clz.getConstructor().newInstance()
