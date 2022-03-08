@@ -30,6 +30,7 @@ class ToStringTransformer : TypedColumnTransformer {
             TIME -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
+                println(src)
                 DateTimeTypeUtils.getDTimeFormatter(fmt).format(src)
             }
             TIMESTAMP -> {
@@ -49,7 +50,6 @@ class ToStringTransformer : TypedColumnTransformer {
     override fun supportSourceTypes(): Set<JDBCType> {
         return setOf(
             BOOLEAN,
-            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
             DATE, TIME, TIMESTAMP, TIMESTAMP_WITH_TIMEZONE
