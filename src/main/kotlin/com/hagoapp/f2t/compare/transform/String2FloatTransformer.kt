@@ -24,7 +24,7 @@ class String2FloatTransformer : TypedColumnTransformer {
         }
         return when (dbColumnDefinition.dataType) {
             FLOAT -> src?.toFloat()
-            SMALLINT -> src?.toDouble()
+            DOUBLE -> src?.toDouble()
             DECIMAL -> src?.toBigDecimal()
             else -> null
         }
