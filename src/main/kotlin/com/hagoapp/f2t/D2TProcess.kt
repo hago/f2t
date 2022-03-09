@@ -6,16 +6,18 @@
 
 package com.hagoapp.f2t
 
+import com.hagoapp.f2t.compare.TableDefinitionComparator
 import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.datafile.ParseResult
+import com.hagoapp.util.StackTraceWriter
 import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.time.Instant
 
-class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
+class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = F2TLogger.getLogger()
@@ -55,11 +57,13 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
                     onRowRead(row)
                     progressNotifier?.onProgress(i.toFloat() / count.toFloat())
                 } catch (e: Throwable) {
+                    StackTraceWriter.writeToLogger(e, logger)
                     parseResult.addError(i.toLong(), e)
                 }
             }
             connection.flushRows(table)
         } catch (e: Throwable) {
+            StackTraceWriter.writeToLogger(e, logger)
             parseResult.addError(-1L, e)
         } finally {
             parseResult.end()
@@ -71,8 +75,8 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
     private fun prepareTable(): Boolean {
         if (config.isAddBatch && !dataTable.columnDefinition.any { it.name == config.batchColumnName }) {
             val batchIndex = dataTable.columnDefinition.size
-            val newDefinitions = dataTable.columnDefinition.toMutableList()
-                .plus(ColumnDefinition(config.batchColumnName, JDBCType.BIGINT))
+            val batchColDef = FileColumnDefinition(config.batchColumnName, setOf(JDBCType.BIGINT), JDBCType.BIGINT)
+            val newDefinitions = dataTable.columnDefinition.toMutableList().plus(batchColDef)
             val batchNumber = Instant.now().toEpochMilli()
             val rows = dataTable.rows.map { dataRow ->
                 DataRow(dataRow.rowNo, dataRow.cells.toMutableList().plus(DataCell(batchNumber, batchIndex)))
@@ -81,9 +85,14 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
         }
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
-            val difference = tblDef.diff(dataTable.columnDefinition.toSet())
-            return if (!difference.containsIdenticalColumns) {
+            //val difference = tblDef.diff(dataTable.columnDefinition.toSet())
+            val difference = TableDefinitionComparator.compare(dataTable.columnDefinition.toSet(), tblDef)
+            return if (!difference.isOfSameSchema()) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
+                logger.error(difference.toString())
+                false
+            } else if (!difference.isIdentical()) {
+                logger.error("table $table existed and varies in data definition, data may loss while writing")
                 logger.error(difference.toString())
                 false
             } else {
@@ -92,7 +101,7 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
                 }
-                connection.prepareInsertion(table, tblDef)
+                connection.prepareInsertion(TableDefinition(dataTable.columnDefinition.toSet()), table, tblDef)
                 logger.info("table $table found and matches")
                 true
             }
@@ -101,7 +110,7 @@ class D2TProcess(private var dataTable: DataTable<out ColumnDefinition>, dbConfi
                 val tblDef = TableDefinition(dataTable.columnDefinition.toSet())
                 return try {
                     connection.createTable(table, tblDef)
-                    connection.prepareInsertion(table, tblDef)
+                    connection.prepareInsertion(TableDefinition(dataTable.columnDefinition.toSet()), table, tblDef)
                     tableMatchedFile = true
                     logger.info("table $table created")
                     true

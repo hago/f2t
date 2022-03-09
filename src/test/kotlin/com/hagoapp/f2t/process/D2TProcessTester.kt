@@ -12,6 +12,11 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
+@EnabledIfSystemProperties(
+    EnabledIfSystemProperty(named = "f2t.db", matches = ".+"),
+    EnabledIfSystemProperty(named = "f2t.file", matches = ".+"),
+    EnabledIfSystemProperty(named = "f2t.process", matches = ".+")
+)
 class D2TProcessTester {
 
     private val dbConfigFile: String
@@ -33,11 +38,6 @@ class D2TProcessTester {
     }
 
     @Test
-    @EnabledIfSystemProperties(
-        EnabledIfSystemProperty(named = "f2t.db", matches = ".+"),
-        EnabledIfSystemProperty(named = "f2t.file", matches = ".+"),
-        EnabledIfSystemProperty(named = "f2t.process", matches = ".+")
-    )
     fun run() {
         val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
         fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename).absolutePath
@@ -52,6 +52,7 @@ class D2TProcessTester {
         val process = D2TProcess(dtObserver.getDataTable(), dbConfig, f2tConfig)
 
         val result = process.run()
+        println(result)
         Assertions.assertTrue(result.isSucceeded)
     }
 

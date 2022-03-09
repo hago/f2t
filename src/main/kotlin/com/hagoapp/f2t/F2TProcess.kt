@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t
 
+import com.hagoapp.f2t.compare.TableDefinitionComparator
 import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
@@ -64,7 +65,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
                     .plus(
                         FileColumnDefinition(
                             config.batchColumnName,
-                            mutableSetOf(),
+                            mutableSetOf(JDBCType.BIGINT),
                             JDBCType.BIGINT
                         )
                     )
@@ -73,9 +74,13 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         }
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
-            val difference = tblDef.diff(colDef.toSet())
-            if (!difference.containsIdenticalColumns) {
+            //val difference = tblDef.diff(colDef.toSet())
+            val difference = TableDefinitionComparator.compare(colDef.toSet(), tblDef)
+            if (!difference.isOfSameSchema()) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
+                logger.error(difference.toString())
+            } else if (!difference.isIdentical()) {
+                logger.error("table $table existed and varies in data definition, data may loss while writing")
                 logger.error(difference.toString())
             } else {
                 if (config.isClearTable) {
