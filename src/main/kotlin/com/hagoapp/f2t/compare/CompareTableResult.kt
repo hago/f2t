@@ -22,4 +22,13 @@ data class CompareTableResult(
     fun isIdentical(): Boolean {
         return isOfSameSchema() && dataMayTruncateColumns.isEmpty()
     }
+
+    override fun toString(): String {
+        return """CompareTableResult(
+            missingColumns=$missingColumns, 
+            superfluousColumns=$superfluousColumns, 
+            typeConflictedColumns=$typeConflictedColumns, 
+            dataMayTruncateColumns=$dataMayTruncateColumns
+            )"""
+    }
 }
