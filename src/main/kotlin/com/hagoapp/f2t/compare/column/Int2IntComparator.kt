@@ -31,7 +31,7 @@ class Int2IntComparator : TypedColumnComparator {
     ): CompareColumnResult {
         val r0 = ranks.getValue(fileColumnDefinition.dataType)
         val r1 = ranks.getValue(dbColumnDefinition.dataType)
-        return CompareColumnResult(isTypeMatched = r0 == r1, r0 <= r1)
+        return CompareColumnResult(isTypeMatched = true, r0 <= r1)
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
