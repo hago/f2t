@@ -145,7 +145,7 @@ class MariaDBConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)} null"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)} null"
         }
         val sql = """
             create table ${normalizeName(table.tableName)} ($content) 
@@ -157,7 +157,7 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
-    override fun convertJDBCTypeToDBNativeType(aType: JDBCType): String {
+    override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
         return when (aType) {
             JDBCType.BOOLEAN -> "boolean"
             JDBCType.TIMESTAMP -> "timestamp"

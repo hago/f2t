@@ -10,8 +10,9 @@ import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
-import org.apache.poi.ss.formula.functions.Column
+import org.w3c.dom.Text
 import java.sql.*
+import java.sql.JDBCType.*
 import java.util.*
 
 /**
@@ -60,8 +61,7 @@ class PgSqlConnection : DbConnection() {
                             }
                             ret.getValue(schema).add(TableName(table, schema))
                         }
-                        return if (ret.isNotEmpty()) ret
-                        else mapOf(getDefaultSchema() to listOf())
+                        return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
                     }
                 }
             }
@@ -145,21 +145,32 @@ class PgSqlConnection : DbConnection() {
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
-        val defStr = tableDefinition.columns.map { colDef ->
-            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second} ${convertJDBCTypeToDBNativeType(colDef.dataType)}"
-        }.joinToString(", ")
+        val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
+            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second}" + " ${
+                convertJDBCTypeToDBNativeType(
+                    colDef.dataType,
+                    colDef.typeModifier
+                )
+            }"
+        }
         val sql = "create table $tableFullName ($defStr)"
-        //logger.debug("create table $tableFullName using: $sql")
+        logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
     }
 
-    override fun convertJDBCTypeToDBNativeType(aType: JDBCType): String {
+    override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
         return when (aType) {
-            JDBCType.BOOLEAN -> "boolean"
-            JDBCType.TIMESTAMP -> "timestamp with time zone"
-            JDBCType.BIGINT -> "bigint"
-            JDBCType.INTEGER -> "int"
-            JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> "double precision"
+            BOOLEAN -> "boolean"
+            DATE -> "date"
+            TIME, TIME_WITH_TIMEZONE -> "time with time zone"
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> "timestamp with time zone"
+            TINYINT, SMALLINT -> "smallint"
+            BIGINT -> "bigint"
+            INTEGER -> "int"
+            DOUBLE, FLOAT -> "double precision"
+            DECIMAL -> "numeric(${modifier.precision}, ${modifier.scale})"
+            CHAR, NCHAR -> "char(${modifier.maxLength})"
+            VARCHAR, NVARCHAR -> "varchar(${modifier.maxLength})"
             else -> "text"
         }
     }
@@ -172,7 +183,7 @@ class PgSqlConnection : DbConnection() {
             inner join pg_namespace as n on n.oid = c.relnamespace
             where a.attnum > 0 and not a.attisdropped and c.relkind= 'r' and c.relname = ? and n.nspname = ?"""
         connection.prepareStatement(sql).use { stmt ->
-            val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
+            val schema = table.schema.ifBlank { getDefaultSchema() }
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->
@@ -261,13 +272,19 @@ class PgSqlConnection : DbConnection() {
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
         return when {
-            typeName.compareTo("integer") == 0 -> JDBCType.INTEGER
-            typeName.compareTo("bigint") == 0 -> JDBCType.BIGINT
-            typeName.compareTo("boolean") == 0 -> JDBCType.BOOLEAN
-            typeName.startsWith("timestamp") -> JDBCType.TIMESTAMP
-            typeName.compareTo("double precision") == 0 || typeName.compareTo("real") == 0 ||
-                    typeName.startsWith("numeric") -> JDBCType.DOUBLE
-            else -> JDBCType.CLOB
+            typeName == "smallint" -> SMALLINT
+            typeName.compareTo("integer") == 0 -> INTEGER
+            typeName.compareTo("bigint") == 0 -> BIGINT
+            typeName.compareTo("boolean") == 0 -> BOOLEAN
+            typeName.startsWith("timestamp") -> TIMESTAMP
+            typeName.startsWith("time") -> TIME_WITH_TIMEZONE
+            typeName == "date" -> DATE
+            typeName.compareTo("double precision") == 0 || typeName.compareTo("real") == 0 -> DOUBLE
+            typeName.startsWith("numeric") -> DECIMAL
+            typeName.startsWith("character varying") -> VARCHAR
+            typeName.startsWith("character") -> CHAR
+            typeName.startsWith("text") -> CLOB
+            else -> throw F2TException("type $typeName not supported yet")
         }
     }
 
@@ -281,7 +298,7 @@ class PgSqlConnection : DbConnection() {
             from pg_tables 
             where tablename = ? and schemaname = ? """
         ).use { stmt ->
-            val schema = if (table.schema.isBlank()) getDefaultSchema() else table.schema
+            val schema = table.schema.ifBlank { getDefaultSchema() }
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->

@@ -6,10 +6,7 @@
 
 package com.hagoapp.f2t.database
 
-import com.hagoapp.f2t.ColumnDefinition
-import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.TableDefinition
-import com.hagoapp.f2t.TableUniqueDefinition
+import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MsSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
@@ -170,7 +167,7 @@ class MsSqlConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!)}"
+            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)}"
         }
         val sql = "create table ${getFullTableName(table)} ($content);"
         logger.debug("create table using SQL: $sql")
@@ -179,7 +176,7 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun convertJDBCTypeToDBNativeType(aType: JDBCType): String {
+    override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
         return when (aType) {
             BOOLEAN -> "bit"
             TIMESTAMP -> "datetimeoffset"

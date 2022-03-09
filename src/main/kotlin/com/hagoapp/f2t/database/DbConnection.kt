@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
@@ -135,7 +136,7 @@ abstract class DbConnection : Closeable {
     /**
      * Find local database type on given JDBC type.
      */
-    abstract fun convertJDBCTypeToDBNativeType(aType: JDBCType): String
+    abstract fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String
 
     /**
      * Fetch column definitions of given table.
@@ -148,7 +149,7 @@ abstract class DbConnection : Closeable {
     abstract fun mapDBTypeToJDBCType(typeName: String): JDBCType
 
     /**
-     * Whether this database is case sensitive.
+     * Whether this database is case-sensitive.
      */
     abstract fun isCaseSensitive(): Boolean
 
@@ -211,7 +212,7 @@ abstract class DbConnection : Closeable {
             if (converter == null) {
                 createFieldSetter(col.dataType!!)
             } else {
-                createFieldSetter(converter.first) { it -> converter.second.invoke(it) }
+                createFieldSetter(converter.first) { converter.second.invoke(it) }
             }
         }
     }
