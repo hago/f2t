@@ -18,7 +18,7 @@ class TableDefinitionComparator {
             return compare(fileTableDefinition.columns, dbTableDefinition)
         }
 
-        private fun compare(
+        fun compare(
             fileColumnDefinitions: Set<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
         ): CompareTableResult {
