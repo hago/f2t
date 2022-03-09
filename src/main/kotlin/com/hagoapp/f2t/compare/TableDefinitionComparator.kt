@@ -9,7 +9,7 @@ package com.hagoapp.f2t.compare
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.util.ColumnMatcher
 
-class Comparator {
+class TableDefinitionComparator {
     companion object {
         fun compare(
             fileTableDefinition: TableDefinition<FileColumnDefinition>,
