@@ -11,6 +11,7 @@ import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 
 class Float2FloatComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
@@ -20,16 +21,19 @@ class Float2FloatComparator : TypedColumnComparator {
     ): CompareColumnResult {
         return CompareColumnResult(
             isTypeMatched = true,
-            fileColumnDefinition.typeModifier.precision <= dbColumnDefinition.typeModifier.precision &&
-                    fileColumnDefinition.typeModifier.scale <= dbColumnDefinition.typeModifier.scale
+            when (fileColumnDefinition.dataType) {
+                FLOAT -> true
+                DOUBLE -> dbColumnDefinition.dataType != FLOAT
+                else -> true
+            }
         )
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(JDBCType.FLOAT, JDBCType.DOUBLE, JDBCType.DECIMAL)
+        return setOf(FLOAT, DOUBLE, DECIMAL)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(JDBCType.FLOAT, JDBCType.DOUBLE, JDBCType.DECIMAL)
+        return setOf(FLOAT, DOUBLE, DECIMAL)
     }
 }
