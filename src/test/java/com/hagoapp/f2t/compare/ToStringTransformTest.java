@@ -63,7 +63,7 @@ public class ToStringTransformTest {
                     new Quintet<>(DOUBLE, 0, 0, 0, true),
                     Set.of(FLOAT, DOUBLE, DECIMAL),
                     new Quintet<>(NVARCHAR, 2, 0, 0, true),
-                    new Double(647380920.3223D).toString()
+                    Double.valueOf(647380920.3223D).toString()
             ),
             new Quintet<>(
                     true,
