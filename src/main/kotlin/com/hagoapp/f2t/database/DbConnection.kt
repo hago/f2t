@@ -11,12 +11,17 @@ import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
+import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
+import com.hagoapp.f2t.compare.ColumnComparator
+import com.hagoapp.f2t.util.ColumnMatcher
 import org.slf4j.Logger
 import java.io.Closeable
+import java.math.BigDecimal
 import java.sql.*
-import java.time.ZonedDateTime
+import java.sql.JDBCType.*
+import java.time.*
 
 /**
  * Interface of database operations required to insert a set of 2-dimensional data into it.
@@ -217,27 +222,108 @@ abstract class DbConnection : Closeable {
         }
     }
 
+    open fun prepareInsertion(
+        fileDefinition: TableDefinition<FileColumnDefinition>,
+        table: TableName,
+        tableDefinition: TableDefinition<out ColumnDefinition>
+    ) {
+        val sortedColumns = tableDefinition.columns.sortedBy { it.name }
+        val sql = """
+                insert into ${getFullTableName(table)} (${sortedColumns.joinToString { normalizeName(it.name) }})
+                values (${sortedColumns.joinToString { "?" }})
+            """
+        insertionMap[table] = sql
+        val colMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
+        fieldValueSetters[table] = sortedColumns.map { col ->
+            val converter = getTypedDataConverters()[col.dataType]
+            if (converter == null) {
+                val srcColumnDefinition = fileDefinition.columns.firstOrNull { colMatcher(it.name, col.name) }
+                    ?: throw F2TException("no source for ${col.name}")
+                val transformer = ColumnComparator.getTransformer(srcColumnDefinition, col)
+                createFieldSetter(col.dataType) { transformer.transform(it, srcColumnDefinition, col) }
+            } else {
+                createFieldSetter(converter.first) { converter.second.invoke(it) }
+            }
+        }
+    }
+
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
-        JDBCType.BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
+        BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setBoolean(i, newValue as Boolean) else stmt.setNull(i, Types.BOOLEAN)
         }
-        JDBCType.INTEGER -> { stmt: PreparedStatement, i: Int, value: Any? ->
+        TINYINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setByte(i, newValue as Byte) else stmt.setNull(i, Types.TINYINT)
+        }
+        SMALLINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setShort(i, newValue as Short) else stmt.setNull(i, Types.SMALLINT)
+        }
+        INTEGER -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setInt(i, newValue as Int) else stmt.setNull(i, Types.INTEGER)
         }
-        JDBCType.BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+        BIGINT -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
         }
-        JDBCType.DECIMAL, JDBCType.FLOAT, JDBCType.DOUBLE -> { stmt: PreparedStatement, i: Int, value: Any? ->
+        DECIMAL -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setBigDecimal(i, newValue as BigDecimal) else stmt.setNull(i, Types.DECIMAL)
+        }
+        FLOAT -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setFloat(i, newValue as Float) else stmt.setNull(i, Types.FLOAT)
+        }
+        DOUBLE -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setDouble(i, newValue as Double) else stmt.setNull(i, Types.DOUBLE)
         }
-        JDBCType.TIMESTAMP -> { stmt: PreparedStatement, i: Int, value: Any? ->
+        TIMESTAMP_WITH_TIMEZONE, TIMESTAMP -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setTimestamp(i, Timestamp.from((newValue as ZonedDateTime).toInstant()))
-            else stmt.setNull(i, Types.TIMESTAMP)
+            else stmt.setNull(i, Types.TIMESTAMP_WITH_TIMEZONE)
+        }
+        DATE -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setDate(i, Date.valueOf(newValue as LocalDate))
+            else stmt.setNull(i, Types.DATE)
+        }
+        TIME, TIME_WITH_TIMEZONE -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setTime(i, Time.valueOf(value as LocalTime))
+            else stmt.setNull(i, Types.TIME_WITH_TIMEZONE)
+        }
+        CHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.CHAR)
+        }
+        NCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.NCHAR)
+        }
+        VARCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.VARCHAR)
+        }
+        NVARCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.NVARCHAR)
+        }
+        CLOB -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.CLOB)
+        }
+        NCLOB -> { stmt: PreparedStatement, i: Int, value: Any? ->
+            val newValue = transformer.invoke(value)
+            if (newValue != null) stmt.setString(i, value.toString())
+            else stmt.setNull(i, Types.NCLOB)
         }
         else -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
