@@ -32,69 +32,71 @@ class ColumnComparator {
          */
         fun registerComparatorsAndConverters(vararg packageNames: String) {
             for (packageName in packageNames) {
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnComparator::class.java).forEach { clz ->
-                    try {
-                        logger.debug("${clz.canonicalName} is found for ColumnComparator")
-                        val instance = clz.getConstructor().newInstance()
-                        val sources = instance.supportSourceTypes().sorted()
-                        val destinations = instance.supportDestinationTypes().sorted()
-                        sources.forEach { src ->
-                            destinations.forEach { dest ->
-                                logger.debug("${clz.canonicalName} supports $src -> $dest")
-                                val key = calcKey(src, dest)
-                                if (comparators.containsKey(key)) {
-                                    logger.warn(
-                                        "comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${
-                                            comparators.getValue(
-                                                key
-                                            )::class.java.canonicalName
-                                        }"
-                                    )
-                                    logger.warn(
-                                        "comparator: $src -> $dest: ${
-                                            comparators.getValue(key)::class.java.canonicalName
-                                        } is override"
-                                    )
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnComparator::class.java)
+                    .forEach { clz ->
+                        try {
+                            logger.debug("${clz.canonicalName} is found for ColumnComparator")
+                            val instance = clz.getConstructor().newInstance()
+                            val sources = instance.supportSourceTypes().sorted()
+                            val destinations = instance.supportDestinationTypes().sorted()
+                            sources.forEach { src ->
+                                destinations.forEach { dest ->
+                                    logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                    val key = calcKey(src, dest)
+                                    if (comparators.containsKey(key)) {
+                                        logger.warn(
+                                            "comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                                comparators.getValue(
+                                                    key
+                                                )::class.java.canonicalName
+                                            }"
+                                        )
+                                        logger.warn(
+                                            "comparator: $src -> $dest: ${
+                                                comparators.getValue(key)::class.java.canonicalName
+                                            } is override"
+                                        )
+                                    }
+                                    comparators[key] = instance
                                 }
-                                comparators[key] = instance
                             }
+                        } catch (e: Exception) {
+                            logger.error("error occurs in instantiating ${clz.canonicalName}")
                         }
-                    } catch (e: Exception) {
-                        logger.error("error occurs in instantiating ${clz.canonicalName}")
                     }
-                }
 
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnTransformer::class.java).forEach { clz ->
-                    try {
-                        logger.debug("${clz.canonicalName} is found for ColumnConverter")
-                        val instance = clz.getConstructor().newInstance()
-                        val sources = instance.supportSourceTypes().sorted()
-                        val destinations = instance.supportDestinationTypes().sorted()
-                        sources.forEach { src ->
-                            destinations.forEach { dest ->
-                                logger.debug("${clz.canonicalName} supports $src -> $dest")
-                                val key = calcKey(src, dest)
-                                if (transformers.containsKey(key)) {
-                                    logger.warn(
-                                        "converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${
-                                            transformers.getValue(
-                                                key
-                                            )::class.java.canonicalName
-                                        }"
-                                    )
-                                    logger.warn(
-                                        "converter: $src -> $dest: ${
-                                            transformers.getValue(key)::class.java.canonicalName
-                                        } is override"
-                                    )
+                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnTransformer::class.java)
+                    .forEach { clz ->
+                        try {
+                            logger.debug("${clz.canonicalName} is found for ColumnConverter")
+                            val instance = clz.getConstructor().newInstance()
+                            val sources = instance.supportSourceTypes().sorted()
+                            val destinations = instance.supportDestinationTypes().sorted()
+                            sources.forEach { src ->
+                                destinations.forEach { dest ->
+                                    logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                    val key = calcKey(src, dest)
+                                    if (transformers.containsKey(key)) {
+                                        logger.warn(
+                                            "converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                                transformers.getValue(
+                                                    key
+                                                )::class.java.canonicalName
+                                            }"
+                                        )
+                                        logger.warn(
+                                            "converter: $src -> $dest: ${
+                                                transformers.getValue(key)::class.java.canonicalName
+                                            } is override"
+                                        )
+                                    }
+                                    transformers[key] = instance
                                 }
-                                transformers[key] = instance
                             }
+                        } catch (e: Exception) {
+                            logger.error("error occurs in instantiating ${clz.canonicalName}")
                         }
-                    } catch (e: Exception) {
-                        logger.error("error occurs in instantiating ${clz.canonicalName}")
                     }
-                }
             }
         }
 
@@ -111,19 +113,46 @@ class ColumnComparator {
             return comparator.dataCanLoadFrom(fileColumnDefinition, dbColumnDefinition)
         }
 
+        private val failsafeTransformer = object : TypedColumnTransformer {
+            override fun transform(
+                src: Any?,
+                fileColumnDefinition: FileColumnDefinition,
+                dbColumnDefinition: ColumnDefinition,
+                vararg extra: String
+            ): Any? {
+                return src
+            }
+
+            override fun supportSourceTypes(): Set<JDBCType> {
+                return setOf()
+            }
+
+            override fun supportDestinationTypes(): Set<JDBCType> {
+                return setOf()
+            }
+        }
+
+        fun getTransformer(
+            fileColumnDefinition: FileColumnDefinition,
+            dbColumnDefinition: ColumnDefinition
+        ): TypedColumnTransformer {
+            val ret = transformers[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
+            return if (ret == null) {
+                logger.error("no transform ${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType}, default used")
+                failsafeTransformer
+            } else {
+                ret
+            }
+        }
+
         fun transform(
             src: Any?,
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition,
             vararg extra: String
         ): Any? {
-            val transformer = transformers[calcKey(fileColumnDefinition.dataType, dbColumnDefinition.dataType)]
-            return if (transformer == null) {
-                logger.warn("transform ${fileColumnDefinition.dataType} -> ${dbColumnDefinition.dataType} not supported")
-                src
-            } else {
-                transformer.transform(src, fileColumnDefinition, dbColumnDefinition, *extra)
-            }
+            val transformer = getTransformer(fileColumnDefinition, dbColumnDefinition)
+            return transformer.transform(src, fileColumnDefinition, dbColumnDefinition, *extra)
         }
     }
 }
