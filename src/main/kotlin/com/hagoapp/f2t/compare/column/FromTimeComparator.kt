@@ -38,8 +38,7 @@ class FromTimeComparator : TypedColumnComparator {
             BOOLEAN,
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
-            FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIMESTAMP
+            FLOAT, DOUBLE, DECIMAL
         )
     }
 }

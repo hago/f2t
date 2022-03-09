@@ -25,8 +25,6 @@ class FromTimestampComparator : TypedColumnComparator {
         else DateTimeFormatter.ofPattern(extra[0])
         return when (dbColumnDefinition.dataType) {
             TIMESTAMP -> CompareColumnResult(isTypeMatched = true, true)
-            DATE -> CompareColumnResult(isTypeMatched = false, true)
-            TIME -> CompareColumnResult(isTypeMatched = false, false)
             CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
             CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
                 isTypeMatched = false,
@@ -42,11 +40,10 @@ class FromTimestampComparator : TypedColumnComparator {
 
     override fun supportDestinationTypes(): Set<JDBCType> {
         return setOf(
-            BOOLEAN,
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            DATE, TIME, TIMESTAMP
+            TIMESTAMP
         )
     }
 }

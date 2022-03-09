@@ -11,6 +11,7 @@ import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 
 class ToTimestampComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
@@ -19,22 +20,22 @@ class ToTimestampComparator : TypedColumnComparator {
         vararg extra: String
     ): CompareColumnResult {
         return when (fileColumnDefinition.dataType) {
-            JDBCType.DATE, JDBCType.TIME, JDBCType.TIMESTAMP -> CompareColumnResult(isTypeMatched = false, true)
+            DATE, TIME, TIMESTAMP -> CompareColumnResult(isTypeMatched = false, true)
             else -> CompareColumnResult(isTypeMatched = false, false)
         }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
         return setOf(
-            JDBCType.BOOLEAN,
-            JDBCType.CHAR, JDBCType.VARCHAR, JDBCType.CLOB, JDBCType.NCHAR, JDBCType.NVARCHAR, JDBCType.NCLOB,
-            JDBCType.SMALLINT, JDBCType.TINYINT, JDBCType.INTEGER, JDBCType.BIGINT,
-            JDBCType.FLOAT, JDBCType.DOUBLE, JDBCType.DECIMAL,
-            JDBCType.DATE, JDBCType.TIME, JDBCType.TIMESTAMP
+            BOOLEAN,
+            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
+            SMALLINT, TINYINT, INTEGER, BIGINT,
+            FLOAT, DOUBLE, DECIMAL,
+            DATE, TIME, TIMESTAMP
         )
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(JDBCType.TIMESTAMP_WITH_TIMEZONE)
+        return setOf(TIMESTAMP_WITH_TIMEZONE, TIMESTAMP)
     }
 }

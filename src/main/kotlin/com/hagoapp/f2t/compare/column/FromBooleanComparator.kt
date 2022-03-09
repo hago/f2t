@@ -33,11 +33,9 @@ class FromBooleanComparator : TypedColumnComparator {
 
     override fun supportDestinationTypes(): Set<JDBCType> {
         return setOf(
-            BOOLEAN,
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
-            FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP
+            FLOAT, DOUBLE, DECIMAL
         )
     }
 }
