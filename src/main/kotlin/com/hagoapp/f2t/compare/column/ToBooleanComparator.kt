@@ -19,11 +19,16 @@ class ToBooleanComparator : TypedColumnComparator {
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return CompareColumnResult(isTypeMatched = false, false)
+        return when {
+            fileColumnDefinition.dataType == BOOLEAN -> CompareColumnResult(isTypeMatched = true, true)
+            fileColumnDefinition.possibleTypes.contains(BOOLEAN) -> CompareColumnResult(isTypeMatched = false, true)
+            else -> CompareColumnResult(isTypeMatched = false, false)
+        }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
         return setOf(
+            BOOLEAN,
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
