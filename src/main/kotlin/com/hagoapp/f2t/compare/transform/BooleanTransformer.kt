@@ -12,14 +12,21 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class BooleanTransformer: TypedColumnTransformer {
+class BooleanTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): Any? {
-        return src
+        src ?: return null
+        return when (dbColumnDefinition.dataType) {
+            TINYINT -> (if (src == true) 1 else 0).toByte()
+            SMALLINT -> (if (src == true) 1 else 0).toShort()
+            INTEGER -> if (src == true) 1 else 0
+            BIGINT -> if (src == true) 1L else 0L
+            else -> src
+        }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
@@ -27,6 +34,6 @@ class BooleanTransformer: TypedColumnTransformer {
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(BOOLEAN)
+        return setOf(BOOLEAN, TINYINT, SMALLINT, INTEGER, BIGINT)
     }
 }

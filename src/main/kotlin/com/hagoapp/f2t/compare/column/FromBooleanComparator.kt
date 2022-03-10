@@ -20,7 +20,8 @@ class FromBooleanComparator : TypedColumnComparator {
         vararg extra: String
     ): CompareColumnResult {
         return when (dbColumnDefinition.dataType) {
-            BOOLEAN -> CompareColumnResult(isTypeMatched = true, true)
+            BOOLEAN, TINYINT, SMALLINT, INTEGER, BIGINT
+            -> CompareColumnResult(isTypeMatched = true, true)
             TIMESTAMP_WITH_TIMEZONE, DATE, TIME, TIMESTAMP ->
                 CompareColumnResult(isTypeMatched = false, false)
             else -> CompareColumnResult(isTypeMatched = false, true)
