@@ -259,7 +259,6 @@ abstract class DbConnection : Closeable {
 
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
         BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
-            println(value)
             val newValue = transformer.invoke(value)
             if (newValue != null) stmt.setBoolean(i, newValue as Boolean) else stmt.setNull(i, Types.BOOLEAN)
         }
