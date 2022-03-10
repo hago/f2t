@@ -227,7 +227,7 @@ abstract class DbConnection : Closeable {
         table: TableName,
         tableDefinition: TableDefinition<out ColumnDefinition>
     ) {
-        val sortedColumns = tableDefinition.columns.sortedBy { it.name }
+        val sortedColumns = sortColumnsOnFileOrder(fileDefinition, tableDefinition)
         val sql = """
                 insert into ${getFullTableName(table)} (${sortedColumns.joinToString { normalizeName(it.name) }})
                 values (${sortedColumns.joinToString { "?" }})
@@ -247,15 +247,15 @@ abstract class DbConnection : Closeable {
         }
     }
 
-//    private fun sortColumnsOnFileOrder(
-//        fileDefinition: TableDefinition<FileColumnDefinition>,
-//        tableDefinition: TableDefinition<out ColumnDefinition>
-//    ) {
-//        val colMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
-//        fileDefinition.columns.sortedBy { it.order }.map { fileCol ->
-//            val dbCol = tableDefinition.columns.first { it }
-//        }
-//    }
+    private fun sortColumnsOnFileOrder(
+        fileDefinition: TableDefinition<FileColumnDefinition>,
+        tableDefinition: TableDefinition<out ColumnDefinition>
+    ): List<ColumnDefinition> {
+        val colMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
+        return fileDefinition.columns.sortedBy { it.order }.map { fileCol ->
+            tableDefinition.columns.first { dbCol -> colMatcher(dbCol.name, fileCol.name) }
+        }
+    }
 
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
         BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
