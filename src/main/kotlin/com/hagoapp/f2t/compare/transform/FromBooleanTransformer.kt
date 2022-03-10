@@ -12,7 +12,7 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
-class BooleanTransformer : TypedColumnTransformer {
+class FromBooleanTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,
         fileColumnDefinition: FileColumnDefinition,
