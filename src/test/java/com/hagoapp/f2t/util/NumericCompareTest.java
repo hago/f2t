@@ -98,10 +98,10 @@ public class NumericCompareTest {
     }
 
     private final List<Triple<Triple<JDBCType, Integer, Integer>, Triple<JDBCType, Integer, Integer>, Boolean>> float2FloatCases = List.of(
-            new Triple<>(new Triple<>(FLOAT, 10, 2), new Triple<>(FLOAT, 4, 3), false),
+            new Triple<>(new Triple<>(FLOAT, 10, 2), new Triple<>(FLOAT, 4, 3), true),
             new Triple<>(new Triple<>(FLOAT, 10, 2), new Triple<>(FLOAT, 11, 3), true),
-            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 4, 3), false),
-            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 11, 4), false)
+            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 4, 3), true),
+            new Triple<>(new Triple<>(FLOAT, 10, 5), new Triple<>(FLOAT, 11, 4), true)
     );
 
     @Test
@@ -116,6 +116,7 @@ public class NumericCompareTest {
             dbCol.getTypeModifier().setPrecision(i.getSecond().getSecond());
             dbCol.getTypeModifier().setScale(i.getSecond().getThird());
             var result = ColumnComparator.Companion.compare(fileCol, dbCol);
+            System.out.printf("test %s -> %s\n", i.getFirst().toString(), i.getSecond().toString());
             Assertions.assertEquals(i.getThird(), result.getCanLoadDataFrom());
         }
     }
