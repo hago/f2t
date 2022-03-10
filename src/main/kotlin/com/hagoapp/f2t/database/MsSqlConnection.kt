@@ -179,10 +179,22 @@ class MsSqlConnection : DbConnection() {
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
         return when (aType) {
             BOOLEAN -> "bit"
-            TIMESTAMP -> "datetimeoffset"
-            BIGINT -> "bigint"
+            TINYINT -> "tinyint"
+            SMALLINT -> "smallint"
             INTEGER -> "int"
-            DOUBLE, DECIMAL, FLOAT -> "float"
+            BIGINT -> "bigint"
+            CHAR -> "char(${modifier.maxLength})"
+            NCHAR -> "nchar(${modifier.maxLength})"
+            VARCHAR -> "varchar(${modifier.maxLength})"
+            NVARCHAR -> "nvarchar(${modifier.maxLength})"
+            CLOB -> "text"
+            NCLOB -> "ntext"
+            FLOAT -> "float"
+            DOUBLE -> "real"
+            DATE -> "date"
+            TIME, TIME_WITH_TIMEZONE -> "time"
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> "datetimeoffset"
+            DECIMAL -> "decimal(${modifier.precision}, ${modifier.scale})"
             else -> "ntext"
         }
     }
