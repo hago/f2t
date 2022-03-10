@@ -14,6 +14,7 @@ import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 import java.util.*
 
 class MariaDBConnection : DbConnection() {
@@ -159,16 +160,21 @@ class MariaDBConnection : DbConnection() {
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
         return when (aType) {
-            JDBCType.BOOLEAN -> "boolean"
-            JDBCType.TIMESTAMP -> "timestamp"
-            JDBCType.TINYINT -> "tinyint"
-            JDBCType.SMALLINT -> "smallint"
-            JDBCType.INTEGER -> "int"
-            JDBCType.BIGINT -> "bigint"
-            JDBCType.DOUBLE -> "double"
-            JDBCType.DECIMAL -> "decimal"
-            JDBCType.FLOAT -> "float"
-            else -> "longtext"
+            BOOLEAN -> "boolean"
+            TINYINT -> "tinyint"
+            SMALLINT -> "smallint"
+            INTEGER -> "int"
+            BIGINT -> "bigint"
+            DOUBLE -> "double"
+            DECIMAL -> "decimal(${modifier.precision}, ${modifier.scale})"
+            FLOAT -> "float"
+            CHAR, NCHAR -> "char(${modifier.maxLength})"
+            VARCHAR, NVARCHAR -> "varchar(${modifier.maxLength})"
+            CLOB, NCLOB -> "longtext"
+            DATE -> "date"
+            TIME -> "time"
+            TIMESTAMP_WITH_TIMEZONE, TIMESTAMP -> "timestamp"
+            else -> "binary"
         }
     }
 
@@ -279,21 +285,21 @@ class MariaDBConnection : DbConnection() {
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
         return when (typeName.substringBefore('(').lowercase()) {
-            "boolean" -> JDBCType.BOOLEAN
-            "tinyint" -> JDBCType.TINYINT
-            "smallint" -> JDBCType.SMALLINT
-            "int", "mediumint" -> JDBCType.INTEGER
-            "bigint" -> JDBCType.BIGINT
-            "float" -> JDBCType.FLOAT
-            "double" -> JDBCType.DOUBLE
-            "decimal", "dec", "numeric", "fixed" -> JDBCType.DECIMAL
-            "timestamp", "datetime" -> JDBCType.TIMESTAMP_WITH_TIMEZONE
-            "date" -> JDBCType.DATE
-            "time" -> JDBCType.TIME
-            "char" -> JDBCType.CHAR
-            "varchar" -> JDBCType.VARCHAR
-            "text", "longtext" -> JDBCType.CLOB
-            "binary", "blob", "char byte" -> JDBCType.VARBINARY
+            "boolean" -> BOOLEAN
+            "tinyint" -> TINYINT
+            "smallint" -> SMALLINT
+            "int", "mediumint" -> INTEGER
+            "bigint" -> BIGINT
+            "float" -> FLOAT
+            "double" -> DOUBLE
+            "decimal", "dec", "numeric", "fixed" -> DECIMAL
+            "timestamp", "datetime" -> TIMESTAMP_WITH_TIMEZONE
+            "date" -> DATE
+            "time" -> TIME
+            "char" -> CHAR
+            "varchar" -> VARCHAR
+            "text", "longtext" -> CLOB
+            "binary", "blob", "char byte" -> VARBINARY
             else -> throw java.lang.UnsupportedOperationException("unsupported type $typeName")
         }
     }
