@@ -247,6 +247,16 @@ abstract class DbConnection : Closeable {
         }
     }
 
+//    private fun sortColumnsOnFileOrder(
+//        fileDefinition: TableDefinition<FileColumnDefinition>,
+//        tableDefinition: TableDefinition<out ColumnDefinition>
+//    ) {
+//        val colMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
+//        fileDefinition.columns.sortedBy { it.order }.map { fileCol ->
+//            val dbCol = tableDefinition.columns.first { it }
+//        }
+//    }
+
     private fun createFieldSetter(type: JDBCType, transformer: (Any?) -> Any? = { it }) = when (type) {
         BOOLEAN -> { stmt: PreparedStatement, i: Int, value: Any? ->
             println(value)
