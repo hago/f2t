@@ -115,7 +115,7 @@ class ExcelDataFileReader : Reader {
             val rawCell = rawRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
             val cellValue = getCellValue(rawCell, columns.getValue(colIndex).dataType)
             //println("${columns.getValue(colIndex).name}: $cellValue")
-            DataCell(DataCell(cellValue, colIndex))
+            DataCell(cellValue, colIndex)
         }
         return DataRow(currentRow.toLong() - 1, dataCells)
     }
