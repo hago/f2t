@@ -1,5 +1,5 @@
 {
-    "dbType": "MsSqlServer",
+    "dbType": "Microsoft SQL Sever",
     "host": "127.0.0.1",
     "port": 1433,
     "username": "sa",
