@@ -8,7 +8,7 @@
   },
   "expect": {
     "rowCount": 108,
-    "columnCount": 8,
+    "columnCount": 10,
     "types": {
       "座次": "BIGINT",
       "星宿": "NCLOB",
@@ -17,7 +17,9 @@
       "布尔": "BOOLEAN",
       "浮点": "DECIMAL",
       "整数": "BIGINT",
-      "日期": "TIMESTAMP_WITH_TIMEZONE"
+      "日期": "TIMESTAMP_WITH_TIMEZONE",
+      "年月日": "DATE",
+      "时分秒": "TIME_WITH_TIMEZONE"
     }
   }
 }
