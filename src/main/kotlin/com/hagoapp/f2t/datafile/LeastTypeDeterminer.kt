@@ -8,6 +8,7 @@ package com.hagoapp.f2t.datafile
 
 import com.hagoapp.f2t.ColumnTypeModifier
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 
 /**
  * A type determiner implementation which always tries to use a compatible data set with the minimum value range.
@@ -18,61 +19,65 @@ class LeastTypeDeterminer : DataTypeDeterminer {
         modifier: ColumnTypeModifier
     ): JDBCType {
         return if (types.isEmpty()) {
-            if (modifier.isContainsNonAscii) JDBCType.NVARCHAR else JDBCType.NCLOB
+            if (modifier.isContainsNonAscii) NVARCHAR else NCLOB
         } else if (types.size == 1) {
             types.first()
-        } else if (types.contains(JDBCType.DOUBLE) || types.contains(JDBCType.FLOAT) ||
-            types.contains(JDBCType.DECIMAL) || types.contains(JDBCType.INTEGER) ||
-            types.contains(JDBCType.SMALLINT) || types.contains(JDBCType.TINYINT) ||
-            types.contains(JDBCType.BIGINT)
+        } else if (types.contains(DOUBLE) || types.contains(FLOAT) ||
+            types.contains(DECIMAL) || types.contains(INTEGER) ||
+            types.contains(SMALLINT) || types.contains(TINYINT) ||
+            types.contains(BIGINT)
         ) {
             determineNumberType(types)
-        } else if (types.contains(JDBCType.BOOLEAN)) {
-            JDBCType.BOOLEAN
-        } else if (types.contains(JDBCType.TIMESTAMP_WITH_TIMEZONE)) {
-            JDBCType.TIMESTAMP_WITH_TIMEZONE
-        } else if (types.contains(JDBCType.CHAR) || types.contains(JDBCType.VARCHAR) || types.contains(JDBCType.CLOB) ||
-            types.contains(JDBCType.NCHAR) || types.contains(JDBCType.NVARCHAR) || types.contains(JDBCType.NCLOB)
+        } else if (types.contains(BOOLEAN)) {
+            BOOLEAN
+        } else if (types.contains(TIMESTAMP_WITH_TIMEZONE)) {
+            TIMESTAMP_WITH_TIMEZONE
+        } else if (types.contains(DATE)) {
+            DATE
+        } else if (types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE)) {
+            TIME_WITH_TIMEZONE
+        } else if (types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
+            types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
         ) {
             determineTextType(modifier)
         } else {
-            JDBCType.VARBINARY
+            VARBINARY
         }
     }
 
     private fun determineTextType(modifier: ColumnTypeModifier): JDBCType {
         return if (modifier.isContainsNonAscii) {
-            JDBCType.NVARCHAR
+            NVARCHAR
         } else {
-            JDBCType.VARCHAR
+            VARCHAR
         }
     }
 
     private fun determineNumberType(types: Set<JDBCType>): JDBCType {
-        return if (!types.contains(JDBCType.INTEGER) && !types.contains(JDBCType.SMALLINT) &&
-            !types.contains(JDBCType.TINYINT) && !types.contains(JDBCType.BIGINT)
+        return if (!types.contains(INTEGER) && !types.contains(SMALLINT) &&
+            !types.contains(TINYINT) && !types.contains(BIGINT)
         ) {
             determineFloatPointType(types)
         } else {
-            if (types.contains(JDBCType.TINYINT)) {
-                JDBCType.TINYINT
-            } else if (types.contains(JDBCType.SMALLINT)) {
-                JDBCType.SMALLINT
-            } else if (types.contains(JDBCType.INTEGER)) {
-                JDBCType.INTEGER
+            if (types.contains(TINYINT)) {
+                TINYINT
+            } else if (types.contains(SMALLINT)) {
+                SMALLINT
+            } else if (types.contains(INTEGER)) {
+                INTEGER
             } else {
-                JDBCType.BIGINT
+                BIGINT
             }
         }
     }
 
     private fun determineFloatPointType(types: Set<JDBCType>): JDBCType {
-        return if (types.contains(JDBCType.FLOAT)) {
-            JDBCType.FLOAT
-        } else if (types.contains(JDBCType.DOUBLE)) {
-            JDBCType.DOUBLE
+        return if (types.contains(FLOAT)) {
+            FLOAT
+        } else if (types.contains(DOUBLE)) {
+            DOUBLE
         } else {
-            JDBCType.DECIMAL
+            DECIMAL
         }
     }
 }
