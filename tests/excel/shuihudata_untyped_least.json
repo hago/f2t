@@ -6,7 +6,7 @@
   },
   "expect": {
     "rowCount": 108,
-    "columnCount": 8,
+    "columnCount": 10,
     "types": {
       "座次": "TINYINT",
       "星宿": "NVARCHAR",
@@ -15,7 +15,9 @@
       "布尔": "BOOLEAN",
       "浮点": "FLOAT",
       "整数": "SMALLINT",
-      "日期": "TIMESTAMP_WITH_TIMEZONE"
+      "日期": "TIMESTAMP_WITH_TIMEZONE",
+      "年月日": "DATE",
+      "时分秒": "TIME_WITH_TIMEZONE"
     }
   }
 }
