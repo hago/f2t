@@ -55,6 +55,7 @@ class TypedExcelReadTest {
     fun readExcel() {
         observer.isRowDetail = true
         testConfigs.forEach { (testConfig, determiner) ->
+            println("test ${testConfig.fileInfo.filename} using $determiner")
             val parser = FileParser(testConfig.fileInfo)
             parser.defaultDeterminer = determiner
             parser.addObserver(observer)
@@ -71,6 +72,7 @@ class TypedExcelReadTest {
     @Test
     fun extractExcel() {
         testConfigs.forEach { (testConfig, determiner) ->
+            println("test ${testConfig.fileInfo.filename} using $determiner")
             val parser = FileParser(testConfig.fileInfo)
             parser.defaultDeterminer = determiner
             parser.addObserver(observer)

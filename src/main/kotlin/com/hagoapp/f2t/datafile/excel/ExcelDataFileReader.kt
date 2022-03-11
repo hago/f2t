@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t.datafile.excel
 
+import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.DataCell
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
@@ -22,6 +23,8 @@ import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoField
+import kotlin.math.max
 
 class ExcelDataFileReader : Reader {
     private lateinit var infoExcel: FileInfoExcel
@@ -61,7 +64,6 @@ class ExcelDataFileReader : Reader {
                 }
             }
             columns.values.forEach { column ->
-                //it.dataType = JDBCTypeUtils.guessMostAccurateType(it.possibleTypes.toList())
                 column.dataType =
                     getTypeDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
             }
@@ -140,7 +142,7 @@ class ExcelDataFileReader : Reader {
     }
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: Cell) {
-        val possibleTypes = guessCellType(cell)
+        val possibleTypes = guessCellType(cell, columnDefinition.typeModifier)
         //println("guessed ${possibleTypes.size} types ${possibleTypes}")
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
@@ -166,13 +168,13 @@ class ExcelDataFileReader : Reader {
                 typeModifier.maxLength = strValue.length
             }
         }
-        if (columnDefinition.possibleTypes.contains(DATE)) {
-            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateFormatter())
+        if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
+            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
             if (strValue.length > typeModifier.maxLength) {
                 typeModifier.maxLength = strValue.length
             }
-        } else if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
-            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
+        } else if (columnDefinition.possibleTypes.contains(DATE)) {
+            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateFormatter())
             if (strValue.length > typeModifier.maxLength) {
                 typeModifier.maxLength = strValue.length
             }
@@ -200,23 +202,69 @@ class ExcelDataFileReader : Reader {
         }
     }
 
-    private fun guessCellType(cell: Cell): Set<JDBCType> {
+    private fun guessCellType(cell: Cell, modifier: ColumnTypeModifier): Set<JDBCType> {
         return when {
-            cell.cellType == CellType.BOOLEAN -> setOf(BOOLEAN)
-            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> setOf(
-                TIMESTAMP_WITH_TIMEZONE
-            )
-            cell.cellType == CellType.NUMERIC -> {
-                val nv = cell.numericCellValue
-                val l: MutableSet<JDBCType> = JDBCTypeUtils.guessFloatTypes(nv).toMutableSet()
-                if (nv == nv.toLong().toDouble()) {
-                    l.addAll(JDBCTypeUtils.guessIntTypes(nv.toLong()))
-                }
-                l
-            }
+            cell.cellType == CellType.BOOLEAN -> setupBooleanType(cell, modifier)
+            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) ->
+                guessDateTimeType(cell, modifier)
+            cell.cellType == CellType.NUMERIC -> guessNumericType(cell, modifier)
             cell.cellType == CellType.BLANK -> setOf()
             else -> JDBCTypeUtils.guessTypes(cell.stringCellValue).toSet()
         }
+    }
+
+    private fun setupBooleanType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
+        val len = max(true.toString().length, false.toString().length)
+        if (len > typeModifier.maxLength) {
+            typeModifier.maxLength = len
+        }
+        return setOf(BOOLEAN)
+    }
+
+    private fun guessDateTimeType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
+        val ret = mutableSetOf<JDBCType>()
+        val v = cell.localDateTimeCellValue
+        if (v.isSupported(ChronoField.YEAR) && v.isSupported(ChronoField.HOUR_OF_DAY)) {
+            ret.add(TIMESTAMP_WITH_TIMEZONE)
+            val str = DateTimeTypeUtils.getDefaultDateTimeFormatter().format(v)
+            if (str.length > typeModifier.maxLength) {
+                typeModifier.maxLength = str.length
+            }
+        }
+        if (v.isSupported(ChronoField.YEAR)) {
+            ret.add(DATE)
+            val str = DateTimeTypeUtils.getDefaultDateFormatter().format(v)
+            if (str.length > typeModifier.maxLength) {
+                typeModifier.maxLength = str.length
+            }
+        }
+        if (v.isSupported(ChronoField.HOUR_OF_DAY)) {
+            ret.add(TIME_WITH_TIMEZONE)
+            val str = DateTimeTypeUtils.getDefaultTimeFormatter().format(v)
+            if (str.length > typeModifier.maxLength) {
+                typeModifier.maxLength = str.length
+            }
+        }
+        return ret
+    }
+
+    private fun guessNumericType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
+        val nv = cell.numericCellValue
+        val ret = JDBCTypeUtils.guessFloatTypes(nv)
+        if (ret.contains(DECIMAL) || ret.contains(BIGINT)) {
+            val p = NumericUtils.detectPrecision(cell.numericCellValue)
+            if (p.first > typeModifier.precision) {
+                typeModifier.precision = p.first
+            }
+            if (p.second > typeModifier.scale) {
+                typeModifier.scale = p.second
+            }
+            val strValue = cell.numericCellValue.toString()
+            if (strValue.length > typeModifier.maxLength) {
+                typeModifier.maxLength = strValue.length
+            }
+        }
+        return ret
     }
 
     private val defaultFormatter = DataFormatter()
