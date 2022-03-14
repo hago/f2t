@@ -34,7 +34,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
             TIMESTAMP_WITH_TIMEZONE
         } else if (types.contains(DATE)) {
             DATE
-        } else if (types.contains(TIME)) {
+        } else if (types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE)) {
             TIME_WITH_TIMEZONE
         } else if (types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
             types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
