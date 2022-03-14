@@ -27,7 +27,6 @@ class DateTimeTypeUtils {
             DateTimeFormatter.ISO_DATE_TIME,
             DateTimeFormatter.ISO_LOCAL_DATE_TIME,
             DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            DateTimeFormatter.ISO_OFFSET_TIME,
             DateTimeFormatter.ISO_ZONED_DATE_TIME,
             DateTimeFormatter.RFC_1123_DATE_TIME,
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()),
@@ -45,7 +44,8 @@ class DateTimeTypeUtils {
 
         private val timeFormatters: List<DateTimeFormatter> = listOf(
             DateTimeFormatter.ISO_LOCAL_TIME,
-            DateTimeFormatter.ISO_TIME
+            DateTimeFormatter.ISO_TIME,
+            DateTimeFormatter.ISO_OFFSET_TIME
         )
 
         @JvmStatic
@@ -59,6 +59,7 @@ class DateTimeTypeUtils {
             for (dtFmt in dateTimeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = ZonedDateTime.ofInstant(Instant.from(dtFmt.parse(input)), ZoneId.systemDefault())
+                    logger.debug("stringToDateTimeOrNull parsing successfully using $dtFmt for $input")
                     break
                 } catch (ex: DateTimeParseException) {
                     //logger.debug("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
@@ -80,6 +81,7 @@ class DateTimeTypeUtils {
             for (dtFmt in dateFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalDate.from(dtFmt.parse(input))
+                    logger.debug("stringToDateOrNull parsing successfully using $dtFmt for $input")
                     break
                 } catch (ex: DateTimeParseException) {
                     //logger.debug("stringToDateOrNull parsing error DateTimeParseException $ex using $dtFmt")
@@ -103,6 +105,7 @@ class DateTimeTypeUtils {
             for (dtFmt in timeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalTime.from(dtFmt.parse(input))
+                    logger.debug("stringToTimeOrNull parsing successfully using $dtFmt for $input")
                     break
                 } catch (ex: DateTimeParseException) {
                     //logger.debug("stringToTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
