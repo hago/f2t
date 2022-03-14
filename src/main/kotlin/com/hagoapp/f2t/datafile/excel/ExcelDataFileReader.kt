@@ -18,13 +18,13 @@ import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
 import org.apache.poi.ss.usermodel.*
 import java.io.FileInputStream
-import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoField
 import kotlin.math.max
+import kotlin.math.roundToLong
 
 class ExcelDataFileReader : Reader {
     private lateinit var infoExcel: FileInfoExcel
@@ -146,44 +146,6 @@ class ExcelDataFileReader : Reader {
         //println("guessed ${possibleTypes.size} types ${possibleTypes}")
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
-        val typeModifier = columnDefinition.typeModifier
-        if (columnDefinition.possibleTypes.contains(NCLOB) || columnDefinition.possibleTypes.contains(CLOB)) {
-            if (cell.stringCellValue.length > typeModifier.maxLength) {
-                typeModifier.maxLength = cell.stringCellValue.length
-            }
-            if (!typeModifier.isContainsNonAscii && !EncodingUtils.isAsciiText(cell.stringCellValue)) {
-                typeModifier.isContainsNonAscii = true
-            }
-        }
-        if (columnDefinition.possibleTypes.contains(DECIMAL) || columnDefinition.possibleTypes.contains(BIGINT)) {
-            val p = NumericUtils.detectPrecision(cell.numericCellValue)
-            if (p.first > typeModifier.precision) {
-                typeModifier.precision = p.first
-            }
-            if (p.second > typeModifier.scale) {
-                typeModifier.scale = p.second
-            }
-            val strValue = cell.numericCellValue.toString()
-            if (strValue.length > typeModifier.maxLength) {
-                typeModifier.maxLength = strValue.length
-            }
-        }
-        if (columnDefinition.possibleTypes.contains(TIMESTAMP_WITH_TIMEZONE)) {
-            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateTimeFormatter())
-            if (strValue.length > typeModifier.maxLength) {
-                typeModifier.maxLength = strValue.length
-            }
-        } else if (columnDefinition.possibleTypes.contains(DATE)) {
-            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultDateFormatter())
-            if (strValue.length > typeModifier.maxLength) {
-                typeModifier.maxLength = strValue.length
-            }
-        } else if (columnDefinition.possibleTypes.contains(TIME)) {
-            val strValue = getDateCellValue(cell).format(DateTimeTypeUtils.getDefaultTimeFormatter())
-            if (strValue.length > typeModifier.maxLength) {
-                typeModifier.maxLength = strValue.length
-            }
-        }
         setRange(columnDefinition, cellToString(cell))
         if (!columnDefinition.isContainsEmpty && cellToString(cell).isEmpty()) {
             columnDefinition.isContainsEmpty = true
@@ -204,16 +166,24 @@ class ExcelDataFileReader : Reader {
 
     private fun guessCellType(cell: Cell, modifier: ColumnTypeModifier): Set<JDBCType> {
         return when {
-            cell.cellType == CellType.BOOLEAN -> setupBooleanType(cell, modifier)
-            (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) ->
-                guessDateTimeType(cell, modifier)
+            cell.cellType == CellType.BOOLEAN -> setupBooleanType(modifier)
+            cell.cellType == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell) -> guessDateTimeType(cell, modifier)
             cell.cellType == CellType.NUMERIC -> guessNumericType(cell, modifier)
             cell.cellType == CellType.BLANK -> setOf()
-            else -> JDBCTypeUtils.guessTypes(cell.stringCellValue).toSet()
+            else -> {
+                val str = cell.stringCellValue
+                if (str.length > modifier.maxLength) {
+                    modifier.maxLength = str.length
+                }
+                if (!modifier.isContainsNonAscii && !EncodingUtils.isAsciiText(str)) {
+                    modifier.isContainsNonAscii = true
+                }
+                JDBCTypeUtils.guessTypes(str).toSet()
+            }
         }
     }
 
-    private fun setupBooleanType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
+    private fun setupBooleanType(typeModifier: ColumnTypeModifier): Set<JDBCType> {
         val len = max(true.toString().length, false.toString().length)
         if (len > typeModifier.maxLength) {
             typeModifier.maxLength = len
@@ -224,33 +194,42 @@ class ExcelDataFileReader : Reader {
     private fun guessDateTimeType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
         val ret = mutableSetOf<JDBCType>()
         val v = cell.localDateTimeCellValue
-        if (v.isSupported(ChronoField.YEAR) && v.isSupported(ChronoField.HOUR_OF_DAY)) {
-            ret.add(TIMESTAMP_WITH_TIMEZONE)
-            val str = DateTimeTypeUtils.getDefaultDateTimeFormatter().format(v)
-            if (str.length > typeModifier.maxLength) {
-                typeModifier.maxLength = str.length
+        val str = when {
+            cell.numericCellValue < 0 -> {
+                ret.add(TIME)
+                DateTimeTypeUtils.getDefaultTimeFormatter().format(v)
+            }
+            cell.numericCellValue - cell.numericCellValue.roundToLong().toDouble() == 0.0 -> {
+                ret.add(DATE)
+                if (v.isSupported(ChronoField.OFFSET_SECONDS)) {
+                    DateTimeTypeUtils.getDefaultDateFormatter().format(v)
+                } else {
+                    DateTimeTypeUtils.getDefaultDateFormatter().format(ZonedDateTime.of(v, ZoneId.systemDefault()))
+                }
+            }
+            else -> {
+                ret.add(DATE)
+                ret.add(TIMESTAMP_WITH_TIMEZONE)
+                if (v.isSupported(ChronoField.OFFSET_SECONDS)) {
+                    DateTimeTypeUtils.getDefaultDateTimeFormatter().format(v)
+                } else {
+                    DateTimeTypeUtils.getDefaultDateTimeFormatter().format(ZonedDateTime.of(v, ZoneId.systemDefault()))
+                }
             }
         }
-        if (v.isSupported(ChronoField.YEAR)) {
-            ret.add(DATE)
-            val str = DateTimeTypeUtils.getDefaultDateFormatter().format(v)
-            if (str.length > typeModifier.maxLength) {
-                typeModifier.maxLength = str.length
-            }
-        }
-        if (v.isSupported(ChronoField.HOUR_OF_DAY)) {
-            ret.add(TIME_WITH_TIMEZONE)
-            val str = DateTimeTypeUtils.getDefaultTimeFormatter().format(v)
-            if (str.length > typeModifier.maxLength) {
-                typeModifier.maxLength = str.length
-            }
+        if (str.length > typeModifier.maxLength) {
+            typeModifier.maxLength = str.length
         }
         return ret
     }
 
     private fun guessNumericType(cell: Cell, typeModifier: ColumnTypeModifier): Set<JDBCType> {
+        val ret = mutableSetOf<JDBCType>()
         val nv = cell.numericCellValue
-        val ret = JDBCTypeUtils.guessFloatTypes(nv)
+        ret.addAll(JDBCTypeUtils.guessFloatTypes(nv))
+        if (nv == nv.roundToLong().toDouble()) {
+            ret.addAll(JDBCTypeUtils.guessIntTypes(nv.roundToLong()))
+        }
         if (ret.contains(DECIMAL) || ret.contains(BIGINT)) {
             val p = NumericUtils.detectPrecision(cell.numericCellValue)
             if (p.first > typeModifier.precision) {
