@@ -276,6 +276,7 @@ class PgSqlConnection : DbConnection() {
             typeName.compareTo("integer") == 0 -> INTEGER
             typeName.compareTo("bigint") == 0 -> BIGINT
             typeName.compareTo("boolean") == 0 -> BOOLEAN
+            typeName.startsWith("timestamp with time zone") -> TIMESTAMP_WITH_TIMEZONE
             typeName.startsWith("timestamp") -> TIMESTAMP
             typeName.startsWith("time") -> TIME_WITH_TIMEZONE
             typeName == "date" -> DATE
