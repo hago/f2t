@@ -46,7 +46,7 @@ class ProcessTester {
     )
     fun run() {
         val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
-        fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename).absolutePath
+        fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename!!).absolutePath
         val dbConfig = DbConfigReader.readConfig(dbConfigFile)
         val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
         val parser = FileParser(fileInfo)
