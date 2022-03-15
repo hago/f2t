@@ -25,5 +25,10 @@ public class Constants {
     public static final String ON_DEMAND_EXCEL_FILE = "f2t.excel";
     public static final String ON_DEMAND_EXCEL_SHEET_INDEX = "f2t.excel.sheet.index";
     public static final String ON_DEMAND_EXCEL_SHEET_NAME = "f2t.excel.sheet.name";
+
+    public static final String ON_DEMAND_CSV_FILE = "f2t.csv";
+    public static final String ON_DEMAND_CSV_FILE_ENCODING = "f2t.csv.encoding";
+    public static final String ON_DEMAND_CSV_FILE_DELIMITER = "f2t.csv.delimit";
+    public static final String ON_DEMAND_CSV_FILE_QUOTE = "f2t.csv.quote";
 }
 
