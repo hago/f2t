@@ -13,10 +13,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FileParser {
 
@@ -64,7 +61,7 @@ public class FileParser {
             throw new IOException("null file");
         }
         this.fileInfo = fileInfo;
-        File f = new File(fileInfo.getFilename());
+        File f = new File(Objects.requireNonNull(fileInfo.getFilename()));
         if (!f.exists() || !f.canRead()) {
             throw new IOException(String.format("'%s' not existed or not accessible", fileInfo.getFilename()));
         }
