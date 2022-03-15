@@ -171,8 +171,8 @@ class CSVDataReader : Reader {
 
     private fun prepare(fileInfo: FileInfoCsv) {
         this.formats = predefinedFormats.map { fmt ->
-            fmt.withFirstRecordAsHeader().withDelimiter(fileInfo.delimiter)
-                .withQuote((fileInfo.quote))
+            CSVFormat.Builder.create(fmt).setHeader().setSkipHeaderRecord(true)
+                .setDelimiter(fileInfo.delimiter).setQuote(fileInfo.quote).build()
         }
     }
 
