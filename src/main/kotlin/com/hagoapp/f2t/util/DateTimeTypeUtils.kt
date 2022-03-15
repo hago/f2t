@@ -29,8 +29,9 @@ class DateTimeTypeUtils {
             DateTimeFormatter.ISO_OFFSET_DATE_TIME,
             DateTimeFormatter.ISO_ZONED_DATE_TIME,
             DateTimeFormatter.RFC_1123_DATE_TIME,
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(ZoneId.systemDefault()),
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a").withZone(ZoneId.systemDefault())
+            DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a")
         )
 
         private val dateFormatters: List<DateTimeFormatter> = listOf(
