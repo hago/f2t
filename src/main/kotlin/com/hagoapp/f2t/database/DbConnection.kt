@@ -206,22 +206,6 @@ abstract class DbConnection : Closeable {
         rows.clear()
     }
 
-    open fun prepareInsertion(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
-        val sql = """
-                insert into ${getFullTableName(table)} (${tableDefinition.columns.joinToString { normalizeName(it.name) }})
-                values (${tableDefinition.columns.joinToString { "?" }})
-            """
-        insertionMap[table] = sql
-        fieldValueSetters[table] = tableDefinition.columns.sortedBy { it.name }.map { col ->
-            val converter = getTypedDataConverters()[col.dataType]
-            if (converter == null) {
-                createFieldSetter(col.dataType!!)
-            } else {
-                createFieldSetter(converter.first) { converter.second.invoke(it) }
-            }
-        }
-    }
-
     open fun prepareInsertion(
         fileDefinition: TableDefinition<FileColumnDefinition>,
         table: TableName,

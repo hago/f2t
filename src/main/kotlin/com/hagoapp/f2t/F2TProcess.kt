@@ -56,22 +56,22 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         parser.parse()
     }
 
-    override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition?>) {
+    override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition>) {
         val colDef = when {
             config.isAddBatch -> {
                 batchNum = Instant.now().toEpochMilli()
                 logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
-                columnDefinitionList.map { it!! }
-                    .plus(
-                        FileColumnDefinition(
-                            config.batchColumnName,
-                            mutableSetOf(JDBCType.BIGINT),
-                            JDBCType.BIGINT
-                        )
+                columnDefinitionList.plus(
+                    FileColumnDefinition(
+                        config.batchColumnName,
+                        mutableSetOf(JDBCType.BIGINT),
+                        JDBCType.BIGINT
                     )
+                )
             }
-            else -> columnDefinitionList.map { it!! }
-        }
+            else -> columnDefinitionList
+        }.toSet()
+        val fileTableDef = TableDefinition(colDef)
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             //val difference = tblDef.diff(colDef.toSet())
@@ -87,7 +87,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
                 }
-                connection.prepareInsertion(table, tblDef)
+                connection.prepareInsertion(fileTableDef, table, tblDef)
                 tableMatchedFile = true
                 result.tableDefinition = tblDef
                 logger.info("table $table found and matches ${parser.fileInfo.filename}")
@@ -98,7 +98,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
                 result.tableDefinition = TableDefinition(colDef.toSet())
                 try {
                     connection.createTable(table, result.tableDefinition!!)
-                    connection.prepareInsertion(table, tblDef)
+                    connection.prepareInsertion(fileTableDef, table, tblDef)
                     tableMatchedFile = true
                     logger.info("table $table created on ${parser.fileInfo.filename}")
                 } catch (e: Throwable) {
