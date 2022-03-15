@@ -11,6 +11,7 @@ import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 
 class TimeComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
@@ -22,10 +23,10 @@ class TimeComparator : TypedColumnComparator {
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(JDBCType.TIME)
+        return setOf(TIME, TIME_WITH_TIMEZONE)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(JDBCType.TIME)
+        return setOf(TIME, TIME_WITH_TIMEZONE)
     }
 }
