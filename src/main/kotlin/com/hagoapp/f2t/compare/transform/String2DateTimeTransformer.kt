@@ -20,11 +20,11 @@ class String2DateTimeTransformer : TypedColumnTransformer {
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): Any? {
+        src ?: return null
         if (src !is String?) {
-            throw Exception("Not String input to transform to datetime")
+            throw Exception("Not String input to transform to datetime: ${src::class.java.canonicalName}")
         }
-        return if (src == null) null
-        else DateTimeTypeUtils.stringToDateTimeOrNull(src, extra.toSet())
+        return DateTimeTypeUtils.stringToDateTimeOrNull(src, extra.toSet())
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
@@ -32,6 +32,6 @@ class String2DateTimeTransformer : TypedColumnTransformer {
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(TIMESTAMP_WITH_TIMEZONE)
+        return setOf(TIMESTAMP, TIME_WITH_TIMEZONE)
     }
 }
