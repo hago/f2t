@@ -8,6 +8,7 @@ package com.hagoapp.f2t.util
 
 import com.hagoapp.util.EncodingUtils
 import java.sql.JDBCType
+import java.sql.JDBCType.*
 
 class JDBCTypeUtils {
     companion object {
@@ -18,7 +19,7 @@ class JDBCTypeUtils {
                 b.isEmpty() -> a
                 else -> {
                     val l = a.intersect(b)
-                    l.ifEmpty { setOf(JDBCType.NCLOB) }
+                    l.ifEmpty { setOf(NCLOB) }
                 }
             }
         }
@@ -32,8 +33,8 @@ class JDBCTypeUtils {
         }
 
         private val JDBC_TEXT_TYPES = listOf(
-            JDBCType.CHAR, JDBCType.VARCHAR, JDBCType.CLOB,
-            JDBCType.NCHAR, JDBCType.NVARCHAR, JDBCType.NCLOB
+            CHAR, VARCHAR, CLOB,
+            NCHAR, NVARCHAR, NCLOB
         )
 
         private fun stringToTypedValue(value: String, outType: JDBCType): Any? {
@@ -41,15 +42,15 @@ class JDBCTypeUtils {
                 return null
             }
             return when (outType) {
-                JDBCType.TINYINT -> value.toByte()
-                JDBCType.SMALLINT -> value.toShort()
-                JDBCType.INTEGER -> value.toInt()
-                JDBCType.BIGINT -> value.toLong()
-                JDBCType.DOUBLE, JDBCType.DECIMAL, JDBCType.FLOAT -> value.toDouble()
-                JDBCType.TIMESTAMP_WITH_TIMEZONE -> DateTimeTypeUtils.stringToDateTimeOrNull(value)!!
-                JDBCType.BOOLEAN -> BooleanTypeUtils.toBoolean(value)
-                JDBCType.DATE -> DateTimeTypeUtils.stringToDateOrNull(value)!!
-                JDBCType.TIME -> DateTimeTypeUtils.stringToTimeOrNull(value)!!
+                TINYINT -> value.toByte()
+                SMALLINT -> value.toShort()
+                INTEGER -> value.toInt()
+                BIGINT -> value.toLong()
+                DOUBLE, DECIMAL, FLOAT -> value.toDouble()
+                TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> DateTimeTypeUtils.stringToDateTimeOrNull(value)!!
+                BOOLEAN -> BooleanTypeUtils.toBoolean(value)
+                DATE -> DateTimeTypeUtils.stringToDateOrNull(value)!!
+                TIME, TIME_WITH_TIMEZONE -> DateTimeTypeUtils.stringToTimeOrNull(value)!!
                 else -> value
             }
         }
@@ -59,18 +60,18 @@ class JDBCTypeUtils {
             if (value == null) {
                 return dl
             }
-            dl.add(JDBCType.NCLOB)
-            dl.add(JDBCType.NVARCHAR)
-            dl.add(JDBCType.NCHAR)
+            dl.add(NCLOB)
+            dl.add(NVARCHAR)
+            dl.add(NCHAR)
             if (EncodingUtils.isAsciiText(value)) {
-                dl.add(JDBCType.CLOB)
-                dl.add(JDBCType.VARCHAR)
-                dl.add(JDBCType.CHAR)
+                dl.add(CLOB)
+                dl.add(VARCHAR)
+                dl.add(CHAR)
             }
             dl.addAll(guessIntTypes(value))
             dl.addAll(guessFloatTypes(value))
             if (BooleanTypeUtils.isPossibleBooleanValue(value)) {
-                dl.add(JDBCType.BOOLEAN)
+                dl.add(BOOLEAN)
             }
             dl.addAll(guessDateTimeTypes(value))
             return dl
@@ -79,13 +80,13 @@ class JDBCTypeUtils {
         private fun guessDateTimeTypes(value: String): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (DateTimeTypeUtils.isDateTime(value)) {
-                ret.add(JDBCType.TIMESTAMP_WITH_TIMEZONE)
+                ret.add(TIMESTAMP_WITH_TIMEZONE)
             }
             if (DateTimeTypeUtils.isDate(value)) {
-                ret.add(JDBCType.DATE)
+                ret.add(DATE)
             }
             if (DateTimeTypeUtils.isTime(value)) {
-                ret.add(JDBCType.TIME)
+                ret.add(TIME)
             }
             return ret
         }
@@ -97,15 +98,15 @@ class JDBCTypeUtils {
         fun guessIntTypes(l: Long?): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (l != null) {
-                ret.add(JDBCType.BIGINT)
+                ret.add(BIGINT)
                 if ((l <= Int.MAX_VALUE.toLong()) && (l >= Int.MIN_VALUE.toLong())) {
-                    ret.add(JDBCType.INTEGER)
+                    ret.add(INTEGER)
                 }
                 if ((l <= Short.MAX_VALUE.toLong()) && (l >= Short.MIN_VALUE.toLong())) {
-                    ret.add(JDBCType.SMALLINT)
+                    ret.add(SMALLINT)
                 }
                 if ((l <= Byte.MAX_VALUE.toLong()) && (l >= Byte.MIN_VALUE.toLong())) {
-                    ret.add(JDBCType.TINYINT)
+                    ret.add(TINYINT)
                 }
             }
             return ret
@@ -115,7 +116,7 @@ class JDBCTypeUtils {
             val ret = mutableSetOf<JDBCType>()
             val l = value.toBigDecimalOrNull()
             if (l != null) {
-                ret.add(JDBCType.DECIMAL)
+                ret.add(DECIMAL)
                 if ((l <= Double.MAX_VALUE.toBigDecimal()) && (l >= Double.MIN_VALUE.toBigDecimal())) {
                     ret.addAll(guessFloatTypes(l.toDouble()))
                 }
@@ -126,9 +127,9 @@ class JDBCTypeUtils {
         fun guessFloatTypes(value: Double?): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (value != null) {
-                ret.add(JDBCType.DOUBLE)
+                ret.add(DOUBLE)
                 if ((value <= Float.MAX_VALUE.toDouble()) && (value >= Float.MIN_VALUE.toDouble())) {
-                    ret.add(JDBCType.FLOAT)
+                    ret.add(FLOAT)
                 }
             }
             return ret
