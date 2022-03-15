@@ -9,14 +9,18 @@ package com.hagoapp.f2t.compare;
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
 import com.hagoapp.f2t.Quintet;
+import kotlin.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.time.*;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import static java.sql.JDBCType.*;
 
@@ -181,6 +185,44 @@ public class FromStringTransformTest {
 
     @Test
     public void testDateTime() {
-        doTest(dateTimeCases);
+        var func = new BiFunction<Object, Object, Boolean>() {
+
+            @Override
+            public Boolean apply(Object o, Object o2) {
+                if ((o instanceof LocalTime) || (o instanceof LocalDate)) {
+                    return o.equals(o2);
+                } else if (o instanceof ZonedDateTime) {
+                    return ((ZonedDateTime) o).isEqual((ZonedDateTime) o2);
+                } else {
+                    throw new UnsupportedOperationException("unknown type: " + o.getClass().getCanonicalName());
+                }
+            }
+        };
+        for (var item : dateTimeCases) {
+            var src = item.getFirst();
+            var fileCol = item.getSecond();
+            var fileColDef = new FileColumnDefinition();
+            fileColDef.setDataType(fileCol.getFirst());
+            var srcTm = fileColDef.getTypeModifier();
+            srcTm.setMaxLength(fileCol.getSecond());
+            srcTm.setPrecision(fileCol.getThird());
+            srcTm.setScale(fileCol.getFourth());
+            srcTm.setNullable(fileCol.getFifth());
+            fileColDef.setPossibleTypes(item.getThird());
+
+            var destCol = item.getFourth();
+            var destColDef = new ColumnDefinition();
+            destColDef.setDataType(destCol.getFirst());
+            var destTm = destColDef.getTypeModifier();
+            destTm.setMaxLength(destCol.getSecond());
+            destTm.setPrecision(destCol.getThird());
+            destTm.setScale(destCol.getFourth());
+            destTm.setNullable(destCol.getFifth());
+
+            var result = ColumnComparator.Companion.transform(src, fileColDef, destColDef);
+            System.out.println(item.getFifth());
+            System.out.println(result);
+            Assertions.assertTrue(func.apply(item.getFifth(), result));
+        }
     }
 }
