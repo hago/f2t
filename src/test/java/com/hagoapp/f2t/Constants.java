@@ -31,4 +31,3 @@ public class Constants {
     public static final String ON_DEMAND_CSV_FILE_DELIMITER = "f2t.csv.delimit";
     public static final String ON_DEMAND_CSV_FILE_QUOTE = "f2t.csv.quote";
 }
-
