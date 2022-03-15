@@ -7,14 +7,15 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
+import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MsSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.JDBCType
+import com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement
+import microsoft.sql.DateTimeOffset
+import java.sql.*
 import java.sql.JDBCType.*
-import java.sql.SQLException
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -335,5 +336,33 @@ class MsSqlConnection : DbConnection() {
 
     override fun getDefaultSchema(): String {
         return "dbo"
+    }
+
+    override fun prepareInsertion(
+        fileDefinition: TableDefinition<FileColumnDefinition>,
+        table: TableName,
+        tableDefinition: TableDefinition<out ColumnDefinition>
+    ) {
+        super.prepareInsertion(fileDefinition, table, tableDefinition)
+        val columnMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
+        val existingSetters = fieldValueSetters.getValue(table)
+        fieldValueSetters[table] = existingSetters.mapIndexed { index, setter ->
+            val fileCol = fileDefinition.columns.first { it.order == index }
+            val dbCol = tableDefinition.columns.first { columnMatcher(it.name, fileCol.name) }
+            val transformer = ColumnComparator.getTransformer(fileCol, dbCol)
+            if ((dbCol.dataType == TIMESTAMP) || (dbCol.dataType == TIMESTAMP_WITH_TIMEZONE))
+                { stmt: PreparedStatement, i: Int, value: Any? ->
+                    val newValue = transformer.transform(value, fileCol, dbCol)
+                    if (newValue != null) {
+                        val st = stmt as SQLServerPreparedStatement
+                        val ts = newValue as ZonedDateTime
+                        val dto =
+                            DateTimeOffset.valueOf(Timestamp.from(ts.toInstant()), GregorianCalendar.getInstance())
+                        st.setDateTimeOffset(i, dto)
+                        logger.warn("SQL Server datetimeoffset")
+                    } else stmt.setNull(i, Types.CHAR)
+                }
+            else setter
+        }
     }
 }
