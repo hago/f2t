@@ -32,6 +32,6 @@ class String2DateTimeTransformer : TypedColumnTransformer {
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
-        return setOf(TIMESTAMP, TIME_WITH_TIMEZONE)
+        return setOf(TIMESTAMP, TIMESTAMP_WITH_TIMEZONE)
     }
 }
