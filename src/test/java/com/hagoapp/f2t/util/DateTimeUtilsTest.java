@@ -8,12 +8,17 @@ package com.hagoapp.f2t.util;
 
 import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.Quartet;
+import kotlin.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.JDBCType;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 
 public class DateTimeUtilsTest {
 
@@ -46,6 +51,34 @@ public class DateTimeUtilsTest {
             var t = DateTimeTypeUtils.stringToTimeOrNull(dateTimeStr);
             logger.debug("time: {}", t);
             Assertions.assertEquals(x.getFourth(), t != null);
+        }
+    }
+
+    private final List<Pair<String, ZonedDateTime>> valueCases = List.of(
+            new Pair<>("2021-04-01T23:12:24+08:00", ZonedDateTime.of(
+                    2021, 4, 1, 23, 12, 24, 0, ZoneId.of("Asia/Shanghai")
+            )),
+            new Pair<>("2021-04-01T23:12:24", ZonedDateTime.of(
+                    2021, 4, 1, 23, 12, 24, 0, ZoneId.systemDefault()
+            )),
+            new Pair<>("2021-04-01 23:12:24", ZonedDateTime.of(
+                    2021, 4, 1, 23, 12, 24, 0, ZoneId.systemDefault()
+            )),
+            new Pair<>("2021-04-01T23:12:24Z", ZonedDateTime.of(
+                    2021, 4, 1, 23, 12, 24, 0, ZoneId.of("GMT")
+            ))
+    );
+
+    @Test
+    public void testDateTimeParsingValue() {
+        for (var x : valueCases) {
+            var dateTimeStr = x.getFirst();
+            logger.debug("try parsing {}", dateTimeStr);
+            var dt = DateTimeTypeUtils.stringToDateTimeOrNull(dateTimeStr);
+            logger.debug("datetime: {}", dt);
+            assert dt != null;
+            ZonedDateTime expect = x.getSecond();
+            Assertions.assertTrue(expect.isEqual(dt));
         }
     }
 }
