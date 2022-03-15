@@ -172,7 +172,7 @@ class MariaDBConnection : DbConnection() {
             VARCHAR, NVARCHAR -> "varchar(${modifier.maxLength})"
             CLOB, NCLOB -> "longtext"
             DATE -> "date"
-            TIME -> "time"
+            TIME, TIME_WITH_TIMEZONE -> "time"
             TIMESTAMP_WITH_TIMEZONE, TIMESTAMP -> "timestamp"
             else -> "binary"
         }
