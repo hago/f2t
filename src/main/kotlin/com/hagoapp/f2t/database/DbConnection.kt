@@ -302,37 +302,37 @@ abstract class DbConnection : Closeable {
         }
         TIME, TIME_WITH_TIMEZONE -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setTime(i, Time.valueOf(value as LocalTime))
+            if (newValue != null) stmt.setTime(i, Time.valueOf(newValue as LocalTime))
             else stmt.setNull(i, Types.TIME_WITH_TIMEZONE)
         }
         CHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.CHAR)
         }
         NCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.NCHAR)
         }
         VARCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.VARCHAR)
         }
         NVARCHAR -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.NVARCHAR)
         }
         CLOB -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.CLOB)
         }
         NCLOB -> { stmt: PreparedStatement, i: Int, value: Any? ->
             val newValue = transformer.invoke(value)
-            if (newValue != null) stmt.setString(i, value.toString())
+            if (newValue != null) stmt.setString(i, newValue.toString())
             else stmt.setNull(i, Types.NCLOB)
         }
         else -> { stmt: PreparedStatement, i: Int, value: Any? ->
