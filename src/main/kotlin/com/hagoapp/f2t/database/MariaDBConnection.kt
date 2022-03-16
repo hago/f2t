@@ -220,6 +220,7 @@ class MariaDBConnection : DbConnection() {
         tm.maxLength = extra.first
         tm.precision = extra.second
         tm.scale = extra.third
+        columnDefinition.databaseTypeName = typeName
     }
 
     private fun parseModifier(typeStr: String): Triple<Int, Int, Int> {

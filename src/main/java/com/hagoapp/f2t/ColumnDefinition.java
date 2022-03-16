@@ -17,6 +17,7 @@ public class ColumnDefinition {
     private String name;
     private JDBCType dataType = null;
     private final ColumnTypeModifier typeModifier = new ColumnTypeModifier();
+    private String databaseTypeName;
 
     public String getName() {
         return name;
@@ -36,6 +37,14 @@ public class ColumnDefinition {
 
     public ColumnTypeModifier getTypeModifier() {
         return typeModifier;
+    }
+
+    public String getDatabaseTypeName() {
+        return databaseTypeName;
+    }
+
+    public void setDatabaseTypeName(String databaseTypeName) {
+        this.databaseTypeName = databaseTypeName;
     }
 
     public ColumnDefinition() {

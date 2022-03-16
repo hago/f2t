@@ -218,6 +218,7 @@ class MsSqlConnection : DbConnection() {
                     val name = rs.getNString("name")
                     val type = mapDBTypeToJDBCType(rs.getNString("typeName"))
                     val colDef = ColumnDefinition(name, type)
+                    colDef.databaseTypeName = rs.getString(rs.getNString("typeName"))
                     colDef.typeModifier.maxLength = rs.getInt("max_length")
                     colDef.typeModifier.precision = rs.getInt("precision")
                     colDef.typeModifier.scale = rs.getInt("scale")

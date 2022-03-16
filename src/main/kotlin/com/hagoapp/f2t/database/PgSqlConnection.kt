@@ -191,6 +191,7 @@ class PgSqlConnection : DbConnection() {
                 while (rs.next()) {
                     val typeStr = rs.getString("typename")
                     val colDef = ColumnDefinition(rs.getString("attname"), mapDBTypeToJDBCType(typeStr))
+                    colDef.databaseTypeName = typeStr
                     colDef.typeModifier.isNullable = !rs.getBoolean("attnotnull")
                     val i = parseModifier(typeStr)
                     colDef.typeModifier.maxLength = i.first
