@@ -216,9 +216,10 @@ class MsSqlConnection : DbConnection() {
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
                     val name = rs.getNString("name")
-                    val type = mapDBTypeToJDBCType(rs.getNString("typeName"))
+                    val typeName = rs.getNString("typeName")
+                    val type = mapDBTypeToJDBCType(typeName)
                     val colDef = ColumnDefinition(name, type)
-                    colDef.databaseTypeName = rs.getString(rs.getNString("typeName"))
+                    colDef.databaseTypeName = typeName
                     colDef.typeModifier.maxLength = rs.getInt("max_length")
                     colDef.typeModifier.precision = rs.getInt("precision")
                     colDef.typeModifier.scale = rs.getInt("scale")
@@ -301,7 +302,8 @@ class MsSqlConnection : DbConnection() {
             typeName == "bigint" -> BIGINT
             typeName == "bit" -> BOOLEAN
             setOf("smallmoney", "money", "numeric").contains(typeName) -> NUMERIC
-            typeName.startsWith("datetime") || typeName.startsWith("smalldatetime") -> TIMESTAMP_WITH_TIMEZONE
+            typeName == "datetimeoffset" -> TIMESTAMP_WITH_TIMEZONE
+            typeName == "datetime" || typeName == "smalldatetime" || typeName == "datetime2" -> TIMESTAMP
             typeName == "time" -> TIME
             typeName == "date" -> DATE
             typeName == "float" -> FLOAT
@@ -351,8 +353,8 @@ class MsSqlConnection : DbConnection() {
             val fileCol = fileDefinition.columns.first { it.order == index }
             val dbCol = tableDefinition.columns.first { columnMatcher(it.name, fileCol.name) }
             val transformer = ColumnComparator.getTransformer(fileCol, dbCol)
-            if ((dbCol.dataType == TIMESTAMP) || (dbCol.dataType == TIMESTAMP_WITH_TIMEZONE))
-                { stmt: PreparedStatement, i: Int, value: Any? ->
+            when (dbCol.databaseTypeName) {
+                "datetimeoffset" -> { stmt: PreparedStatement, i: Int, value: Any? ->
                     val newValue = transformer.transform(value, fileCol, dbCol)
                     if (newValue != null) {
                         val st = stmt as SQLServerPreparedStatement
@@ -363,7 +365,8 @@ class MsSqlConnection : DbConnection() {
                         logger.warn("SQL Server datetimeoffset")
                     } else stmt.setNull(i, Types.CHAR)
                 }
-            else setter
+                else -> setter
+            }
         }
     }
 }
