@@ -30,7 +30,7 @@ class MostTypeDeterminer : DataTypeDeterminer {
             determineNumberType(types)
         } else if (types.contains(BOOLEAN)) {
             BOOLEAN
-        } else if (types.contains(TIMESTAMP_WITH_TIMEZONE)) {
+        } else if (types.contains(TIMESTAMP_WITH_TIMEZONE) || types.contains(TIMESTAMP)) {
             TIMESTAMP_WITH_TIMEZONE
         } else if (types.contains(DATE)) {
             DATE
