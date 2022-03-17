@@ -169,6 +169,7 @@ public class FileParser {
         @Override
         public void onColumnTypeDetermined(@NotNull List<FileColumnDefinition> columnDefinitionList) {
             columns = columnDefinitionList;
+            columns.sort(Comparator.comparingInt(FileColumnDefinition::getOrder));
         }
 
         @Override
