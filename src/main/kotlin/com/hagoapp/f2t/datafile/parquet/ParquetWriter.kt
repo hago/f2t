@@ -8,6 +8,8 @@ package com.hagoapp.f2t.datafile.parquet
 
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.DataTable
+import com.hagoapp.f2t.datafile.AvroField
+import com.hagoapp.f2t.datafile.SimpleAvroSchema
 import com.hagoapp.f2t.util.JDBCTypeUtils
 import com.hagoapp.f2t.util.ParquetTypeUtils
 import org.apache.avro.Schema;
@@ -19,20 +21,16 @@ class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private v
     private val schemaValue: String
 
     init {
-        val sb = StringBuilder().append("{")
-            .append(""" "type": "record", """)
-            .append(""" "name": "${config.name}", """)
-            .append(""" "fields": [ """)
-            .append(data.columnDefinition.joinToString(", ") { col ->
-                """{"name": "${col.name}", "type": "${ParquetTypeUtils.mapToAvroType(col.dataType)}"}"""
-            })
-            .append("]")
-        if (config.namespace != null) {
-            sb.append(",")
-            sb.append(""" "namespace": "${config.namespace}" """)
+        val schema = SimpleAvroSchema();
+        schema.type = "record"
+        schema.name = config.name
+        schema.fields = data.columnDefinition.map { col ->
+            val field = AvroField()
+            field.name = col.name
+            field.type = ParquetTypeUtils.mapToAvroType(col.dataType)
+            field
         }
-        sb.append("}")
-        schemaValue = sb.toString()
+        schemaValue = schema.toJson();
     }
 
     fun write() {
