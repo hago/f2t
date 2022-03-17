@@ -20,8 +20,11 @@ dependencies {
     implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
-    implementation group: 'org.apache.parquet', name: 'parquet-common', version: '1.12.2'
-    
+    implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.12.2'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2'
+    //implementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.12.2'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.3.2'
+
     implementation 'com.github.albfernandez:juniversalchardet:2.4.0'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
     implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
