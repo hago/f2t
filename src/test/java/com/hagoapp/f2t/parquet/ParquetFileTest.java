@@ -7,7 +7,9 @@
 package com.hagoapp.f2t.parquet;
 
 import com.google.gson.Gson;
+import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.F2TException;
+import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.csv.CsvTestConfig;
 import com.hagoapp.f2t.datafile.DataTypeDeterminer;
@@ -15,30 +17,51 @@ import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
 import com.hagoapp.f2t.datafile.MostTypeDeterminer;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriter;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriterConfig;
+import kotlin.Triple;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.List;
 
 public class ParquetFileTest {
 
-    private static final Map<String, DataTypeDeterminer> testConfigFiles = Map.of(
-            //"./tests/csv/shuihudata.json", new MostTypeDeterminer(),
-            "./tests/csv/shuihudata_least.json", new LeastTypeDeterminer()
+    private static final List<Triple<String, DataTypeDeterminer, String>> testConfigFiles = List.of(
+            new Triple<>("./tests/csv/shuihudata.json", new MostTypeDeterminer(), "shuihu_most.parquet"),
+            new Triple<>("./tests/csv/shuihudata_least.json", new LeastTypeDeterminer(), "shuihu_least.parquet")
     );
+
+    private static final Logger logger = F2TLogger.getLogger();
+
+    @AfterAll
+    public static void clean() {
+        if (!System.getProperties().contains(Constants.KEEP_PARQUET_FILE_GENERATED)) {
+            testConfigFiles.forEach(item -> {
+                try {
+                    var b = new File(item.getThird()).delete();
+                    logger.debug("{} deleted: {}", item.getThird(), b);
+                } catch (SecurityException ignored) {
+                    //
+                }
+            });
+        }
+    }
 
     @Test
     public void testWriteParquet() throws IOException, F2TException {
-        for (var item : testConfigFiles.entrySet()) {
-            var testConfigFile = item.getKey();
+        for (var item : testConfigFiles) {
+            var testConfigFile = item.getFirst();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
                 String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
                 var testConfig = new Gson().fromJson(json, CsvTestConfig.class);
                 var parser = new FileParser(testConfig.getFileInfo());
+                parser.setDefaultDeterminer(item.getSecond());
                 var data = parser.extractData();
-                var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", "x.parquet");
+                var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", item.getThird());
                 new ParquetWriter(data, pwConfig).write();
             }
         }
