@@ -7,18 +7,18 @@
 package com.hagoapp.f2t.parquet;
 
 import com.google.gson.Gson;
-import com.hagoapp.f2t.Constants;
-import com.hagoapp.f2t.F2TException;
-import com.hagoapp.f2t.F2TLogger;
-import com.hagoapp.f2t.FileParser;
+import com.hagoapp.f2t.*;
 import com.hagoapp.f2t.csv.CsvTestConfig;
 import com.hagoapp.f2t.datafile.DataTypeDeterminer;
 import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
 import com.hagoapp.f2t.datafile.MostTypeDeterminer;
+import com.hagoapp.f2t.datafile.parquet.FileInfoParquet;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriter;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriterConfig;
 import kotlin.Triple;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
@@ -52,6 +52,7 @@ public class ParquetFileTest {
     }
 
     @Test
+    @Order(value = 1)
     public void testWriteParquet() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
@@ -63,6 +64,28 @@ public class ParquetFileTest {
                 var data = parser.extractData();
                 var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", item.getThird());
                 new ParquetWriter(data, pwConfig).write();
+            }
+        }
+    }
+
+    @Test
+    @Order(value = 2)
+    public void testReadParquet() throws IOException, F2TException {
+        //var observer = new FileTestObserver();
+        for (var item : testConfigFiles) {
+            var testConfigFile = item.getFirst();
+            try (FileInputStream fis = new FileInputStream(testConfigFile)) {
+                String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                var testConfig = new Gson().fromJson(json, CsvTestConfig.class);
+                var parquet = item.getThird();
+                var parquetConfig = new FileInfoParquet();
+                parquetConfig.setFilename(parquet);
+                var parser = new FileParser(parquetConfig);
+                //parser.addObserver(observer);
+                parser.parse();
+                var d = parser.extractData();
+                Assertions.assertEquals(testConfig.getExpect().getColumnCount(), d.getColumnDefinition().size());
+                //Assertions.assertEquals(testConfig.getExpect().getRowCount(), d.getRows().size());
             }
         }
     }
