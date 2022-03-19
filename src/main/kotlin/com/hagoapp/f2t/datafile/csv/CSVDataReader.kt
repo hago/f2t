@@ -50,8 +50,7 @@ class CSVDataReader : Reader {
     private lateinit var columns: Map<Int, FileColumnDefinition>
     private var rowCount = -1
     private val logger = F2TLogger.getLogger()
-    private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
-    private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
+    private var defaultDeterminer = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
     private var predefinedFormats = listOf<CSVFormat>(
         CSVFormat.DEFAULT,
@@ -67,23 +66,14 @@ class CSVDataReader : Reader {
     )
     private lateinit var formats: List<CSVFormat>
 
-    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+    override fun setupTypeDeterminer(determiner: FileTypeDeterminer): Reader {
         defaultDeterminer = determiner
-        return this
-    }
-
-    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
-        columnDeterminerMap[column] = determiner
         return this
     }
 
     override fun skipTypeInfer(): Reader {
         skipTypeInfer = true
         return this
-    }
-
-    private fun getDeterminer(column: String): DataTypeDeterminer {
-        return columnDeterminerMap[column] ?: defaultDeterminer
     }
 
     override fun open(fileInfo: FileInfo) {
@@ -200,7 +190,7 @@ class CSVDataReader : Reader {
             }
             columns.values.forEach { column ->
                 //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
-                column.dataType = getDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
+                column.dataType = defaultDeterminer.determineType(column)
             }
             logger.debug("inferred: ${columns.values.associate { Pair(it.name, it.dataType) }}")
         }

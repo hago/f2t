@@ -9,7 +9,8 @@ package com.hagoapp.f2t.csv;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.FileTestObserver;
-import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.csv.FileInfoCsv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +45,7 @@ public class CsvOnDemandTest {
     public void readTest() throws IOException {
         observer.setRowDetail(true);
         var fp = new FileParser(info);
-        fp.setDefaultDeterminer(new LeastTypeDeterminer());
+        fp.setDeterminer(new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer()));
         fp.addObserver(observer);
         fp.parse();
         Assertions.assertTrue(observer.getRowCount() > 0);

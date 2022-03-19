@@ -9,9 +9,8 @@ package com.hagoapp.f2t.excel
 import com.google.gson.Gson
 import com.hagoapp.f2t.FileParser
 import com.hagoapp.f2t.FileTestObserver
-import com.hagoapp.f2t.datafile.DataTypeDeterminer
-import com.hagoapp.f2t.datafile.LeastTypeDeterminer
-import com.hagoapp.f2t.datafile.MostTypeDeterminer
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer
+import com.hagoapp.f2t.datafile.FileTypeDeterminer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -25,12 +24,12 @@ class TypedExcelReadTest {
 
     companion object {
         private val testConfigFiles = mapOf(
-            "./tests/excel/shuihudata_untyped.json" to MostTypeDeterminer(),
-            "./tests/excel/shuihudata_untyped_xls.json" to MostTypeDeterminer(),
-            "./tests/excel/shuihudata_untyped_least.json" to LeastTypeDeterminer(),
-            "./tests/excel/shuihudata_untyped_xls_least.json" to LeastTypeDeterminer()
+            "./tests/excel/shuihudata_untyped.json" to FileColumnTypeDeterminer.MostTypeDeterminer,
+            "./tests/excel/shuihudata_untyped_xls.json" to FileColumnTypeDeterminer.MostTypeDeterminer,
+            "./tests/excel/shuihudata_untyped_least.json" to FileColumnTypeDeterminer.LeastTypeDeterminer,
+            "./tests/excel/shuihudata_untyped_xls_least.json" to FileColumnTypeDeterminer.LeastTypeDeterminer
         )
-        private lateinit var testConfigs: Map<ExcelTestConfig, DataTypeDeterminer>
+        private lateinit var testConfigs: Map<ExcelTestConfig, FileColumnTypeDeterminer>
 
         @BeforeAll
         @JvmStatic
@@ -57,7 +56,7 @@ class TypedExcelReadTest {
         testConfigs.forEach { (testConfig, determiner) ->
             println("test ${testConfig.fileInfo.filename} using $determiner")
             val parser = FileParser(testConfig.fileInfo)
-            parser.defaultDeterminer = determiner
+            parser.determiner = FileTypeDeterminer(determiner)
             parser.addObserver(observer)
             parser.parse()
             Assertions.assertEquals(testConfig.expect.rowCount, observer.rowCount)
@@ -74,7 +73,7 @@ class TypedExcelReadTest {
         testConfigs.forEach { (testConfig, determiner) ->
             println("test ${testConfig.fileInfo.filename} using $determiner")
             val parser = FileParser(testConfig.fileInfo)
-            parser.defaultDeterminer = determiner
+            parser.determiner = FileTypeDeterminer(determiner)
             parser.addObserver(observer)
             val table = parser.extractData()
             Assertions.assertEquals(testConfig.expect.rowCount, table.rows.size)

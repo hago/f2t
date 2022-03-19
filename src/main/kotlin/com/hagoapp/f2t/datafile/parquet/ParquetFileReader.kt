@@ -27,8 +27,7 @@ import java.time.temporal.Temporal
 class ParquetFileReader : Reader {
     private lateinit var parquetFile: FileInfoParquet
     private lateinit var columns: List<FileColumnDefinition>
-    private val columnDeterminerMap = mutableMapOf<String, DataTypeDeterminer>()
-    private var defaultDeterminer: DataTypeDeterminer = LeastTypeDeterminer()
+    private var defaultDeterminer = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
     private var currentLine = 0
     private var rowCount = -1
@@ -150,8 +149,7 @@ class ParquetFileReader : Reader {
 
     override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
         columns.forEach { col ->
-            val determiner = columnDeterminerMap[col.name] ?: defaultDeterminer
-            col.dataType = determiner.determineTypes(col.possibleTypes, col.typeModifier)
+            col.dataType = defaultDeterminer.determineType(col)
         }
         return columns
     }
@@ -160,13 +158,8 @@ class ParquetFileReader : Reader {
         return setOf(FileInfoParquet.FILE_TYPE_PARQUET)
     }
 
-    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+    override fun setupTypeDeterminer(determiner: FileTypeDeterminer): Reader {
         this.defaultDeterminer = determiner
-        return this
-    }
-
-    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
-        columnDeterminerMap[column] = determiner
         return this
     }
 

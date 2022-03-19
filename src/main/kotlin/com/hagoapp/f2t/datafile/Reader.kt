@@ -15,7 +15,6 @@ interface Reader : Closeable, Iterator<DataRow> {
     fun findColumns(): List<FileColumnDefinition>
     fun inferColumnTypes(sampleRowCount: Long = -1): List<FileColumnDefinition>
     fun getSupportedFileType(): Set<Int>
-    fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader
-    fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader
+    fun setupTypeDeterminer(determiner: FileTypeDeterminer): Reader
     fun skipTypeInfer(): Reader
 }

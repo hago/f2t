@@ -9,9 +9,8 @@ package com.hagoapp.f2t.csv;
 
 import com.google.gson.Gson;
 import com.hagoapp.f2t.*;
-import com.hagoapp.f2t.datafile.DataTypeDeterminer;
-import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
-import com.hagoapp.f2t.datafile.MostTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,12 +27,14 @@ import java.util.stream.Collectors;
 
 public class CsvReadTest {
 
-    private static final Map<String, DataTypeDeterminer> testConfigFiles = Map.of(
-            "./tests/csv/shuihudata.json", new MostTypeDeterminer(),
-            "./tests/csv/shuihudata_least.json", new LeastTypeDeterminer()
+    private static final Map<String, FileColumnTypeDeterminer> testConfigFiles = Map.of(
+            "./tests/csv/shuihudata.json",
+            FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(),
+            "./tests/csv/shuihudata_least.json",
+            FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer()
     );
 
-    private static final Map<CsvTestConfig, DataTypeDeterminer> testConfigs = new HashMap<>();
+    private static final Map<CsvTestConfig, FileTypeDeterminer> testConfigs = new HashMap<>();
     private static final Logger logger = F2TLogger.getLogger();
 
     @BeforeAll
@@ -48,7 +49,7 @@ public class CsvReadTest {
                 logger.debug(realCsv);
                 testConfig.getFileInfo().setFilename(realCsv);
                 logger.debug(testConfig.toString());
-                testConfigs.put(testConfig, item.getValue());
+                testConfigs.put(testConfig, new FileTypeDeterminer(item.getValue()));
             }
         }
     }
@@ -61,7 +62,7 @@ public class CsvReadTest {
             logger.debug("start csv read test using {}", determiner.getClass().getCanonicalName());
             observer.setRowDetail(true);
             FileParser parser = new FileParser(testConfig.getFileInfo());
-            parser.setDefaultDeterminer(determiner);
+            parser.setDeterminer(determiner);
             parser.addObserver(observer);
             parser.parse();
             Assertions.assertEquals(testConfig.getExpect().getRowCount(), observer.getRowCount());
@@ -83,7 +84,7 @@ public class CsvReadTest {
             var testConfig = item.getKey();
             var determiner = item.getValue();
             FileParser parser = new FileParser(testConfig.getFileInfo());
-            parser.setDefaultDeterminer(determiner);
+            parser.setDeterminer(determiner);
             parser.addObserver(observer);
             var table = parser.extractData();
             Assertions.assertEquals(table.getRows().size(), testConfig.getExpect().getRowCount());

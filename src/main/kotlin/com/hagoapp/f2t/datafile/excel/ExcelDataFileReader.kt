@@ -32,8 +32,7 @@ class ExcelDataFileReader : Reader {
     private lateinit var sheet: Sheet
     private var currentRow = 0
     private lateinit var columns: Map<Int, FileColumnDefinition>
-    private var determiner: DataTypeDeterminer? = null
-    private val columnDeterminer = mutableMapOf<String, DataTypeDeterminer>()
+    private var determiner = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
 
     override fun findColumns(): List<FileColumnDefinition> {
@@ -64,8 +63,7 @@ class ExcelDataFileReader : Reader {
                 }
             }
             columns.values.forEach { column ->
-                column.dataType =
-                    getTypeDeterminer(column.name).determineTypes(column.possibleTypes, column.typeModifier)
+                column.dataType = determiner.determineType(column)
             }
         }
         return columns.values.sortedBy { it.name }
@@ -75,24 +73,14 @@ class ExcelDataFileReader : Reader {
         return setOf(FileInfoExcel.FILE_TYPE_EXCEL, FileInfoExcelX.FILE_TYPE_EXCEL_OPEN_XML)
     }
 
-    override fun setupTypeDeterminer(determiner: DataTypeDeterminer): Reader {
+    override fun setupTypeDeterminer(determiner: FileTypeDeterminer): Reader {
         this.determiner = determiner
-        return this
-    }
-
-    override fun setupColumnTypeDeterminer(column: String, determiner: DataTypeDeterminer): Reader {
-        columnDeterminer[column] = determiner
         return this
     }
 
     override fun skipTypeInfer(): Reader {
         skipTypeInfer = true
         return this
-    }
-
-    private fun getTypeDeterminer(column: String): DataTypeDeterminer {
-        return columnDeterminer[column] ?: determiner
-        ?: throw java.lang.UnsupportedOperationException("No type determiner defined")
     }
 
     override fun close() {

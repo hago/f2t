@@ -10,7 +10,8 @@ package com.hagoapp.f2t.excel;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.FileTestObserver;
-import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.excel.FileInfoExcel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +45,7 @@ public class ExcelOnDemandTest {
     public void readTest() throws IOException {
         observer.setRowDetail(true);
         var fp = new FileParser(info);
-        fp.setDefaultDeterminer(new LeastTypeDeterminer());
+        fp.setDeterminer(new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer()));
         fp.addObserver(observer);
         fp.parse();
         Assertions.assertTrue(observer.getRowCount() > 0);

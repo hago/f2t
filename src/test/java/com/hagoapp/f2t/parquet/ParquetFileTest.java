@@ -9,9 +9,8 @@ package com.hagoapp.f2t.parquet;
 import com.google.gson.Gson;
 import com.hagoapp.f2t.*;
 import com.hagoapp.f2t.csv.CsvTestConfig;
-import com.hagoapp.f2t.datafile.DataTypeDeterminer;
-import com.hagoapp.f2t.datafile.LeastTypeDeterminer;
-import com.hagoapp.f2t.datafile.MostTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
+import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.parquet.FileInfoParquet;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriter;
 import com.hagoapp.f2t.datafile.parquet.ParquetWriterConfig;
@@ -30,9 +29,9 @@ import java.util.List;
 
 public class ParquetFileTest {
 
-    private static final List<Triple<String, DataTypeDeterminer, String>> testConfigFiles = List.of(
-            new Triple<>("./tests/csv/shuihudata.json", new MostTypeDeterminer(), "shuihu_most.parquet"),
-            new Triple<>("./tests/csv/shuihudata_least.json", new LeastTypeDeterminer(), "shuihu_least.parquet")
+    private static final List<Triple<String, FileColumnTypeDeterminer, String>> testConfigFiles = List.of(
+            new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
+            new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
     private static final Logger logger = F2TLogger.getLogger();
@@ -60,7 +59,7 @@ public class ParquetFileTest {
                 String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
                 var testConfig = new Gson().fromJson(json, CsvTestConfig.class);
                 var parser = new FileParser(testConfig.getFileInfo());
-                parser.setDefaultDeterminer(item.getSecond());
+                parser.setDeterminer(new FileTypeDeterminer(item.getSecond()));
                 var data = parser.extractData();
                 var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", item.getThird());
                 new ParquetWriter(data, pwConfig).write();

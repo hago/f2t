@@ -29,19 +29,15 @@ public class FileParser {
     private final List<ParseObserver> observers = new ArrayList<>();
     private long rowCountToInferType = -1;
     private final Logger logger = F2TLogger.getLogger();
-    private final Map<String, DataTypeDeterminer> columnDeterminerMap = new HashMap<>();
-    private DataTypeDeterminer defaultDeterminer = new LeastTypeDeterminer();
+    private FileTypeDeterminer determiner =
+            new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer());
 
-    public DataTypeDeterminer getDefaultDeterminer() {
-        return defaultDeterminer;
+    public FileTypeDeterminer getDeterminer() {
+        return determiner;
     }
 
-    public void setDefaultDeterminer(DataTypeDeterminer defaultDeterminer) {
-        this.defaultDeterminer = defaultDeterminer;
-    }
-
-    public void setupColumnDeterminer(String column, DataTypeDeterminer determiner) {
-        columnDeterminerMap.put(column, determiner);
+    public void setDeterminer(FileTypeDeterminer determiner) {
+        this.determiner = determiner;
     }
 
     public long getRowCountToInferType() {
@@ -80,8 +76,7 @@ public class FileParser {
     public void parse(FileParserOption option) {
         ParseResult result = new ParseResult();
         try (Reader reader = ReaderFactory.Companion.getReader(fileInfo)) {
-            reader.setupTypeDeterminer(defaultDeterminer);
-            columnDeterminerMap.forEach(reader::setupColumnTypeDeterminer);
+            reader.setupTypeDeterminer(determiner);
             notifyObserver("onParseStart", fileInfo);
             reader.open(fileInfo);
             Integer rowNo = reader.getRowCount();
