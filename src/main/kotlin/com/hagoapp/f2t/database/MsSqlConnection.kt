@@ -20,6 +20,7 @@ import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.math.*
 
 class MsSqlConnection : DbConnection() {
 
@@ -367,6 +368,44 @@ class MsSqlConnection : DbConnection() {
                 }
                 else -> setter
             }
+        }
+    }
+
+    override fun readData(table: TableName, columns: List<ColumnDefinition>, limit: Int): List<List<Any?>> {
+        val sqlBuilder = StringBuilder()
+        val validColumns = columns.ifEmpty { getExistingTableDefinition(table).columns }
+        val columnSelection = validColumns.joinToString(", ") { normalizeName(it.name) }
+        sqlBuilder.append("select top $limit ").append(columnSelection).append(" from ").append(getFullTableName(table))
+        val ret = mutableListOf<List<Any?>>()
+        println(sqlBuilder)
+        connection.prepareStatement(sqlBuilder.toString()).use { stmt ->
+            //stmt.setInt(1, limit)
+            stmt.executeQuery().use { rs ->
+                while (rs.next()) {
+                    val row = validColumns.map { col ->
+                        createDataGetter(col.dataType).getTypedValue(rs, col.name)
+                    }
+                    ret.add(row)
+                }
+                return ret
+            }
+        }
+    }
+
+    override fun createDataGetter(jdbcType: JDBCType): DbDataGetter<*> {
+        return when (jdbcType) {
+            FLOAT -> DbDataGetter<Double> { resultSet: ResultSet, column: String ->
+                val v = resultSet.getDouble(column)
+                val intPart = v.roundToLong()
+                val remain = v - intPart.toDouble()
+                val digits = log10(v).roundToInt()
+                if (digits >= 15) v
+                else {
+                    val factor = (10.0).pow(15 - digits)
+                    intPart.toDouble() + round(remain * factor) / factor
+                }
+            }
+            else -> super.createDataGetter(jdbcType)
         }
     }
 }

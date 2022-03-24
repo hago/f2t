@@ -325,4 +325,36 @@ abstract class DbConnection : Closeable {
         }
     }
 
+    open fun readData(
+        table: TableName,
+        columns: List<ColumnDefinition> = listOf(),
+        limit: Int = 100
+    ): List<List<Any?>> {
+        throw UnsupportedOperationException(
+            """
+            method "readData(table: TableName, columns: List<String> = listOf(), limit: Int = 100): List<List<Any?>>"
+            not implemented in ${this::class.java.canonicalName}
+            """
+        )
+    }
+
+    protected open fun createDataGetter(jdbcType: JDBCType): DbDataGetter<*> {
+        return when (jdbcType) {
+            CHAR, VARCHAR, CLOB -> DbDataGetter.StringDataGetter
+            NCHAR, NVARCHAR, NCLOB -> DbDataGetter.NStringDataGetter
+            INTEGER -> DbDataGetter.IntDataGetter
+            TINYINT -> DbDataGetter.TinyIntDataGetter
+            SMALLINT -> DbDataGetter.ShortDataGetter
+            BIGINT -> DbDataGetter.LongDataGetter
+            FLOAT -> DbDataGetter.FloatDataGetter
+            DOUBLE -> DbDataGetter.DoubleDataGetter
+            DECIMAL -> DbDataGetter.DecimalDataGetter
+            BOOLEAN -> DbDataGetter.BooleanDataGetter
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> DbDataGetter.TimestampDataGetter
+            DATE -> DbDataGetter.DateDataGetter
+            TIME, TIME_WITH_TIMEZONE -> DbDataGetter.TimeDataGetter
+            BINARY, VARBINARY -> DbDataGetter.BINARYDataGetter
+            else -> DbDataGetter.StringDataGetter
+        }
+    }
 }
