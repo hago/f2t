@@ -396,13 +396,11 @@ class MsSqlConnection : DbConnection() {
         return when (jdbcType) {
             FLOAT -> DbDataGetter<Double> { resultSet: ResultSet, column: String ->
                 val v = resultSet.getDouble(column)
-                val intPart = v.roundToLong()
-                val remain = v - intPart.toDouble()
                 val digits = log10(v).roundToInt()
                 if (digits >= 15) v
                 else {
                     val factor = (10.0).pow(15 - digits)
-                    intPart.toDouble() + round(remain * factor) / factor
+                    round(v * factor) / factor
                 }
             }
             else -> super.createDataGetter(jdbcType)
