@@ -11,6 +11,10 @@ import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.lang.reflect.Constructor
 
+/**
+ * This is a factory class to create data file readers. It will search any descendants of <code>Reader</code> in default
+ * and additional packages which could be registered by calling <code>registerPackageName</code> method.
+ */
 class ReaderFactory {
 
     companion object {
