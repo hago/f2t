@@ -7,7 +7,12 @@
 
 package com.hagoapp.f2t.database.config;
 
-public class MariaDbConfig extends DbConfig {
+/**
+ * Configuration for MariaDB / MySQL database.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */public class MariaDbConfig extends DbConfig {
     public static final String DATABASE_TYPE_MARIADB = "MariaDB";
     private static final String STORE_ENGINE_INNODB = "innodb";
     private String host;

@@ -22,6 +22,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The database configuration factory to read serialized configuration file then creates configuration objects.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 public class DbConfigReader {
 
     private final static Map<String, Class<? extends DbConfig>> dbConfigMap = new HashMap<>();
@@ -47,6 +53,13 @@ public class DbConfigReader {
         }
     }
 
+    /**
+     * Read configuration objects from serialized JSON file.
+     *
+     * @param filename JSON file name
+     * @return database configuration object
+     * @throws F2TException if anything wrong
+     */
     public static DbConfig readConfig(String filename) throws F2TException {
         try (FileInputStream fis = new FileInputStream(filename)) {
             return readConfig(fis);
@@ -55,6 +68,13 @@ public class DbConfigReader {
         }
     }
 
+    /**
+     * Read configuration objects from a stream containing configuration in JSON.
+     *
+     * @param stream JSON stream
+     * @return database configuration object
+     * @throws F2TException if anything wrong
+     */
     public static DbConfig readConfig(InputStream stream) throws F2TException {
         try {
             return readConfig(stream.readAllBytes());
@@ -63,10 +83,24 @@ public class DbConfigReader {
         }
     }
 
+    /**
+     * Read configuration objects from byte sequences containing configuration in JSON.
+     *
+     * @param content JSON bytes
+     * @return database configuration object
+     * @throws F2TException if anything wrong
+     */
     public static DbConfig readConfig(byte[] content) throws F2TException {
         return json2DbConfig(new String(content));
     }
 
+    /**
+     * Read configuration objects from string containing configuration in JSON.
+     *
+     * @param json JSON file name
+     * @return database configuration object
+     * @throws F2TException if anything wrong
+     */
     public static DbConfig json2DbConfig(String json) throws F2TException {
         Gson gson = new GsonBuilder().create();
         DbConfig baseConfig = gson.fromJson(json, DbConfig.class);

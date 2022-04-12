@@ -14,16 +14,32 @@ package com.hagoapp.f2t.database.config;
 
 import com.hagoapp.f2t.JsonStringify;
 
+/**
+ * The basic configuration for database connections.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 public class DbConfig implements JsonStringify {
     protected String dbType;
     protected String username;
     protected String password;
     protected String databaseName;
 
+    /**
+     * Database type or brand name, an identifier for a specified database.
+     *
+     * @return database type string
+     */
     public String getDbType() {
         return dbType;
     }
 
+    /**
+     * Database username.
+     *
+     * @return username
+     */
     public String getUsername() {
         return username;
     }
@@ -32,6 +48,11 @@ public class DbConfig implements JsonStringify {
         this.username = username;
     }
 
+    /**
+     * Database password.
+     *
+     * @return password
+     */
     public String getPassword() {
         return password;
     }
@@ -40,6 +61,11 @@ public class DbConfig implements JsonStringify {
         this.password = password;
     }
 
+    /**
+     * Database name.
+     *
+     * @return database name
+     */
     public String getDatabaseName() {
         return databaseName;
     }

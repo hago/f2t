@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.datafile;
 
+/**
+ * Simple definition of a field from Avro file schema.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 public class AvroField {
     private String name;
     private String type;

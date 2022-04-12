@@ -11,6 +11,12 @@ import com.hagoapp.f2t.JsonStringify;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Simple definition of an Avro file schema.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 public class SimpleAvroSchema implements JsonStringify {
     private String type;
     private String name;

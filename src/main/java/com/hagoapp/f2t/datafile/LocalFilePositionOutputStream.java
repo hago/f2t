@@ -12,6 +12,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+/**
+ * A simple implementation of Hadoop's <code>PositionOutputStream</code>.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 public class LocalFilePositionOutputStream extends PositionOutputStream {
 
     private final FileOutputStream fileOutputStream;
