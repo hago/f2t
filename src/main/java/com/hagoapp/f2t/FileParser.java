@@ -15,6 +15,11 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+/**
+ * The generic event driven file parsing process. It accepts file information, create appropriate file reader and
+ * try to determine its schema and read each data line until end. All registered observer can be notified for each
+ * action. See <code>F2TProcess</code> as reference to see how to deal with notifications.
+ */
 public class FileParser {
 
     private static final Map<String, Method> methods = new HashMap<>();
@@ -32,26 +37,57 @@ public class FileParser {
     private FileTypeDeterminer determiner =
             new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer());
 
+    /**
+     * Get current file column type determiner which will determine data type of each column.
+     *
+     * @return current file column type determiner
+     */
     public FileTypeDeterminer getDeterminer() {
         return determiner;
     }
 
+    /**
+     * Set the <code>FileTypeDeterminer</code> instance to be used to help determine column types.
+     *
+     * @param determiner file column type determiner
+     */
     public void setDeterminer(FileTypeDeterminer determiner) {
         this.determiner = determiner;
     }
 
+    /**
+     * Get the count of rows required to read to determine data type. A non-positive value indicated all rows.
+     *
+     * @return count of rows required to read to determine data type
+     */
     public long getRowCountToInferType() {
         return rowCountToInferType;
     }
 
+    /**
+     * Set the count of rows required to read to determine data type. A non-positive value indicated all rows.
+     *
+     * @param rowCountToInferType count of rows required to read to determine data type
+     */
     public void setRowCountToInferType(long rowCountToInferType) {
         this.rowCountToInferType = rowCountToInferType;
     }
 
+    /**
+     * Get the file information passed when constructing this instance.
+     *
+     * @return file information
+     */
     public FileInfo getFileInfo() {
         return fileInfo;
     }
 
+    /**
+     * The constructor.
+     *
+     * @param fileInfo file information
+     * @throws IOException if file not exists or error occurs while reading
+     */
     public FileParser(FileInfo fileInfo) throws IOException {
         if (fileInfo == null) {
             throw new IOException("null file");
@@ -63,16 +99,29 @@ public class FileParser {
         }
     }
 
+    /**
+     * Register an observer.
+     *
+     * @param observer observer
+     */
     public void addObserver(ParseObserver observer) {
         if (observer != null) {
             observers.add(observer);
         }
     }
 
+    /**
+     * Run the parse process with default options.
+     */
     public void parse() {
         parse(new FileParserOption());
     }
 
+    /**
+     * Run the parse process with given options.
+     *
+     * @param option parse options
+     */
     public void parse(FileParserOption option) {
         ParseResult result = new ParseResult();
         try (Reader reader = ReaderFactory.Companion.getReader(fileInfo)) {
