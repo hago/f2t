@@ -6,6 +6,15 @@
 
 package com.hagoapp.f2t;
 
+/**
+ * A container for 5 associated objects.
+ *
+ * @param <A> first object
+ * @param <B> second object
+ * @param <C> third object
+ * @param <D> fourth object
+ * @param <E> fifth object
+ */
 public class Quintet<A, B, C, D, E> extends Quartet<A, B, C, D> {
     private E fifth;
 

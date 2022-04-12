@@ -7,7 +7,7 @@
 package com.hagoapp.f2t;
 
 /**
- * A container for 4 objects as a set.
+ * A container for 4 associated objects.
  *
  * @param <A> first object
  * @param <B> second object
