@@ -18,21 +18,46 @@ class ReaderFactory {
         private val logger = F2TLogger.getLogger()
 
         init {
-            val r = Reflections(F2TException::class.java.packageName, Scanners.SubTypes)
-            r.getSubTypesOf(Reader::class.java).forEach { clz ->
-                val constructor = clz.getConstructor()
-                val template = constructor.newInstance()
-                template.getSupportedFileType().forEach { fileType ->
-                    readerMap[fileType] = constructor
-                    logger.info("Data file reader registered for type $fileType")
+            registerPackageName(F2TException::class.java.packageName)
+        }
+
+        /**
+         * Register package names to find data file readers.
+         *
+         * @param packageNames  package names to search in
+         */
+        fun registerPackageName(vararg packageNames: String) {
+            for (packageName in packageNames) {
+                val r = Reflections(packageName, Scanners.SubTypes)
+                r.getSubTypesOf(Reader::class.java).forEach { clz ->
+                    val constructor = clz.getConstructor()
+                    val template = constructor.newInstance()
+                    template.getSupportedFileType().forEach { fileType ->
+                        readerMap[fileType] = constructor
+                        logger.info("Data file reader registered for type $fileType")
+                    }
                 }
             }
         }
 
+        /**
+         * Build a file reader according file information config and infer column types automatically.
+         *
+         * @param fileInfo Descendants of <Code>FileInfo</code> config
+         * @return Reader instance
+         */
         fun getReader(fileInfo: FileInfo): Reader {
             return getReader(fileInfo, false)
         }
 
+        /**
+         * Build a file reader according file information config and may skip column types inferring according
+         * invoker's intention.
+         *
+         * @param fileInfo Descendants of <Code>FileInfo</code> config
+         * @param skipTypeInfer whether to skip type inferring
+         * @return Reader instance
+         */
         fun getReader(fileInfo: FileInfo, skipTypeInfer: Boolean = false): Reader {
             val constructor =
                 readerMap[fileInfo.type] ?: throw F2TException("file type ${fileInfo.type} is not supported")
