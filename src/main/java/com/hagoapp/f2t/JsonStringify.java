@@ -12,6 +12,9 @@ import com.google.gson.GsonBuilder;
 /**
  * A convenient interface to support object serialization to JSON. The default implementation is using
  * <code>com.google.gson.Gson</code>.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
  */
 public interface JsonStringify {
     /**

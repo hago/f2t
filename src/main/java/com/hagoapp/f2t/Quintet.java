@@ -14,6 +14,8 @@ package com.hagoapp.f2t;
  * @param <C> third object
  * @param <D> fourth object
  * @param <E> fifth object
+ * @author Chaojun Sun
+ * @since 0.6
  */
 public class Quintet<A, B, C, D, E> extends Quartet<A, B, C, D> {
     private E fifth;

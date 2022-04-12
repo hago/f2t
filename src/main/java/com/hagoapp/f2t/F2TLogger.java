@@ -9,7 +9,18 @@ package com.hagoapp.f2t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The logger used by F2T library, which is basically an instance of <Code>org.slf4j.Logger</Code>.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 public class F2TLogger {
+    /**
+     * Get the logger instance.
+     *
+     * @return logger
+     */
     public static Logger getLogger() {
         return LoggerFactory.getLogger(F2TLogger.class.getPackageName());
     }

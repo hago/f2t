@@ -19,6 +19,9 @@ import java.util.*;
  * The generic event driven file parsing process. It accepts file information, create appropriate file reader and
  * try to determine its schema and read each data line until end. All registered observer can be notified for each
  * action. See <code>F2TProcess</code> as reference to see how to deal with notifications.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
  */
 public class FileParser {
 

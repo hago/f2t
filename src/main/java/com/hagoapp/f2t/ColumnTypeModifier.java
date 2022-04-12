@@ -9,7 +9,8 @@ package com.hagoapp.f2t;
 /**
  * Additional information for a column type definition.
  *
- * @author suncjs
+ * @author Chaojun Sun
+ * @since 0.6
  */
 public class ColumnTypeModifier {
     private int maxLength = 0;

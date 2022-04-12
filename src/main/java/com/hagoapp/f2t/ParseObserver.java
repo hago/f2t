@@ -15,6 +15,9 @@ import java.util.List;
 /**
  * An interface to define behaviors those a watcher for data file parsing should have. Each notification has
  * and empty implementation. Any class implemented this interface is allowed to implement only interested actions.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
  */
 public interface ParseObserver {
 

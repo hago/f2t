@@ -13,6 +13,9 @@ package com.hagoapp.f2t;
  * @param <B> second object
  * @param <C> third object
  * @param <D> fourth object
+ *
+ * @author Chaojun Sun
+ * @since 0.6
  */
 public class Quartet<A, B, C, D> {
     private A first;

@@ -10,6 +10,9 @@ import com.hagoapp.f2t.datafile.ParseResult;
 
 /**
  * An interface to be watch the progress of running of a <code>D2TProcess</code> object.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
  */
 public interface ProgressNotify {
     /**
