@@ -11,9 +11,18 @@ import org.apache.avro.Schema.Type
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Utility class for parquet file, using apache impl.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class ParquetTypeUtils {
     companion object {
 
+        /**
+         * This interface is for user to define their own converter from Avro type to JDBC Type.
+         */
         interface TypeToJDBCTypeMapper {
             fun mapToJDBCTypes(): Set<JDBCType>
             fun supportedTypes(): Set<Type>
@@ -21,12 +30,23 @@ class ParquetTypeUtils {
 
         private val extraMappers = mutableMapOf<Type, TypeToJDBCTypeMapper>()
 
+        /**
+         * Register customized avro type to JDBC type mapper.
+         *
+         * @param mapper customized mapper
+         */
         fun registerExtraMapper(mapper: TypeToJDBCTypeMapper) {
             for (x in mapper.supportedTypes()) {
                 extraMappers[x] = mapper
             }
         }
 
+        /**
+         * Map JDBCType to corresponding avro type.
+         *
+         * @param input JDBC type
+         * @return avro type name
+         */
         fun mapToAvroType(input: JDBCType): String {
             return when (input) {
                 TINYINT, SMALLINT, INTEGER -> "int"
@@ -41,6 +61,12 @@ class ParquetTypeUtils {
             }
         }
 
+        /**
+         * Map avro type to JDBC type.
+         *
+         * @param input avro type
+         * @return JDBC type
+         */
         fun mapAvroTypeToJDBCType(input: Type): JDBCType {
             return when (input) {
                 Type.INT -> INTEGER
@@ -54,6 +80,14 @@ class ParquetTypeUtils {
             }
         }
 
+        /**
+         * Guess all possible JDBC types those can be used to present value in given avro field. It will consider
+         * explicit avro type defined in avro field, then consider the actual value if the avro type is generic
+         * string.
+         *
+         * @param field avro field
+         * @return set of possible JDBC types
+         */
         fun guessJDBCType(field: Field): Set<JDBCType> {
             val type = field.schema().type
             val ret = mutableSetOf<JDBCType>()

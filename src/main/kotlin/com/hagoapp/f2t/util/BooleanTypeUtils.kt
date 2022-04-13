@@ -6,11 +6,23 @@
 
 package com.hagoapp.f2t.util
 
+/**
+ * Utility class to deal with boolean type.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class BooleanTypeUtils {
     companion object {
         private val possibleTrueValues = listOf("true", "yes", "y", "t")
         private val possibleFalseValues = listOf("false", "no", "n", "f")
 
+        /**
+         * Check whether the input words could be understood as positive or negative.
+         *
+         * @param value text
+         * @return false if words is "false", "no", "n" or "f", otherwise true
+         */
         fun isPossibleBooleanValue(value: String?): Boolean {
             val x = value?.trim()
             return when {
@@ -21,6 +33,12 @@ class BooleanTypeUtils {
             }
         }
 
+        /**
+         * Convert a string to boolean.
+         *
+         * @param value input text
+         * @return corresponding boolean value
+         */
         fun toBoolean(value: String): Boolean {
             val x = value.trim()
             return when {

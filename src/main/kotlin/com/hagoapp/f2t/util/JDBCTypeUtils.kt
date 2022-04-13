@@ -10,9 +10,22 @@ import com.hagoapp.util.EncodingUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Utility class to deal with JDBC types.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class JDBCTypeUtils {
     companion object {
 
+        /**
+         * Combine 2 sets of JDBC types into one.
+         *
+         * @param a set a
+         * @param b set b
+         * @return union set
+         */
         fun combinePossibleTypes(a: Set<JDBCType>, b: Set<JDBCType>): Set<JDBCType> {
             return when {
                 a.isEmpty() -> b
@@ -24,6 +37,14 @@ class JDBCTypeUtils {
             }
         }
 
+        /**
+         * Convert source value to specified type. Only when value is in string type, conversion happens.
+         * Otherwise the input value is returned.
+         *
+         * @param value value
+         * @param outType: type of returned value
+         * @return typed value
+         */
         fun toTypedValue(value: Any?, outType: JDBCType): Any? {
             return when (value) {
                 null -> null
@@ -55,6 +76,12 @@ class JDBCTypeUtils {
             }
         }
 
+        /**
+         * Guess what kinds of types the input value in string type could be.
+         *
+         * @param value input string
+         * @return collection of possible types
+         */
         fun guessTypes(value: String?): List<JDBCType> {
             val dl = mutableListOf<JDBCType>()
             if (value == null) {
@@ -77,6 +104,12 @@ class JDBCTypeUtils {
             return dl
         }
 
+        /**
+         * Guess what kinds of date / time types the input value in string type could be.
+         *
+         * @param value input string
+         * @return collection of possible types
+         */
         private fun guessDateTimeTypes(value: String): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (DateTimeTypeUtils.isDateTime(value)) {
@@ -91,10 +124,22 @@ class JDBCTypeUtils {
             return ret
         }
 
+        /**
+         * Guess what kinds of integral types the input value in string type could be.
+         *
+         * @param value input string
+         * @return collection of possible types
+         */
         private fun guessIntTypes(value: String): Set<JDBCType> {
             return guessIntTypes(value.toLongOrNull())
         }
 
+        /**
+         * Guess what kinds of integral types the input value in long type could be.
+         *
+         * @param l input string
+         * @return collection of possible types
+         */
         fun guessIntTypes(l: Long?): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (l != null) {
@@ -124,6 +169,12 @@ class JDBCTypeUtils {
             return ret
         }
 
+        /**
+         * Guess what kinds of float types the input value in double type could be.
+         *
+         * @param value input string
+         * @return collection of possible types
+         */
         fun guessFloatTypes(value: Double?): Set<JDBCType> {
             val ret = mutableSetOf<JDBCType>()
             if (value != null) {
