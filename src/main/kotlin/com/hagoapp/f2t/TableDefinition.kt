@@ -6,8 +6,6 @@
 
 package com.hagoapp.f2t
 
-import java.sql.JDBCType
-
 /**
  * This class represents definition of a table.
  */
@@ -18,36 +16,6 @@ class TableDefinition<T : ColumnDefinition>(
 ) {
 
     var uniqueConstraints: Set<TableUniqueDefinition<T>> = mutableSetOf()
-
-    fun diff(other: TableDefinition<T>): TableDefinitionDifference {
-        val ret = diff(other.columns)
-        ret.hasIdenticalPrimaryKey = primaryKey?.compare(other.primaryKey)
-        ret.hasIdenticalUniqueConstraints = (uniqueConstraints.size == other.uniqueConstraints.size) &&
-                (uniqueConstraints.intersect(other.uniqueConstraints).size == uniqueConstraints.size)
-        return ret
-    }
-
-    fun diff(otherColumns: Set<T>): TableDefinitionDifference {
-        val has = mutableListOf<String>()
-        val missing = mutableListOf<String>()
-        val typeDiffers = mutableListOf<Triple<String, JDBCType?, JDBCType?>>()
-        columns.forEach { col ->
-            val otherCol = otherColumns.find { it.name.equals(col.name, !caseSensitive) }
-            if (otherCol == null) {
-                has.add(col.name)
-            } else if (col.dataType != otherCol.dataType) {
-                typeDiffers.add(Triple(col.name, col.dataType, otherCol.dataType))
-            }
-        }
-        otherColumns.forEach { col ->
-            val otherCol = columns.find { it.name.equals(col.name, !caseSensitive) }
-            if (otherCol == null) {
-                missing.add(col.name)
-            }
-        }
-        return TableDefinitionDifference(has, missing, typeDiffers)
-    }
-
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
