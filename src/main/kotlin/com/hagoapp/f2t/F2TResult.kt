@@ -8,8 +8,17 @@ package com.hagoapp.f2t
 
 import com.hagoapp.f2t.datafile.ParseResult
 
+/**
+ * Execution result of a file to table process.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 class F2TResult {
 
+    /**
+     * row count processed.
+     */
     var rowCount: Int = 0
         set(value) {
             if (finished) {
@@ -18,6 +27,10 @@ class F2TResult {
                 field = value
             }
         }
+
+    /**
+     * Definition of final target table, created or existed.
+     */
     var tableDefinition: TableDefinition<ColumnDefinition>? = null
         set(value) {
             if (finished) {
@@ -26,16 +39,33 @@ class F2TResult {
                 field = value
             }
         }
+
+    /**
+     * Errors occurred during processing.
+     */
     val errors: MutableList<Throwable> = mutableListOf()
     private var finished = false
+
+    /**
+     * File parsing result detail.
+     */
     lateinit var parseResult: ParseResult
         private set
 
+    /**
+     * Finalize this result.
+     */
     fun complete(parseResult: ParseResult) {
         this.parseResult = parseResult
         finished = true
     }
 
+    /**
+     * Get the success status of this result. An exception will be thrown is processing is not complete.
+     *
+     * @return true if completed successfully, otherwise false
+     * @throws F2TException if processing is not completed when invoking
+     */
     fun succeeded(): Boolean {
         return when {
             !finished -> throw F2TException("not started")

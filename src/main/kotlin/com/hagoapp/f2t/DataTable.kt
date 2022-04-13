@@ -6,7 +6,16 @@
 
 package com.hagoapp.f2t
 
-data class DataTable<T: ColumnDefinition>(
+/**
+ * This class is a wrapper to contain definition and data of a table.
+ *
+ * @param T type if column definition
+ * @property columnDefinition   column definitions of the table
+ * @property rows   data of the table
+ * @author Chaojun Sun
+ * @since 0.2
+ */
+data class DataTable<T : ColumnDefinition>(
     var columnDefinition: List<T>,
     var rows: List<DataRow>
 )

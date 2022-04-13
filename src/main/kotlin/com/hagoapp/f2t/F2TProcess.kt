@@ -21,6 +21,9 @@ import java.time.Instant
  * This class implements a process that extract data from data file, create according table(if necessary, based on
  * the config) and write data into it. It may add one additional column of timestamp in long integer to identify
  * different running(based on config), or truncate existing data from table(based on config).
+ *
+ * @author Chaojun Sun
+ * @since 0.1
  */
 class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2TConfig) : ParseObserver {
     private var parser: FileParser = dataFileRParser
@@ -30,6 +33,10 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
     private var tableMatchedFile = false
     private val table: TableName
     private var batchNum = -1L
+
+    /**
+     * Execution result of ths process.
+     */
     val result = F2TResult()
 
     companion object {
@@ -51,6 +58,9 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
         connection = DbConnectionFactory.createDbConnection(dbConfig)
     }
 
+    /**
+     * start process.
+     */
     fun run() {
         parser.addObserver(this)
         parser.parse()
