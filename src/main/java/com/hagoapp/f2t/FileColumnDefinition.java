@@ -11,6 +11,12 @@ import java.sql.JDBCType;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Definition of a column from data file.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 public class FileColumnDefinition extends ColumnDefinition {
 
     public FileColumnDefinition() {
@@ -42,42 +48,92 @@ public class FileColumnDefinition extends ColumnDefinition {
     private BigDecimal maximum;
     private boolean containsEmpty = false;
 
+    /**
+     * Get the 0 indexed order number of the column from file.
+     *
+     * @return order number
+     */
     public int getOrder() {
         return order;
     }
 
+    /**
+     * Set the 0 indexed order number of the column from file.
+     *
+     * @param order order number
+     */
     public void setOrder(int order) {
         this.order = order;
     }
 
+    /**
+     * Get the minimum value of this numeric column from file.
+     *
+     * @return minimum value of numeric column
+     */
     public BigDecimal getMinimum() {
         return minimum;
     }
 
+    /**
+     * Set the minimum value of this numeric column from file.
+     *
+     * @param minimum minimum value of numeric column
+     */
     public void setMinimum(BigDecimal minimum) {
         this.minimum = minimum;
     }
 
+    /**
+     * Get the maximum value of this numeric column from file.
+     *
+     * @return maximum value of numeric column
+     */
     public BigDecimal getMaximum() {
         return maximum;
     }
 
+    /**
+     * Set the maximum value of this numeric column from file.
+     *
+     * @param maximum maximum value of numeric column
+     */
     public void setMaximum(BigDecimal maximum) {
         this.maximum = maximum;
     }
 
+    /**
+     * Get whether empty value exists in this text column from file.
+     *
+     * @return true if exists, otherwise false
+     */
     public boolean isContainsEmpty() {
         return containsEmpty;
     }
 
+    /**
+     * Set whether empty value exists in this text column from file.
+     *
+     * @param containsEmpty true if exists, otherwise false
+     */
     public void setContainsEmpty(boolean containsEmpty) {
         this.containsEmpty = containsEmpty;
     }
 
+    /**
+     * Get all possible data types those can store values from this file column,
+     *
+     * @return all possible data types
+     */
     public Set<JDBCType> getPossibleTypes() {
         return possibleTypes;
     }
 
+    /**
+     * Set all possible data types those can store values from this file column,
+     *
+     * @param possibleTypes all possible data types
+     */
     public void setPossibleTypes(Set<JDBCType> possibleTypes) {
         this.possibleTypes = possibleTypes;
     }

@@ -11,7 +11,8 @@ import java.sql.JDBCType;
 /**
  * A Column definition for database table.
  *
- * @author suncjs
+ * @author Chaojun Sun
+ * @since 0.6
  */
 public class ColumnDefinition {
     private String name;

@@ -7,12 +7,15 @@
 package com.hagoapp.f2t;
 
 /**
- * A container for 4 objects as a set.
+ * A container for 4 associated objects.
  *
  * @param <A> first object
  * @param <B> second object
  * @param <C> third object
  * @param <D> fourth object
+ *
+ * @author Chaojun Sun
+ * @since 0.6
  */
 public class Quartet<A, B, C, D> {
     private A first;

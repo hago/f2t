@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.database.config;
 
+/**
+ * Configuration for Microsoft SQl Server database, and may be used for Azure SQL DB and Synapse DW.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 public class MsSqlConfig extends DbConfig {
 
     public static final String DATABASE_TYPE_MSSQL = "Microsoft SQL Sever";

@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.database.config;
 
+/**
+ * Configuration for PostgreSQL database.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 public class PgSqlConfig extends DbConfig {
     public static final String DATABASE_TYPE_POSTGRESQL = "PostgreSQL";
     private String host;

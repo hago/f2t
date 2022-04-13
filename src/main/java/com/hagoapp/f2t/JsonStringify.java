@@ -9,7 +9,19 @@ package com.hagoapp.f2t;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+/**
+ * A convenient interface to support object serialization to JSON. The default implementation is using
+ * <code>com.google.gson.Gson</code>.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 public interface JsonStringify {
+    /**
+     * Serialize this object to JSON with indent.
+     *
+     * @return JSON string
+     */
     default String toJson() {
         Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
         return gson.toJson(this);
