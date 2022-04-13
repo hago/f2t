@@ -16,6 +16,7 @@ import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.util.ColumnMatcher
+import com.hagoapp.util.StackTraceWriter
 import org.slf4j.Logger
 import java.io.Closeable
 import java.math.BigDecimal
@@ -25,6 +26,9 @@ import java.time.*
 
 /**
  * Interface of database operations required to insert a set of 2-dimensional data into it.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
  */
 abstract class DbConnection : Closeable {
 
@@ -36,33 +40,53 @@ abstract class DbConnection : Closeable {
         mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
 
     /**
-     * Tell user what kind of db config is required
+     * Help database factory to what kind of DbConfig should lead to the implementation.
+     *
+     * @return the database identity string
      */
     abstract fun getSupportedDbType(): String
 
     /**
      * Whether the config is valid to lead a successful connection.
+     *
+     * @param conf  database config
+     * @return a pair, first element is true if connection is valid with second element set to null; otherwise, first
+     * element is false with second is the error message
      */
     abstract fun canConnect(conf: DbConfig): Pair<Boolean, String>
 
     /**
      * Fetch the existing tables from database.
+     *
+     * @param conf  database config
+     * @return a map whose keys are schemas and values are table names under the schema
      */
     abstract fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>>
 
     /**
      * List all visible databases by user from the config.
+     *
+     * @param conf  database config
+     * @return name list of databases attached on the instance specified by config
      */
     abstract fun listDatabases(conf: DbConfig): List<String>
 
     /**
      * Create the internal JDBC connection for those methods which doesn't have a <code>DbConfig</code> parameter.
      * This method could be called by many other methods in implementation.
+     *
+     * @param conf  database config
      */
     open fun open(conf: DbConfig) {
         connection = getConnection(conf)
     }
 
+    /**
+     * Any descendants should override this method to implement concrete connection creation.
+     *
+     * @param conf  database config
+     * @return established connection
+     */
     protected abstract fun getConnection(conf: DbConfig): Connection
 
     override fun close() {
@@ -71,25 +95,44 @@ abstract class DbConnection : Closeable {
             connection.close()
         } catch (e: Throwable) {
             logger.error("flush cached rows failed: {}", e.message)
-            e.printStackTrace()
+            StackTraceWriter.writeToLogger(e, logger)
         }
     }
 
     /**
-     * Clear any data in given table.
+     * Clear any data in given table, descendant class should implement the operation.
+     *
+     * @param table table name
+     * @return a pair, first element is true if clearance is successful with second element is null; otherwise, first
+     * element is false and second is the error message
      */
     abstract fun clearTable(table: TableName): Pair<Boolean, String?>
 
     /**
-     * Drop given table.
+     * Drop given table, descendant class should implement the operation.
+     *
+     * @param tableName full table name as one string
+     * @return a pair, first element is true if clearance is successful with second element is null; otherwise, first
+     * element is false and second is the error message
      */
     abstract fun dropTable(tableName: String): Pair<Boolean, String?>
+
+    /**
+     * Drop given table.
+     *
+     * @param table name
+     * @return a pair, first element is true if clearance is successful with second element is null; otherwise, first
+     * element is false and second is the error message
+     */
     open fun dropTable(table: TableName): Pair<Boolean, String?> {
         return dropTable(getFullTableName(table))
     }
 
     /**
      * Create quoted, escaped identity name of database.
+     *
+     * @param name raw identity name
+     * @return normalized name that can be recognized by database and won't be conflicted from reserved words
      */
     open fun normalizeName(name: String): String {
         return if (isNormalizedName(name)) name else {
@@ -100,6 +143,9 @@ abstract class DbConnection : Closeable {
 
     /**
      * Whether the given name is quoted, escaped on database's definition.
+     *
+     * @param name  identity name
+     * @return true if name is escaped to normalize form, otherwise false
      */
     open fun isNormalizedName(name: String): Boolean {
         val w = getWrapperCharacter()
@@ -108,63 +154,100 @@ abstract class DbConnection : Closeable {
 
     /**
      * Escape database identity name.
+     *
+     * @param name  raw name
+     * @return escaped name
      */
     abstract fun escapeNameString(name: String): String
 
     /**
      * Get the wrapper character defined by database.
+     *
+     * @return a pair containing left and right wrapper char
      */
     abstract fun getWrapperCharacter(): Pair<String, String>
 
     /**
      * Create quoted, escaped table name of database, including schema if supported.
+     *
+     * @param schema    schema name
+     * @param tableName table name
+     * @return full table name including schema and table
      */
     open fun getFullTableName(schema: String, tableName: String): String {
         return if (schema.isBlank()) normalizeName(tableName)
         else "${normalizeName(schema)}.${normalizeName(tableName)}"
     }
 
+    /**
+     * Create quoted, escaped table name of database, including schema if supported.
+     *
+     * @param table    table definition object
+     * @return full table name including schema and table
+     */
     open fun getFullTableName(table: TableName): String {
         return getFullTableName(table.schema, table.tableName)
     }
 
     /**
      * Whether the given table exists in database by schema and name.
+     *
+     * @param table table name
+     * @return true if table exists, otherwise false
      */
     abstract fun isTableExists(table: TableName): Boolean
 
     /**
      * Create a new table on given name and column definitions.
+     *
+     * @param table table name
+     * @param tableDefinition   definition of table
      */
     abstract fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>)
 
     /**
-     * Find local database type on given JDBC type.
+     * Find corresponding database type on given JDBC type.
+     *
+     * @param aType JDBC type
+     * @param modifier type modifier parsed from file data
+     * @return database type
      */
     abstract fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String
 
     /**
      * Fetch column definitions of given table.
+     *
+     * @param table table name
+     * @return table definition
      */
     abstract fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition>
 
     /**
      * Find JDBC type on database local type.
+     *
+     * @param typeName database type name
+     * @return JDBC type
      */
     abstract fun mapDBTypeToJDBCType(typeName: String): JDBCType
 
     /**
      * Whether this database is case-sensitive.
+     *
+     * @return true if case-sensitive, otherwise false
      */
     abstract fun isCaseSensitive(): Boolean
 
     /**
      * Get default schema of database.
+     *
+     * @return the default schema name
      */
     abstract fun getDefaultSchema(): String
 
     /**
      * Set the record amount of one batch insert.
+     *
+     * @return a number, insertion will be performed in a batch of this amount
      */
     open fun getInsertBatchAmount(): Long {
         return 1000
@@ -180,6 +263,13 @@ abstract class DbConnection : Closeable {
         return mapOf()
     }
 
+    /**
+     * Write a row to table. The actual writing won't happen at once, instead, it will be triggered once
+     * batch limit is reached.
+     *
+     * @param table table name
+     * @param row   data row
+     */
     open fun writeRow(table: TableName, row: DataRow) {
         if (!insertionMap.contains(table)) {
             throw F2TException("Way to insert into table ${getFullTableName(table)} is unknown")
@@ -190,6 +280,11 @@ abstract class DbConnection : Closeable {
         }
     }
 
+    /**
+     * This method should be called when batch limit is reached, it will flush internal write buffer to database.
+     *
+     * @param table table name
+     */
     open fun flushRows(table: TableName) {
         val fieldValueSetter = fieldValueSetters.getValue(table)
         //logger.debug(insertionMap.getValue(table))
@@ -206,6 +301,14 @@ abstract class DbConnection : Closeable {
         rows.clear()
     }
 
+    /**
+     * Create an insertion SQL template for later insertion, and prepare mapping from file column to database
+     * column,
+     *
+     * @param fileDefinition    definition of data file
+     * @param table table name
+     * @param tableDefinition   definition if database table
+     */
     open fun prepareInsertion(
         fileDefinition: TableDefinition<FileColumnDefinition>,
         table: TableName,
@@ -325,6 +428,13 @@ abstract class DbConnection : Closeable {
         }
     }
 
+    /**
+     * Read data from given table.
+     *
+     * @param table table name
+     * @param columns   columns needs to fetch
+     * @param limit the most count of fetched rows
+     */
     open fun readData(
         table: TableName,
         columns: List<ColumnDefinition> = listOf(),
