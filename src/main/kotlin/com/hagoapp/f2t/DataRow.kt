@@ -6,7 +6,15 @@
 
 package com.hagoapp.f2t
 
-data class DataRow (
+/**
+ * This class contains a row of a data table.
+ *
+ * @property rowNo  row index in whole data set
+ * @property cells  data cells in this row
+ * @author Chaojun Sun
+ * @since 0.2
+ */
+data class DataRow(
     var rowNo: Long = 0,
     val cells: List<DataCell>
 )

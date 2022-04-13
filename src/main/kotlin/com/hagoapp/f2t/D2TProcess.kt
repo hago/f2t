@@ -17,12 +17,25 @@ import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.time.Instant
 
+/**
+ * This class implements a process from a data table object to table in database.
+ *
+ * @property dataTable  the source data set
+ * @param dbConfig   the config of target database and table
+ * @param f2TConfig  the configuration of process itself
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, dbConfig: DbConfig, f2TConfig: F2TConfig) {
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = F2TLogger.getLogger()
     private var tableMatchedFile = false
     private val table: TableName
+
+    /**
+     * the observer of this process
+     */
     var progressNotifier: ProgressNotify? = null
 
     companion object {
@@ -44,6 +57,9 @@ class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, dbConfi
         connection = DbConnectionFactory.createDbConnection(dbConfig)
     }
 
+    /**
+     * start process.
+     */
     fun run(): ParseResult {
         progressNotifier?.onStart()
         val parseResult = ParseResult()
