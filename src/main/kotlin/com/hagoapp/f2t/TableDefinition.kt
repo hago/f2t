@@ -10,6 +10,14 @@ import java.sql.JDBCType
 
 /**
  * This class represents definition of a table.
+ *
+ * @param T type of column definition
+ * @property columns    columns to form this table
+ * @property caseSensitive  whether this table is case-sensitive, names and values
+ * @property primaryKey the primary key constraint, if any
+ * @constructor create a table definition for database table or file data table
+ * @author Chaojun Sun
+ * @since 0.1
  */
 class TableDefinition<T : ColumnDefinition>(
     var columns: Set<T>,
@@ -17,6 +25,9 @@ class TableDefinition<T : ColumnDefinition>(
     var primaryKey: TableUniqueDefinition<T>? = null
 ) {
 
+    /**
+     * unique constraints on this table
+     */
     var uniqueConstraints: Set<TableUniqueDefinition<T>> = mutableSetOf()
 
     fun diff(other: TableDefinition<T>): TableDefinitionDifference {
