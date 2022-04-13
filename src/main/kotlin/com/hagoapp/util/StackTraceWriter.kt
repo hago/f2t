@@ -8,8 +8,15 @@ package com.hagoapp.util
 
 import org.slf4j.Logger
 
+/**
+ * A convenient tool to log error's stacktrace.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class StackTraceWriter {
     companion object {
+        @JvmStatic
         fun writeToLogger(throwable: Throwable, logger: Logger) {
             logger.error("Exception thrown: ${throwable.message}")
             throwable.stackTrace.forEach { logger.error("\t{}", it.toString()) }

@@ -15,9 +15,21 @@ import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
+/**
+ * A utility class to deal with encodings.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class EncodingUtils {
     companion object {
 
+        /**
+         * This method will try to figure out which character set the input stream is using.
+         *
+         * @param stream input stream which should be text
+         * @return the name of character set being used
+         */
         fun guessEncoding(stream: InputStream): String {
             val det = UniversalDetector(null)
             ByteArrayOutputStream().use {
@@ -41,18 +53,36 @@ class EncodingUtils {
             return normalizeEncoding(det.detectedCharset)
         }
 
+        /**
+         * This method will try to figure out which character set the file is using.
+         *
+         * @param file input file object which should be text
+         * @return the name of character set being used
+         */
         fun guessEncoding(file: File): String {
             FileInputStream(file).use {
                 return guessEncoding(it)
             }
         }
 
+        /**
+         * This method will try to figure out which character set the file is using.
+         *
+         * @param fileName input file name which should be text
+         * @return the name of character set being used
+         */
         fun guessEncoding(fileName: String): String {
             FileInputStream(fileName).use {
                 return guessEncoding(it)
             }
         }
 
+        /**
+         * This method will try to convert input encoding name to a standard encoding name defined in Java.
+         *
+         * @param enc   input encoding name
+         * @return Java encoding name, or UTF-8 if attempts for input are failed
+         */
         fun normalizeEncoding(enc: String?): String {
             val allCharSets = Charset.availableCharsets().keys
             return when {
@@ -63,10 +93,25 @@ class EncodingUtils {
             }
         }
 
+        /**
+         * This method will try to map encoding names from mozilla <code>universalchardet</code> library to standard
+         * Java encoding name, UTF-8 is returned when mapping failed.
+         *
+         * @param enc   mozilla encoding name
+         * @return Java encoding name
+         */
         fun mapDetectorEnc2JavaEnc(enc: String): String? {
             return mapDetectorEnc2JavaEnc(enc, null)
         }
 
+        /**
+         * This method will try to map encoding names from mozilla <code>universalchardet</code> library to standard
+         * Java encoding name, a failsafe default value is returned when mapping failed.
+         *
+         * @param enc   mozilla encoding name
+         * @param default   failsafe encoding name
+         * @return Java encoding name
+         */
         fun mapDetectorEnc2JavaEnc(enc: String, default: String?): String? {
             return when (val enc0 = enc.uppercase()) {
                 "ISO-2022-JP",
@@ -103,6 +148,12 @@ class EncodingUtils {
             }
         }
 
+        /**
+         * This method will check whether input text contains any non-ascii character.
+         *
+         * @param s input text
+         * @return true if none of any non-ascii character exists, otherwise false
+         */
         fun isAsciiText(s: String?): Boolean {
             if (s == null) {
                 return true
