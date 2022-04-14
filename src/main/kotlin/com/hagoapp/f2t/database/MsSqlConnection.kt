@@ -22,6 +22,12 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.math.*
 
+/**
+ * Database operation implementation for Microsoft SQL Server.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class MsSqlConnection : DbConnection() {
 
     private lateinit var msConfig: MsSqlConfig

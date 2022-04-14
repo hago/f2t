@@ -17,6 +17,12 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.Temporal
 
+/**
+ * Utility class to deal with date / time / timestamp types and values.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class DateTimeTypeUtils {
     companion object {
 
@@ -50,11 +56,26 @@ class DateTimeTypeUtils {
             DateTimeFormatter.ofPattern("H:m:s")
         )
 
+        /**
+         * Convert a string to ZonedDateTime using built-in formatters. Null is returned if conversions
+         * are failed.
+         *
+         * @param input source string
+         * @return zoned datetime
+         */
         @JvmStatic
         fun stringToDateTimeOrNull(input: String): ZonedDateTime? {
             return stringToDateTimeOrNull(input, emptySet())
         }
 
+        /**
+         * Convert a string to ZonedDateTime using built-in formatters and customized extra formatters. NUll
+         * is returned if conversions are failed.
+         *
+         * @param input source string
+         * @param extraFormats extra formatters
+         * @return zoned datetime
+         */
         @JvmStatic
         fun stringToDateTimeOrNull(input: String, extraFormats: Set<String> = emptySet()): ZonedDateTime? {
             var d: ZonedDateTime? = null
@@ -72,11 +93,26 @@ class DateTimeTypeUtils {
             return d
         }
 
+        /**
+         * Convert a string to LocalDate using built-in formatters. Null is returned if conversions
+         * are failed.
+         *
+         * @param input source string
+         * @return local date
+         */
         @JvmStatic
         fun stringToDateOrNull(input: String): LocalDate? {
             return stringToDateOrNull(input, emptySet())
         }
 
+        /**
+         * Convert a string to LocalDate using built-in formatters and customized extra formatters. NUll
+         * is returned if conversions are failed.
+         *
+         * @param input source string
+         * @param extraFormats extra formatters
+         * @return local date
+         */
         @JvmStatic
         fun stringToDateOrNull(input: String, extraFormats: Set<String> = emptySet()): LocalDate? {
             var d: LocalDate? = null
@@ -96,11 +132,26 @@ class DateTimeTypeUtils {
             return d
         }
 
+        /**
+         * Convert a string to LocalTime using built-in formatters. Null is returned if conversions
+         * are failed.
+         *
+         * @param input source string
+         * @return local time
+         */
         @JvmStatic
         fun stringToTimeOrNull(input: String): LocalTime? {
             return stringToTimeOrNull(input, emptySet())
         }
 
+        /**
+         * Convert a string to LocalDate using built-in formatters and customized extra formatters. NUll
+         * is returned if conversions are failed.
+         *
+         * @param input source string
+         * @param extraFormats extra formatters
+         * @return local time
+         */
         @JvmStatic
         fun stringToTimeOrNull(input: String, extraFormats: Set<String> = emptySet()): LocalTime? {
             var d: LocalTime? = null
@@ -120,11 +171,26 @@ class DateTimeTypeUtils {
             return d
         }
 
+        /**
+         * Convert a string to a Temporal using built-in formatters. Null is returned if conversions
+         * are failed.
+         *
+         * @param input source string
+         * @return temporal value
+         */
         @JvmStatic
         fun stringToTemporalOrNull(input: String): Temporal? {
             return stringToTemporalOrNull(input, emptySet())
         }
 
+        /**
+         * Convert a string to Temporal using built-in formatters and customized extra formatters. NUll
+         * is returned if conversions are failed.
+         *
+         * @param input source string
+         * @param extraFormats extra formatters
+         * @return temporal value
+         */
         @JvmStatic
         fun stringToTemporalOrNull(input: String, extraFormats: Set<String> = emptySet()): Temporal? {
             val dt = stringToDateTimeOrNull(input, extraFormats)
@@ -142,48 +208,111 @@ class DateTimeTypeUtils {
             return null
         }
 
+        /**
+         * Check whether a string is convertible to Datetime using built-in formatters.
+         *
+         * @param input input string
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isDateTime(input: String): Boolean {
             return stringToDateTimeOrNull(input) != null
         }
 
+        /**
+         * Check whether a string is convertible to Datetime with built-in and extra formatters.
+         *
+         * @param input input string
+         * @param extraFormats extra formatters
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isDateTime(input: String, extraFormats: Set<String>): Boolean {
             return stringToDateTimeOrNull(input, extraFormats) != null
         }
 
+        /**
+         * Check whether a string is convertible to Date using built-in formatters.
+         *
+         * @param input input string
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isDate(input: String): Boolean {
             return stringToDateOrNull(input) != null
         }
 
+        /**
+         * Check whether a string is convertible to date with built-in and extra formatters.
+         *
+         * @param input input string
+         * @param extraFormats extra formatters
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isDate(input: String, extraFormats: Set<String>): Boolean {
             return stringToDateOrNull(input, extraFormats) != null
         }
 
+        /**
+         * Check whether a string is convertible to time using built-in formatters.
+         *
+         * @param input input string
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isTime(input: String): Boolean {
             return stringToTimeOrNull(input) != null
         }
 
+        /**
+         * Check whether a string is convertible to time with built-in and extra formatters.
+         *
+         * @param input input string
+         * @param extraFormats extra formatters
+         * @return true if convertible, otherwise false
+         */
         @JvmStatic
         fun isTime(input: String, extraFormats: Set<String>): Boolean {
             return stringToTimeOrNull(input, extraFormats) != null
         }
 
+        /**
+         * Return the default datetime formatter that will be used in F2T, <code>ISO_OFFSET_DATE_TIME</code>
+         * is preset.
+         *
+         * @return date time formatter
+         */
         fun getDefaultDateTimeFormatter(): DateTimeFormatter {
             return DateTimeFormatter.ISO_OFFSET_DATE_TIME
         }
 
+        /**
+         * Return the default date formatter that will be used in F2T, <code>ISO_OFFSET_DATE</code>
+         * is preset.
+         *
+         * @return date formatter
+         */
         fun getDefaultDateFormatter(): DateTimeFormatter {
             return DateTimeFormatter.ISO_OFFSET_DATE
         }
 
+        /**
+         * Return the default time formatter that will be used in F2T, <code>ISO_OFFSET_TIME</code>
+         * is preset.
+         *
+         * @return time formatter
+         */
         fun getDefaultTimeFormatter(): DateTimeFormatter {
             return DateTimeFormatter.ISO_OFFSET_TIME
         }
 
+        /**
+         * Create a datetime formatter using given format string, if the string is invalid default one is returned.
+         *
+         * @param format format string
+         * @return formatter
+         */
         fun getDateTimeFormatter(format: String?): DateTimeFormatter {
             return try {
                 format ?: DateTimeFormatter.ISO_OFFSET_DATE_TIME
@@ -193,6 +322,12 @@ class DateTimeTypeUtils {
             }
         }
 
+        /**
+         * Create a date formatter using given format string, if the string is invalid default one is returned.
+         *
+         * @param format format string
+         * @return formatter
+         */
         fun getDateFormatter(format: String?): DateTimeFormatter {
             return try {
                 format ?: DateTimeFormatter.ISO_OFFSET_DATE
@@ -202,6 +337,12 @@ class DateTimeTypeUtils {
             }
         }
 
+        /**
+         * Create a time formatter using given format string, if the string is invalid default one is returned.
+         *
+         * @param format format string
+         * @return formatter
+         */
         fun getDTimeFormatter(format: String?): DateTimeFormatter {
             return try {
                 format ?: DateTimeFormatter.ISO_OFFSET_TIME

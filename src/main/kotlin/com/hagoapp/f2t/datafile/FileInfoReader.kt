@@ -14,6 +14,12 @@ import org.reflections.scanners.Scanners
 import java.io.FileInputStream
 import java.io.InputStream
 
+/**
+ * A factory class to create reader based on <code>FileInfo</code> passed in.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class FileInfoReader {
     companion object {
 
@@ -34,14 +40,32 @@ class FileInfoReader {
             }
         }
 
+        /**
+         * Create FileInfo object from stream.
+         *
+         * @param stream stream containing file information
+         * @return data file information
+         */
         fun createFileInfo(stream: InputStream): FileInfo {
             return createFileInfo(stream.readAllBytes())
         }
 
+        /**
+         * Create FileInfo object from byte array.
+         *
+         * @param content bytes containing file information
+         * @return data file information
+         */
         fun createFileInfo(content: ByteArray): FileInfo {
             return json2FileInfo(String(content))
         }
 
+        /**
+         * Create FileInfo object from file.
+         *
+         * @param filename json file containing file information
+         * @return data file information
+         */
         fun createFileInfo(filename: String): FileInfo {
             try {
                 FileInputStream(filename).use {
@@ -52,6 +76,12 @@ class FileInfoReader {
             }
         }
 
+        /**
+         * Create FileInfo object from json string.
+         *
+         * @param content json containing file information
+         * @return data file information
+         */
         fun json2FileInfo(content: String): FileInfo {
             val gson = GsonBuilder().create()
             val base = gson.fromJson(content, FileInfo::class.java)
@@ -62,6 +92,12 @@ class FileInfoReader {
             return gson.fromJson(content, clz)
         }
 
+        /**
+         * Create FileInfo object from file information stored in map.
+         *
+         * @param content json containing file information
+         * @return data file information
+         */
         fun json2FileInfo(content: Map<String, Any?>): FileInfo {
             return json2FileInfo(GsonBuilder().create().toJson(content))
         }

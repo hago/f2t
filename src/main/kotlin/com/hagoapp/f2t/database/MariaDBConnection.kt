@@ -17,6 +17,12 @@ import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.util.*
 
+/**
+ * Database operation implementation for MariaDB / MySQL.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class MariaDBConnection : DbConnection() {
 
     private lateinit var config: MariaDbConfig
