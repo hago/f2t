@@ -11,10 +11,20 @@ import com.hagoapp.f2t.FileColumnDefinition
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Interface to determine corresponding JDBC type according file column informations.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 interface FileColumnTypeDeterminer {
     fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType
 
     companion object {
+        /**
+         * A default implementation that attempts to use a most "large" JDBC type that can contain maximum
+         * of the same type of data.
+         */
         val MostTypeDeterminer = object : FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
@@ -83,6 +93,9 @@ interface FileColumnTypeDeterminer {
             }
         }
 
+        /**
+         * A default implementation that attempts to use a most "narrow" JDBC type that just fits existing data.
+         */
         val LeastTypeDeterminer = object : FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
