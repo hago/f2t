@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.20'
     id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id "org.jetbrains.dokka" version "1.6.10"
@@ -14,9 +14,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.10'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20'
 
     implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
@@ -33,7 +33,7 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
     implementation group:'org.postgresql',name:'postgresql',version:'42.3.3'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.3'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
     implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
 
     runtimeOnly fileTree('libs') { include '*.jar' }
