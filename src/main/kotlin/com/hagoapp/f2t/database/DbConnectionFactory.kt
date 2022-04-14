@@ -17,6 +17,9 @@ import org.reflections.scanners.Scanners
  * This is a factory class to create database target implementation. It will search any descendants of
  * <code>DbConnection</code> in default and additional packages which could be registered by calling
  * <code>registerPackageNames</code> method.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
  */
 class DbConnectionFactory {
     companion object {
@@ -54,7 +57,7 @@ class DbConnectionFactory {
          * <code>DbConfig</code> sub-type.
          *
          * @param configName    config file name
-         * @return  Database implementation instance
+         * @return Database implementation instance
          */
         @JvmStatic
         fun createDbConnection(configName: String): DbConnection {
@@ -66,7 +69,7 @@ class DbConnectionFactory {
          * Create database connection object on given <code>DbConfig</code> sub-type.
          *
          * @param dbConfig    config subtype object
-         * @return  Database implementation instance
+         * @return Database implementation instance
          */
         @JvmStatic
         fun createDbConnection(dbConfig: DbConfig): DbConnection {

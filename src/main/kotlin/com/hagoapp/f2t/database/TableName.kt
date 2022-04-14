@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.database
 
+/**
+ * This class contains full table identifier, including schema and name.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 data class TableName(
     var tableName: String,
     var schema: String = ""

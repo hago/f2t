@@ -17,6 +17,9 @@ import java.util.*
 
 /**
  * Database operations implementation for PostgreSQL.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
  */
 class PgSqlConnection : DbConnection() {
 
