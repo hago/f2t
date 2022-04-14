@@ -10,6 +10,13 @@ import com.hagoapp.f2t.datafile.LocalFilePositionOutputStream
 import org.apache.parquet.io.OutputFile
 import org.apache.parquet.io.PositionOutputStream
 
+/**
+ * A simple implementation of Hadoop's <code>OutputFile</code>, is required to write parquet file
+ * to local file system.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class LocalOutputFile(private val fileName: String) : OutputFile {
 
     override fun create(blockSizeHint: Long): PositionOutputStream {

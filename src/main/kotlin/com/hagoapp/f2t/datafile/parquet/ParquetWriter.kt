@@ -16,6 +16,12 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData
 import org.apache.parquet.avro.AvroParquetWriter
 
+/**
+ * A writer for parquet file.
+ *
+ * @param data  data table containing schema definition and rows to write
+ * @param config    configuration file for target parquet file
+ */
 class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private val config: ParquetWriterConfig) {
 
     private val schemaValue: String
@@ -33,6 +39,9 @@ class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private v
         schemaValue = schema.toJson();
     }
 
+    /**
+     * Create target parquet file, write data and close.
+     */
     fun write() {
         val avroSchema = Schema.Parser().parse(schemaValue)
         val f = LocalOutputFile(config.parquetFileName)

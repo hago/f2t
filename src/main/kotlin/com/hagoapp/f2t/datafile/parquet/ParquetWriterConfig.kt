@@ -6,6 +6,13 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
+/**
+ * The configuration for a parquet file as target to write.
+ *
+ * @param namespace namespace of parquet schema
+ * @param name  name of parquet schema
+ * @param parquetFileName   file name of parquet
+ */
 data class ParquetWriterConfig(
     val namespace: String?,
     val name: String,

@@ -24,6 +24,12 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
 
+/**
+ * Reader implementation for parquet file.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class ParquetFileReader : Reader {
     private lateinit var parquetFile: FileInfoParquet
     private lateinit var columns: List<FileColumnDefinition>

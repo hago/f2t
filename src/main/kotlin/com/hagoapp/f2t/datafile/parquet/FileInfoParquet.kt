@@ -8,6 +8,12 @@ package com.hagoapp.f2t.datafile.parquet
 
 import com.hagoapp.f2t.datafile.FileInfo
 
+/**
+ * Parquet file information to read.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class FileInfoParquet : FileInfo() {
 
     companion object {
