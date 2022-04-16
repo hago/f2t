@@ -13,6 +13,12 @@ import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.sql.JDBCType
 
+/**
+ * Convenient utility to compare between data file column definition and database table column definition.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class ColumnComparator {
 
     companion object {
@@ -104,6 +110,13 @@ class ColumnComparator {
             return "$src --> $dest"
         }
 
+        /**
+         * Compare between data file column definition and database table column definition.
+         *
+         * @param fileColumnDefinition  file column definition
+         * @param dbColumnDefinition    database column definition
+         * @return compare result
+         */
         fun compare(
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition
@@ -132,6 +145,13 @@ class ColumnComparator {
             }
         }
 
+        /**
+         * Create transformer to deal with data from file column to one fit for target database table column.
+         *
+         * @param fileColumnDefinition  file column definition
+         * @param dbColumnDefinition    database column definition
+         * @return  transformer instance
+         */
         fun getTransformer(
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition
@@ -145,6 +165,15 @@ class ColumnComparator {
             }
         }
 
+        /**
+         * Transform data from file column to one fit for target database table column.
+         *
+         * @param src   source data
+         * @param fileColumnDefinition  file column definition
+         * @param dbColumnDefinition    database column definition
+         * @param extra additional parameters
+         * @return transformed value
+         */
         fun transform(
             src: Any?,
             fileColumnDefinition: FileColumnDefinition,

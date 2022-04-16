@@ -9,8 +9,21 @@ package com.hagoapp.f2t.compare
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.util.ColumnMatcher
 
+/**
+ * Convenient methods to compare definitions from file column definitions and database table definitions.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class TableDefinitionComparator {
     companion object {
+        /**
+         * Compare file column definitions and database table definitions.
+         *
+         * @param fileTableDefinition   data file definition
+         * @param dbTableDefinition database table definition
+         * @return compare result
+         */
         fun compare(
             fileTableDefinition: TableDefinition<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
@@ -18,6 +31,13 @@ class TableDefinitionComparator {
             return compare(fileTableDefinition.columns, dbTableDefinition)
         }
 
+        /**
+         * Compare file column definitions and database table definitions.
+         *
+         * @param fileColumnDefinitions   column definitions from data file
+         * @param dbTableDefinition database table definition
+         * @return compare result
+         */
         fun compare(
             fileColumnDefinitions: Set<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
@@ -56,6 +76,13 @@ class TableDefinitionComparator {
             )
         }
 
+        /**
+         * Whether a set of data satisfies unique constraints of a database table.
+         *
+         * @param data  2-dimensional data in object
+         * @param uniqueDefinition  unique constraint
+         * @return conflicts compare result
+         */
         fun isCompliantWithConstraint(
             data: DataTable<FileColumnDefinition>,
             uniqueDefinition: TableUniqueDefinition<ColumnDefinition>
@@ -83,6 +110,14 @@ class TableDefinitionComparator {
             return UniqueConflict(uniqueDefinition, duplicates.map { it.value })
         }
 
+        /**
+         * Whether a set of data satisfies unique constraints of a database table.
+         *
+         * @param data  2-dimensional data in object
+         * @param uniqueDefinitions a bunch of unique constraint
+         * @return a pair, the first element is boolean indicating whether data satisfies all constraints, while second
+         * is empty if no conflicts or list of conflict information is any.
+         */
         fun isCompliantWithConstraints(
             data: DataTable<FileColumnDefinition>,
             uniqueDefinitions: List<TableUniqueDefinition<ColumnDefinition>>
