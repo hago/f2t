@@ -9,6 +9,9 @@ import com.hagoapp.f2t.datafile.FileInfo
 
 /**
  * Information of excel to read. {@code}sheetIndex priorities {@code sheetName}. Sheet 0 will be used if both are null.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
  */
 open class FileInfoExcel : FileInfo() {
 
@@ -16,7 +19,14 @@ open class FileInfoExcel : FileInfo() {
         const val FILE_TYPE_EXCEL = 2
     }
 
+    /**
+     * index of sheet to read, prior to <code>sheetName</code>.
+     */
     var sheetIndex: Int? = null
+
+    /**
+     * name of sheet to read. ignored if <code>sheetIndex</code> is set.
+     */
     var sheetName: String? = null
     override fun getFileTypeValue(): Int {
         return FILE_TYPE_EXCEL

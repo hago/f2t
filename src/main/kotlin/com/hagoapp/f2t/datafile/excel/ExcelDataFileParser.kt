@@ -13,7 +13,8 @@ import java.io.InputStream
 /**
  * This class is used to parse sheet information of an excel file, no any data reading will trigger.
  *
- * @author suncj2
+ * @author Chaojun Sun
+ * @since 0.6
  */
 class ExcelDataFileParser(input: InputStream) {
 
@@ -43,6 +44,11 @@ class ExcelDataFileParser(input: InputStream) {
 
     constructor(fileName: String) : this(FileInputStream(fileName).use { it })
 
+    /**
+     * Return parsed meta information of the excel.
+     *
+     * @return excel metadata
+     */
     fun getInfo(): ExcelInfo {
         return info
     }

@@ -26,6 +26,12 @@ import java.time.temporal.ChronoField
 import kotlin.math.max
 import kotlin.math.roundToLong
 
+/**
+ * Reader implementation for excel files using Apache POI.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class ExcelDataFileReader : Reader {
     private lateinit var infoExcel: FileInfoExcel
     private lateinit var workbook: Workbook

@@ -5,6 +5,13 @@
  */
 package com.hagoapp.f2t.datafile.excel
 
+/**
+ * Information of Excel file in Open XML to read. {@code}sheetIndex priorities {@code sheetName}. Sheet 0 will be used
+ * if both are null.
+ *
+ * @author Chaojun Sun
+ * @since 0.2
+ */
 class FileInfoExcelX : FileInfoExcel() {
     companion object {
         const val FILE_TYPE_EXCEL_OPEN_XML = 3
