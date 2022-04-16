@@ -15,6 +15,12 @@ import java.sql.JDBCType.*
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
+/**
+ * Compare date with any other types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class FromDateComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,

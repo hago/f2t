@@ -13,6 +13,12 @@ import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare other with timestamp.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class ToTimestampComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,

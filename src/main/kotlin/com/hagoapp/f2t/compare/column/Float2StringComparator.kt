@@ -13,6 +13,12 @@ import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare float types with string types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Float2StringComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,

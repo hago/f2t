@@ -13,6 +13,12 @@ import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare int with string.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Int2StringComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,

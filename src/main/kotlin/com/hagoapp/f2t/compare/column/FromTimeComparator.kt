@@ -13,6 +13,12 @@ import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare time with any other types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class FromTimeComparator : TypedColumnComparator {
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,

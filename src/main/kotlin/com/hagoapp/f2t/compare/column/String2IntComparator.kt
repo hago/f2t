@@ -14,6 +14,12 @@ import com.hagoapp.util.NumericUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare string with integral types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2IntComparator : TypedColumnComparator {
 
     companion object {

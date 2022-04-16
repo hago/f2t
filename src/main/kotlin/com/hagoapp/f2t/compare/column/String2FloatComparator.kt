@@ -15,6 +15,12 @@ import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare string with floating types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2FloatComparator : TypedColumnComparator {
     companion object {
         private val floatRanges = mapOf(

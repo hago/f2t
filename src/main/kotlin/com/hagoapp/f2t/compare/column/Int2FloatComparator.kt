@@ -13,6 +13,12 @@ import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Compare integral types with floating types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Int2FloatComparator: TypedColumnComparator {
     private val ranges = mapOf(
         TINYINT to 127,
