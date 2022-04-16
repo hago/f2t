@@ -60,7 +60,7 @@ tasks.withType(Javadoc) {
 compileKotlin {
     kotlinOptions {
         jvmTarget = "11"
-        freeCompilerArgs = ['-Xjvm-default=compatibility']
+        freeCompilerArgs = ['-Xjvm-default=all-compatibility']
     }
 }
 
