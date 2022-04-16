@@ -13,6 +13,12 @@ import com.hagoapp.f2t.util.DateTimeTypeUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from string to date type.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2DateTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

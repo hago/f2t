@@ -13,6 +13,12 @@ import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from integral types to float types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Int2FloatTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

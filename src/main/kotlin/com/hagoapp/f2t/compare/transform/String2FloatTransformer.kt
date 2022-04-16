@@ -12,6 +12,12 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from string to floating types.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2FloatTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

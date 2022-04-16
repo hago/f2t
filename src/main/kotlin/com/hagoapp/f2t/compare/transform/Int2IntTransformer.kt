@@ -12,6 +12,12 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from inters to integers.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Int2IntTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

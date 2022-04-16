@@ -13,6 +13,12 @@ import com.hagoapp.f2t.util.BooleanTypeUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from string to boolean.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2BooleanTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

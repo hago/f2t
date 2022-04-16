@@ -14,6 +14,12 @@ import java.sql.JDBCType
 import java.sql.JDBCType.*
 import java.time.temporal.Temporal
 
+/**
+ * Transformer from any other types to string.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class ToStringTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,

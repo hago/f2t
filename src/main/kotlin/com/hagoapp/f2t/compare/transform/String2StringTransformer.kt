@@ -12,6 +12,12 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from one string to other string.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class String2StringTransformer: TypedColumnTransformer {
     override fun transform(
         src: Any?,

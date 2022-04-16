@@ -13,6 +13,12 @@ import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
 
+/**
+ * Transformer from float to float.
+ *
+ * @author Chaojun Sun
+ * @since 0.6
+ */
 class Float2FloatTransformer : TypedColumnTransformer {
     override fun transform(
         src: Any?,
