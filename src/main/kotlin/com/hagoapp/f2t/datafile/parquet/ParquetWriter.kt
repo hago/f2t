@@ -19,8 +19,8 @@ import org.apache.parquet.avro.AvroParquetWriter
 /**
  * A writer for parquet file.
  *
- * @param data  data table containing schema definition and rows to write
- * @param config    configuration file for target parquet file
+ * @property data  data table containing schema definition and rows to write
+ * @property config    configuration file for target parquet file
  */
 class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private val config: ParquetWriterConfig) {
 
