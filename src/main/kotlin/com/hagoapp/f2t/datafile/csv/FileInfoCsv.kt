@@ -10,12 +10,21 @@ import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
 
+/**
+ * CSV file information class, inherited from <code>FileInfo</code>.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 class FileInfoCsv : FileInfo() {
 
     companion object {
         const val FILE_TYPE_CSV = 1
     }
 
+    /**
+     * Text encoding for CSV file.
+     */
     var encoding: String? = null
         set(value) {
             try {
@@ -25,7 +34,15 @@ class FileInfoCsv : FileInfo() {
                 throw F2TException("$value is not valid charset", e)
             }
         }
+
+    /**
+     * Quote character to wrap a field in this file, if any. Double quote is default.
+     */
     var quote: Char? = '"'
+
+    /**
+     * delimiter character to separate fields.
+     */
     var delimiter: Char = ','
     override fun getFileTypeValue(): Int {
         return FILE_TYPE_CSV

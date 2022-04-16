@@ -25,6 +25,12 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
 
+/**
+ * Reader implementation using Apache Common CSV.
+ *
+ * @author Chaojun Sun
+ * @since 0.1
+ */
 class CSVDataReader : Reader {
 
     companion object {
