@@ -1,0 +1,144 @@
+//Run this one using gradle 6.x
+
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.20'
+    id 'maven'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id "org.jetbrains.dokka" version "1.6.10"
+    id "signing"
+}
+
+group 'com.hagoapp'
+version '0.6'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20'
+
+    implementation 'org.apache.commons:commons-csv:1.9.0'
+    implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
+    implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.12.2'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2'
+    //implementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.12.2'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.3.2'
+
+    implementation 'com.github.albfernandez:juniversalchardet:2.4.0'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+
+    implementation group:'org.postgresql',name:'postgresql',version:'42.3.3'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
+    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
+
+    runtimeOnly fileTree('libs') { include '*.jar' }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'
+
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testRuntimeOnly fileTree('libs') { include '*.jar' }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+tasks.withType(Javadoc) {
+    options.encoding = "UTF-8"
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = ['-Xjvm-default=compatibility']
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+test {
+    useJUnitPlatform()
+    systemProperties = System.properties as Map<String, ?>
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+archivesBaseName = "f2t"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'F2T'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'A library that helps loading data from files(csv/Excel/parquet, and extendable) into databases.'
+                url 'https://github.com/hago/f2t'
+
+                scm {
+                    connection 'scm:git:https://github.com/hago/f2t.git'
+                    developerConnection 'scm:git:https://github.com/hago/f2t.git'
+                    url 'https://github.com/hago/f2t.git'
+                }
+
+                licenses {
+                    license {
+                        name 'Mozilla Public License, Version 2.0'
+                        url 'http://mozilla.org/MPL/2.0/'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'suncjs'
+                        name 'Chaojun Sun'
+                        email 'suncjs@hagoapp.com'
+                    }
+                }
+            }
+        }
+    }
+}
