@@ -65,7 +65,7 @@ class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, dbConfi
         val parseResult = ParseResult()
         try {
             if (!prepareTable()) {
-                throw Exception("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
+                throw F2TException("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
             }
             val count = dataTable.rows.size
             dataTable.rows.forEachIndexed { i, row ->
