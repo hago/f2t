@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public class DbConfigReader {
                     dbConfigMap.put(i.toLowerCase(), clz);
                 }
             } catch (InstantiationException | IllegalAccessException |
-                    InvocationTargetException | NoSuchMethodException e) {
+                     InvocationTargetException | NoSuchMethodException e) {
                 logger.error("error {} occurs in instantiating {}", e.getMessage(), clz.getCanonicalName());
             }
         }
@@ -91,7 +92,7 @@ public class DbConfigReader {
      * @throws F2TException if anything wrong
      */
     public static DbConfig readConfig(byte[] content) throws F2TException {
-        return json2DbConfig(new String(content));
+        return json2DbConfig(new String(content, StandardCharsets.UTF_8));
     }
 
     /**

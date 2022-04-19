@@ -101,5 +101,5 @@ public interface DbDataGetter<T> {
     /**
      * Predefined big decimal reader implementation.
      */
-    DbDataGetter<BigDecimal> DecimalDataGetter = (ResultSet::getBigDecimal);
+    DbDataGetter<BigDecimal> DecimalDataGetter = ResultSet::getBigDecimal;
 }
