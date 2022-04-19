@@ -15,6 +15,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.sql.SQLException
 import java.util.*
 
 /**
@@ -44,7 +45,7 @@ class MariaDBConnection : DbConnection() {
             getConnection(conf).use {
                 return Pair(true, "")
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message ?: ex.toString())
         }
     }
@@ -117,7 +118,7 @@ class MariaDBConnection : DbConnection() {
                 connection.commit()
             }
             Pair(true, null)
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             Pair(false, ex.message)
         }
     }
@@ -129,7 +130,7 @@ class MariaDBConnection : DbConnection() {
                 connection.commit()
             }
             Pair(true, null)
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             Pair(false, ex.message)
         }
     }
@@ -319,7 +320,7 @@ class MariaDBConnection : DbConnection() {
                     rs.next()
                     caseSensitive = try {
                         rs.getString("Value").compareTo("0") == 0
-                    } catch (ex: Throwable) {
+                    } catch (ex: SQLException) {
                         true
                     }
                 }

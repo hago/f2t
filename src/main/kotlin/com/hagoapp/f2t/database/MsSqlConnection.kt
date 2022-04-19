@@ -49,7 +49,7 @@ class MsSqlConnection : DbConnection() {
             getConnection(conf).use {
                 return Pair(true, "")
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message ?: ex.toString())
         }
     }
@@ -78,7 +78,7 @@ class MsSqlConnection : DbConnection() {
                     }
                 }
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             logger.error("fetch table list error: $ex")
             // println(ex)
             return mapOf()
@@ -99,7 +99,7 @@ class MsSqlConnection : DbConnection() {
                     }
                 }
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             logger.error("fetch database list error: $ex")
             // println(ex)
             return listOf()
@@ -137,7 +137,7 @@ class MsSqlConnection : DbConnection() {
             connection.prepareStatement("truncate table ${getFullTableName(table)}").use { st ->
                 return Pair(st.execute(), null)
             }
-        } catch (ex: Throwable) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message)
         }
     }
@@ -147,7 +147,7 @@ class MsSqlConnection : DbConnection() {
             connection.prepareStatement("drop table ${normalizeName(tableName)};").use { st ->
                 return Pair(st.execute(), null)
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message)
         }
     }

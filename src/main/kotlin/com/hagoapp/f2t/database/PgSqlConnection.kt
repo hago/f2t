@@ -40,7 +40,7 @@ class PgSqlConnection : DbConnection() {
             getConnection(conf).use {
                 return Pair(true, "")
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message ?: ex.toString())
         }
     }
@@ -68,7 +68,7 @@ class PgSqlConnection : DbConnection() {
                     }
                 }
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return mapOf()
         }
     }
@@ -91,7 +91,7 @@ class PgSqlConnection : DbConnection() {
                         }
                     }
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return listOf()
         }
     }
@@ -122,7 +122,7 @@ class PgSqlConnection : DbConnection() {
             connection.prepareStatement("truncate table ${getFullTableName(table)}").use { st ->
                 return Pair(st.execute(), null)
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message)
         }
     }
@@ -132,7 +132,7 @@ class PgSqlConnection : DbConnection() {
             connection.prepareStatement("drop table if exists $tableName").use { st ->
                 return Pair(st.execute(), null)
             }
-        } catch (ex: Exception) {
+        } catch (ex: SQLException) {
             return Pair(false, ex.message)
         }
     }
