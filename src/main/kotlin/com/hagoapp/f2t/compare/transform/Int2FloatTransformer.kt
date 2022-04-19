@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.compare.transform
 
 import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.math.BigDecimal
@@ -27,7 +28,7 @@ class Int2FloatTransformer : TypedColumnTransformer {
         vararg extra: String
     ): Any? {
         if ((src !is Float?) && (src !is Double?) && (src !is BigDecimal?)) {
-            throw Exception("Not integer input to transform to float")
+            throw F2TException("Not integer input to transform to float")
         }
         src as Number?
         return if (src == null) null

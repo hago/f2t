@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.compare.transform
 
 import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.TypedColumnTransformer
 import java.sql.JDBCType
@@ -26,7 +27,7 @@ class String2IntTransformer: TypedColumnTransformer {
         vararg extra: String
     ): Any? {
         if (src !is String?) {
-            throw Exception("Not String input to transform to int")
+            throw F2TException("Not String input to transform to int")
         }
         return when  {
             src == null -> null

@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.compare.transform
 
 import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.TypedColumnTransformer
 import com.hagoapp.f2t.util.DateTimeTypeUtils
@@ -28,7 +29,7 @@ class String2DateTimeTransformer : TypedColumnTransformer {
     ): Any? {
         src ?: return null
         if (src !is String?) {
-            throw Exception("Not String input to transform to datetime: ${src::class.java.canonicalName}")
+            throw F2TException("Not String input to transform to datetime: ${src::class.java.canonicalName}")
         }
         return DateTimeTypeUtils.stringToDateTimeOrNull(src, extra.toSet())
     }
