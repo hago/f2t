@@ -8,6 +8,7 @@ package com.hagoapp.f2t.datafile;
 
 import org.apache.parquet.io.PositionOutputStream;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,7 +25,8 @@ public class LocalFilePositionOutputStream extends PositionOutputStream {
     private long position = 0L;
 
     public LocalFilePositionOutputStream(String fileName) throws FileNotFoundException {
-        fileOutputStream = new FileOutputStream(fileName);
+        var f = new File(fileName);
+        fileOutputStream = new FileOutputStream(f);
     }
 
     @Override

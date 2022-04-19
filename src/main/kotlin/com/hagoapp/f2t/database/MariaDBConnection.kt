@@ -113,7 +113,7 @@ class MariaDBConnection : DbConnection() {
 
     override fun clearTable(table: TableName): Pair<Boolean, String?> {
         return try {
-            connection.prepareStatement("truncate table ${normalizeName(table.tableName)};").use { stmt ->
+            connection.prepareStatement("truncate table ${getFullTableName(table)};").use { stmt ->
                 stmt.execute()
                 connection.commit()
             }
@@ -125,7 +125,7 @@ class MariaDBConnection : DbConnection() {
 
     override fun dropTable(tableName: String): Pair<Boolean, String?> {
         return try {
-            connection.prepareStatement("drop table `$tableName`;").use { stmt ->
+            connection.prepareStatement("drop table ${normalizeName(tableName)};").use { stmt ->
                 stmt.execute()
                 connection.commit()
             }
@@ -144,7 +144,7 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun isTableExists(table: TableName): Boolean {
-        connection.prepareStatement("show tables like '${table.tableName}'").use { stmt ->
+        connection.prepareStatement("show tables like '${getFullTableName(table)}'").use { stmt ->
             stmt.executeQuery().use { rs ->
                 return rs.next()
             }
@@ -156,7 +156,7 @@ class MariaDBConnection : DbConnection() {
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)} null"
         }
         val sql = """
-            create table ${normalizeName(table.tableName)} ($content) 
+            create table ${getFullTableName(table)} ($content) 
             engine = ${config.storeEngine} 
             default charset=utf8mb4
             """
