@@ -12,6 +12,7 @@ import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.io.FileInputStream
+import java.io.IOException
 import java.io.InputStream
 
 /**
@@ -71,7 +72,7 @@ class FileInfoReader {
                 FileInputStream(filename).use {
                     return createFileInfo(it)
                 }
-            } catch (e: Throwable) {
+            } catch (e: IOException) {
                 throw F2TException("Load FileInfo object from file $filename failed", e)
             }
         }

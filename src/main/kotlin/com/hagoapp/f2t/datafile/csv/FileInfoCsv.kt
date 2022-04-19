@@ -9,6 +9,7 @@ package com.hagoapp.f2t.datafile.csv
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.datafile.FileInfo
 import java.nio.charset.Charset
+import java.nio.charset.UnsupportedCharsetException
 
 /**
  * CSV file information class, inherited from <code>FileInfo</code>.
@@ -30,7 +31,7 @@ class FileInfoCsv : FileInfo() {
             try {
                 Charset.forName(value)
                 field = value
-            } catch (e: Throwable) {
+            } catch (e: UnsupportedCharsetException) {
                 throw F2TException("$value is not valid charset", e)
             }
         }
