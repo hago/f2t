@@ -26,12 +26,14 @@ class Int2IntTransformer : TypedColumnTransformer {
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): Any? {
-        if ((src !is Byte?) && (src !is Short?) && (src !is Int?) && (src !is Long?)) {
-            throw F2TException("Not integer input to transform to integer")
+        if (src == null) {
+            return null
+        }
+        if ((src !is Byte) && (src !is Short) && (src !is Int) && (src !is Long)) {
+            throw F2TException("Not integer input to transform to integer: ${src::class.java.canonicalName}")
         }
         src as Number?
-        return if (src == null) null
-        else when (dbColumnDefinition.dataType) {
+        return when (dbColumnDefinition.dataType) {
             TINYINT -> src.toByte()
             SMALLINT -> src.toShort()
             INTEGER -> src.toInt()

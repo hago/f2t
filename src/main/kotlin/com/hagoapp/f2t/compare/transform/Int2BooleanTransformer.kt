@@ -27,7 +27,7 @@ class Int2BooleanTransformer : TypedColumnTransformer {
         vararg extra: String
     ): Any? {
         if ((src !is Byte?) && (src !is Short?) && (src !is Int?) && (src !is Long?)) {
-            throw F2TException("Not integer input to transform to integer")
+            throw F2TException("Not integer input to transform to boolean")
         }
         src as Number?
         return if (src == null) null else src.toLong() > 0
