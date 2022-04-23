@@ -114,11 +114,12 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun isTableExists(table: TableName): Boolean {
-        connection.prepareStatement("show tables like '${getFullTableName(table)}'").use { stmt ->
-            stmt.executeQuery().use { rs ->
-                return rs.next()
+        connection.prepareStatement("show tables like '${table.tableName.replace("'", "''")}'")
+            .use { stmt ->
+                stmt.executeQuery().use { rs ->
+                    return rs.next()
+                }
             }
-        }
     }
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
