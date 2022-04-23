@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hagoapp.f2t.F2TException;
 import com.hagoapp.f2t.F2TLogger;
-import com.hagoapp.f2t.database.DbConnection;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.slf4j.Logger;
