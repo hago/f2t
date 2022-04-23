@@ -40,9 +40,9 @@ class ProcessTester {
 
     @Test
     @EnabledIfSystemProperties(
-        EnabledIfSystemProperty(named = "f2t.db", matches = ".+"),
-        EnabledIfSystemProperty(named = "f2t.file", matches = ".+"),
-        EnabledIfSystemProperty(named = "f2t.process", matches = ".+")
+        EnabledIfSystemProperty(named = Constants.PROCESS_CONFIG_FILE, matches = ".+"),
+        EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".+"),
+        EnabledIfSystemProperty(named = Constants.FILE_CONFIG_FILE, matches = ".+")
     )
     fun run() {
         val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
