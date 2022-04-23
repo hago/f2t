@@ -12,6 +12,7 @@ import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
+import com.hagoapp.util.StackTraceWriter
 import java.lang.reflect.Method
 import java.sql.Connection
 import java.sql.JDBCType
@@ -71,13 +72,13 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
             config.isAddBatch -> {
                 batchNum = Instant.now().toEpochMilli()
                 logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
-                columnDefinitionList.plus(
-                    FileColumnDefinition(
-                        config.batchColumnName,
-                        mutableSetOf(JDBCType.BIGINT),
-                        JDBCType.BIGINT
-                    )
+                val batchCol = FileColumnDefinition(
+                    config.batchColumnName,
+                    mutableSetOf(JDBCType.BIGINT),
+                    JDBCType.BIGINT
                 )
+                batchCol.order = columnDefinitionList.size
+                columnDefinitionList.plus(batchCol)
             }
             else -> columnDefinitionList
         }.toSet()
@@ -114,6 +115,7 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
                 } catch (e: Throwable) {
                     result.errors.add(e)
                     logger.error("Error occurs when creating table $table: ${e.message}")
+                    StackTraceWriter.writeToLogger(e, logger)
                 }
             } else {
                 logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
