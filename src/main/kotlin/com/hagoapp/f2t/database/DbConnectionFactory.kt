@@ -8,10 +8,9 @@ package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
-import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.database.config.DbConfigReader
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import java.sql.Connection
 
 /**
  * This is a factory class to create database target implementation. It will search any descendants of
@@ -43,7 +42,7 @@ class DbConnectionFactory {
                 r.getSubTypesOf(DbConnection::class.java).forEach { t ->
                     try {
                         val template = t.getConstructor().newInstance()
-                        typedConnectionMapper[template.getSupportedDbType().lowercase()] = t
+                        typedConnectionMapper[template.getDriverName().lowercase()] = t
                         logger.info("DbConnection ${t.canonicalName} registered")
                     } catch (e: Exception) {
                         logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
@@ -53,31 +52,19 @@ class DbConnectionFactory {
         }
 
         /**
-         * Create database connection object on given name of config file, which should be a json serialized from a
-         * <code>DbConfig</code> sub-type.
-         *
-         * @param configName    config file name
-         * @return Database implementation instance
-         */
-        @JvmStatic
-        fun createDbConnection(configName: String): DbConnection {
-            val config = DbConfigReader.readConfig(configName)
-            return createDbConnection(config)
-        }
-
-        /**
          * Create database connection object on given <code>DbConfig</code> sub-type.
          *
-         * @param dbConfig    config subtype object
+         * @param connection    SQL connection, subtype of <code>Java.Sql.Connection</code>
          * @return Database implementation instance
          */
         @JvmStatic
-        fun createDbConnection(dbConfig: DbConfig): DbConnection {
-            return when (val clz = typedConnectionMapper[dbConfig.dbType.lowercase()]) {
-                null -> throw F2TException("Unknown database type: ${dbConfig.dbType}")
+        fun createDbConnection(connection: Connection): DbConnection {
+            val database = connection.metaData.databaseProductName.lowercase()
+            return when (val clz = typedConnectionMapper[database]) {
+                null -> throw F2TException("Unknown database type: $database")
                 else -> {
                     val con = clz.getConstructor().newInstance()
-                    con.open(dbConfig)
+                    con.open(connection)
                     con
                 }
             }

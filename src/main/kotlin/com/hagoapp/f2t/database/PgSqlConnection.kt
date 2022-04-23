@@ -10,10 +10,8 @@ import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.PgSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
-import org.w3c.dom.Text
 import java.sql.*
 import java.sql.JDBCType.*
-import java.util.*
 
 /**
  * Database operations implementation for PostgreSQL.
@@ -25,19 +23,16 @@ class PgSqlConnection : DbConnection() {
 
     companion object {
         private const val PGSQL_DRIVER_CLASS_NAME = "org.postgresql.Driver"
-
-        init {
-            Class.forName(PGSQL_DRIVER_CLASS_NAME)
-        }
+        private val driver: Class<*> = Class.forName(PGSQL_DRIVER_CLASS_NAME)
     }
 
-    override fun getSupportedDbType(): String {
-        return PgSqlConfig.DATABASE_TYPE_POSTGRESQL
+    override fun getDriverName(): String {
+        return driver.canonicalName
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
         try {
-            getConnection(conf).use {
+            conf.createConnection().use {
                 return Pair(true, "")
             }
         } catch (ex: SQLException) {
@@ -48,7 +43,7 @@ class PgSqlConnection : DbConnection() {
     override fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>> {
         try {
             val ret = mutableMapOf<String, MutableList<TableName>>()
-            getConnection(conf).use { con ->
+            conf.createConnection().use { con ->
                 val sql = """
                     select schemaname, tablename, tableowner from pg_tables 
                     where schemaname<>'pg_catalog' and schemaname<>'information_schema'
@@ -80,7 +75,7 @@ class PgSqlConnection : DbConnection() {
         conf.databaseName = "postgres"
         try {
             val ret = mutableListOf<String>()
-            getConnection(conf).use { con ->
+            conf.createConnection().use { con ->
                 con.prepareStatement("select datname from pg_database where datistemplate = false and datname != 'postgres'")
                     .use { st ->
                         st.executeQuery().use { rs ->
@@ -94,27 +89,6 @@ class PgSqlConnection : DbConnection() {
         } catch (ex: SQLException) {
             return listOf()
         }
-    }
-
-    private fun getPgConfig(conf: DbConfig): PgSqlConfig {
-        if (conf !is PgSqlConfig) {
-            throw F2TException("Not a configuration for PostgreSQL")
-        }
-        return conf
-    }
-
-    override fun getConnection(conf: DbConfig): Connection {
-        val config = getPgConfig(conf)
-        if (config.databaseName.isNullOrBlank()) {
-            config.databaseName = "postgres"
-        }
-        if (listOf(config.host, config.username, conf.password).any { it == null }) {
-            throw F2TException("Configuration is incomplete")
-        }
-        val conStr = "jdbc:postgresql://${config.host}:${config.port}/${config.databaseName}"
-        val props = Properties()
-        props.putAll(mapOf("user" to config.username, "password" to config.password))
-        return DriverManager.getConnection(conStr, props)
     }
 
     override fun clearTable(table: TableName): Pair<Boolean, String?> {

@@ -10,10 +10,10 @@ import com.hagoapp.f2t.compare.TableDefinitionComparator
 import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
-import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import java.lang.reflect.Method
+import java.sql.Connection
 import java.sql.JDBCType
 import java.time.Instant
 
@@ -25,7 +25,7 @@ import java.time.Instant
  * @author Chaojun Sun
  * @since 0.1
  */
-class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2TConfig) : ParseObserver {
+class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TConfig) : ParseObserver {
     private var parser: FileParser = dataFileRParser
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
@@ -55,7 +55,7 @@ class F2TProcess(dataFileRParser: FileParser, dbConfig: DbConfig, f2TConfig: F2T
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
         table = TableName(config.targetTable, config.targetSchema ?: "")
-        connection = DbConnectionFactory.createDbConnection(dbConfig)
+        connection = DbConnectionFactory.createDbConnection(conn)
     }
 
     /**

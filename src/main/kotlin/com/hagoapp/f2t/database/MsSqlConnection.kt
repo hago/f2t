@@ -34,19 +34,16 @@ class MsSqlConnection : DbConnection() {
 
     companion object {
         private const val MSSQL_DRIVER_CLASS_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-
-        init {
-            Class.forName(MSSQL_DRIVER_CLASS_NAME)
-        }
+        private val driver: Class<*> = Class.forName(MSSQL_DRIVER_CLASS_NAME)
     }
 
-    override fun getSupportedDbType(): String {
-        return MsSqlConfig.DATABASE_TYPE_MSSQL
+    override fun getDriverName(): String {
+        return driver.canonicalName
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
         try {
-            getConnection(conf).use {
+            conf.createConnection().use {
                 return Pair(true, "")
             }
         } catch (ex: SQLException) {
@@ -63,7 +60,7 @@ class MsSqlConnection : DbConnection() {
                 where o.[type]='U'
                 order by s.name, o.name
                 """
-            getConnection(conf).use { con ->
+            conf.createConnection().use { con ->
                 con.prepareStatement(sql).use { st ->
                     st.executeQuery().use { rs ->
                         while (rs.next()) {
@@ -88,7 +85,7 @@ class MsSqlConnection : DbConnection() {
     override fun listDatabases(conf: DbConfig): List<String> {
         try {
             val ret = mutableListOf<String>()
-            getConnection(conf).use { con ->
+            conf.createConnection().use { con ->
                 val sql = "select name from sys.databases where name not in ('master', 'tempdb', 'msdb', 'model')"
                 con.prepareStatement(sql).use { st ->
                     st.executeQuery().use { rs ->
@@ -104,32 +101,6 @@ class MsSqlConnection : DbConnection() {
             // println(ex)
             return listOf()
         }
-    }
-
-    override fun open(conf: DbConfig) {
-        msConfig = getConfig(conf)
-        super.open(conf)
-    }
-
-    override fun getConnection(conf: DbConfig): Connection {
-        val config = getConfig(conf)
-        if (config.databaseName.isNullOrBlank()) {
-            config.databaseName = "master"
-        }
-        if (listOf(config.host, config.username, config.password).any { it == null }) {
-            throw F2TException("Configuration is incomplete")
-        }
-        val conStr = "jdbc:sqlserver://${config.host}:${config.port};databaseName = ${config.databaseName}"
-        val props = Properties()
-        props.putAll(mapOf("user" to config.username, "password" to config.password))
-        return DriverManager.getConnection(conStr, props)
-    }
-
-    private fun getConfig(conf: DbConfig): MsSqlConfig {
-        if (conf !is MsSqlConfig) {
-            throw F2TException("Not a MS SQL config")
-        }
-        return conf
     }
 
     override fun clearTable(table: TableName): Pair<Boolean, String?> {
@@ -400,7 +371,7 @@ class MsSqlConnection : DbConnection() {
 
     override fun createDataGetter(jdbcType: JDBCType): DbDataGetter<*> {
         return when (jdbcType) {
-            FLOAT -> DbDataGetter<Double> { resultSet: ResultSet, column: String ->
+            FLOAT -> DbDataGetter { resultSet: ResultSet, column: String ->
                 val v = resultSet.getDouble(column)
                 val digits = log10(v).roundToInt()
                 if (digits >= 15) v

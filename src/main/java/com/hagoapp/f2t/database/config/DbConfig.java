@@ -14,13 +14,16 @@ package com.hagoapp.f2t.database.config;
 
 import com.hagoapp.f2t.JsonStringify;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 /**
  * The basic configuration for database connections.
  *
  * @author Chaojun Sun
  * @since 0.1
  */
-public class DbConfig implements JsonStringify {
+public abstract class DbConfig implements JsonStringify {
     protected String dbType;
     protected String username;
     protected String password;
@@ -73,4 +76,6 @@ public class DbConfig implements JsonStringify {
     public void setDatabaseName(String databaseName) {
         this.databaseName = databaseName;
     }
+
+    public abstract Connection createConnection() throws SQLException;
 }

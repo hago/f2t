@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.database.config;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
+
 /**
  * Configuration for Microsoft SQl Server database, and may be used for Azure SQL DB and Synapse DW.
  *
@@ -38,5 +44,17 @@ public class MsSqlConfig extends DbConfig {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    @Override
+    public Connection createConnection() throws SQLException {
+        var db = ((databaseName == null) || databaseName.isBlank()) ? "master" : databaseName;
+        if ((host == null) || (username == null) || (password == null)) {
+            throw new UnsupportedOperationException("Configuration is incomplete");
+        }
+        var conStr = String.format("jdbc:sqlserver://%s:%d;databaseName = %s", host, port, db);
+        var props = new Properties();
+        props.putAll(Map.of("user", username, "password", password));
+        return DriverManager.getConnection(conStr, props);
     }
 }

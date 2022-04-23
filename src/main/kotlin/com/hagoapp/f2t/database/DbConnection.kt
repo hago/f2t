@@ -44,7 +44,7 @@ abstract class DbConnection : Closeable {
      *
      * @return the database identity string
      */
-    abstract fun getSupportedDbType(): String
+    abstract fun getDriverName(): String
 
     /**
      * Whether the config is valid to lead a successful connection.
@@ -75,19 +75,11 @@ abstract class DbConnection : Closeable {
      * Create the internal JDBC connection for those methods which doesn't have a <code>DbConfig</code> parameter.
      * This method could be called by many other methods in implementation.
      *
-     * @param conf  database config
+     * @param conn  database connection
      */
-    open fun open(conf: DbConfig) {
-        connection = getConnection(conf)
+    open fun open(conn: Connection) {
+        connection = conn
     }
-
-    /**
-     * Any descendants should override this method to implement concrete connection creation.
-     *
-     * @param conf  database config
-     * @return established connection
-     */
-    protected abstract fun getConnection(conf: DbConfig): Connection
 
     override fun close() {
         try {

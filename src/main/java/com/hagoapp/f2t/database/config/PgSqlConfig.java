@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.database.config;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
+
 /**
  * Configuration for PostgreSQL database.
  *
@@ -36,5 +42,17 @@ public class PgSqlConfig extends DbConfig {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    @Override
+    public Connection createConnection() throws SQLException {
+        var db = ((databaseName == null) || databaseName.isBlank()) ? "postgres" : databaseName;
+        if ((host == null) || (username == null) || (password == null)) {
+            throw new UnsupportedOperationException("Configuration is incomplete");
+        }
+        var conStr = String.format("jdbc:postgresql://%s:%d/%s", host, port, db);
+        var props = new Properties();
+        props.putAll(Map.of("user", username, "password", password));
+        return DriverManager.getConnection(conStr, props);
     }
 }
