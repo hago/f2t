@@ -7,7 +7,6 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
-import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.*
 import java.sql.JDBCType.*
@@ -32,37 +31,25 @@ class PgSqlConnection : DbConnection() {
         return PGSQL_DRIVER_CLASS_NAME
     }
 
-    override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
-        try {
-            conf.createConnection().use {
-                return Pair(true, "")
-            }
-        } catch (ex: SQLException) {
-            return Pair(false, ex.message ?: ex.toString())
-        }
-    }
-
-    override fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>> {
+    override fun getAvailableTables(): Map<String, List<TableName>> {
         try {
             val ret = mutableMapOf<String, MutableList<TableName>>()
-            conf.createConnection().use { con ->
-                val sql = """
+            val sql = """
                     select schemaname, tablename, tableowner from pg_tables 
                     where schemaname<>'pg_catalog' and schemaname<>'information_schema'
                     order by schemaname, tablename
                     """
-                con.prepareStatement(sql).use { st ->
-                    st.executeQuery().use { rs ->
-                        while (rs.next()) {
-                            val schema = rs.getString("schemaname")
-                            val table = rs.getString("tablename")
-                            if (!ret.containsKey(schema)) {
-                                ret[schema] = mutableListOf()
-                            }
-                            ret.getValue(schema).add(TableName(table, schema))
+            connection.prepareStatement(sql).use { st ->
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val schema = rs.getString("schemaname")
+                        val table = rs.getString("tablename")
+                        if (!ret.containsKey(schema)) {
+                            ret[schema] = mutableListOf()
                         }
-                        return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
+                        ret.getValue(schema).add(TableName(table, schema))
                     }
+                    return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
                 }
             }
         } catch (ex: SQLException) {
@@ -70,20 +57,18 @@ class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun listDatabases(conf: DbConfig): List<String> {
+    override fun listDatabases(): List<String> {
         try {
             val ret = mutableListOf<String>()
-            conf.createConnection().use { con ->
-                con.prepareStatement("select datname from pg_database where datistemplate = false and datname != 'postgres'")
-                    .use { st ->
-                        st.executeQuery().use { rs ->
-                            while (rs.next()) {
-                                ret.add(rs.getString("datname"))
-                            }
-                            return ret
+            connection.prepareStatement("select datname from pg_database where datistemplate = false and datname != 'postgres'")
+                .use { st ->
+                    st.executeQuery().use { rs ->
+                        while (rs.next()) {
+                            ret.add(rs.getString("datname"))
                         }
+                        return ret
                     }
-            }
+                }
         } catch (ex: SQLException) {
             return listOf()
         }

@@ -12,7 +12,6 @@ import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
 import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.FileColumnDefinition
-import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.util.ColumnMatcher
@@ -48,29 +47,18 @@ abstract class DbConnection : Closeable {
     abstract fun getDriverName(): String
 
     /**
-     * Whether the config is valid to lead a successful connection.
-     *
-     * @param conf  database config
-     * @return a pair, first element is true if connection is valid with second element set to null; otherwise, first
-     * element is false with second is the error message
-     */
-    abstract fun canConnect(conf: DbConfig): Pair<Boolean, String>
-
-    /**
      * Fetch the existing tables from database.
      *
-     * @param conf  database config
      * @return a map whose keys are schemas and values are table names under the schema
      */
-    abstract fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>>
+    abstract fun getAvailableTables(): Map<String, List<TableName>>
 
     /**
      * List all visible databases by user from the config.
      *
-     * @param conf  database config
      * @return name list of databases attached on the instance specified by config
      */
-    abstract fun listDatabases(conf: DbConfig): List<String>
+    abstract fun listDatabases(): List<String>
 
     /**
      * Create the internal JDBC connection for those methods which doesn't have a <code>DbConfig</code> parameter.

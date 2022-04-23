@@ -8,7 +8,6 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
-import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.database.config.MariaDbConfig
 import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.JDBCType
@@ -35,50 +34,36 @@ class MariaDBConnection : DbConnection() {
         return MARIADB_DRIVER_CLASS_NAME
     }
 
-    override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
-        try {
-            conf.createConnection().use {
-                return Pair(true, "")
-            }
-        } catch (ex: SQLException) {
-            return Pair(false, ex.message ?: ex.toString())
-        }
-    }
-
-    override fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>> {
-        val databases = if (!conf.databaseName.isNullOrBlank()) listOf(conf.databaseName) else listDatabases(conf)
+    override fun getAvailableTables(): Map<String, List<TableName>> {
+        val databases = listDatabases()
         val ret = mutableMapOf<String, List<TableName>>()
-        conf.createConnection().use { con ->
-            databases.forEach { database ->
-                val tables = mutableListOf<TableName>()
-                con.prepareStatement("use ${normalizeName(database)}").use { it.execute() }
-                con.prepareStatement("show tables").use { stmt ->
-                    stmt.executeQuery().use { rs ->
-                        while (rs.next()) {
-                            val table = rs.getString(1)
-                            tables.add(TableName(table, ""))
-                        }
-                    }
-                }
-                tables.sortBy { it.tableName }
-                ret[database] = tables
-            }
-            return ret
-        }
-    }
-
-    override fun listDatabases(conf: DbConfig): List<String> {
-        conf.createConnection().use { con ->
-            val databases = mutableListOf<String>()
-            con.prepareStatement("show databases;").use { stmt ->
+        databases.forEach { database ->
+            val tables = mutableListOf<TableName>()
+            connection.prepareStatement("use ${normalizeName(database)}").use { it.execute() }
+            connection.prepareStatement("show tables").use { stmt ->
                 stmt.executeQuery().use { rs ->
                     while (rs.next()) {
-                        databases.add(rs.getString(1))
+                        val table = rs.getString(1)
+                        tables.add(TableName(table, ""))
                     }
                 }
             }
-            return databases
+            tables.sortBy { it.tableName }
+            ret[database] = tables
         }
+        return ret
+    }
+
+    override fun listDatabases(): List<String> {
+        val databases = mutableListOf<String>()
+        connection.prepareStatement("show databases;").use { stmt ->
+            stmt.executeQuery().use { rs ->
+                while (rs.next()) {
+                    databases.add(rs.getString(1))
+                }
+            }
+        }
+        return databases
     }
 
     override fun clearTable(table: TableName): Pair<Boolean, String?> {

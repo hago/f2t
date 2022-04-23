@@ -8,7 +8,6 @@ package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.compare.ColumnComparator
-import com.hagoapp.f2t.database.config.DbConfig
 import com.hagoapp.f2t.util.ColumnMatcher
 import com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement
 import microsoft.sql.DateTimeOffset
@@ -41,17 +40,7 @@ class MsSqlConnection : DbConnection() {
         return MSSQL_DRIVER_CLASS_NAME
     }
 
-    override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
-        try {
-            conf.createConnection().use {
-                return Pair(true, "")
-            }
-        } catch (ex: SQLException) {
-            return Pair(false, ex.message ?: ex.toString())
-        }
-    }
-
-    override fun getAvailableTables(conf: DbConfig): Map<String, List<TableName>> {
+    override fun getAvailableTables(): Map<String, List<TableName>> {
         try {
             val ret = mutableMapOf<String, MutableList<TableName>>()
             val sql = """
@@ -60,19 +49,17 @@ class MsSqlConnection : DbConnection() {
                 where o.[type]='U'
                 order by s.name, o.name
                 """
-            conf.createConnection().use { con ->
-                con.prepareStatement(sql).use { st ->
-                    st.executeQuery().use { rs ->
-                        while (rs.next()) {
-                            val schema = rs.getString("schema")
-                            val table = rs.getString("table")
-                            if (!ret.containsKey(schema)) {
-                                ret[schema] = mutableListOf()
-                            }
-                            ret.getValue(schema).add(TableName(table, schema))
+            connection.prepareStatement(sql).use { st ->
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val schema = rs.getString("schema")
+                        val table = rs.getString("table")
+                        if (!ret.containsKey(schema)) {
+                            ret[schema] = mutableListOf()
                         }
-                        return ret.ifEmpty { mapOf(conf.databaseName to listOf()) }
+                        ret.getValue(schema).add(TableName(table, schema))
                     }
+                    return ret.ifEmpty { mapOf(connection.catalog to listOf()) }
                 }
             }
         } catch (ex: SQLException) {
@@ -82,18 +69,16 @@ class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun listDatabases(conf: DbConfig): List<String> {
+    override fun listDatabases(): List<String> {
         try {
             val ret = mutableListOf<String>()
-            conf.createConnection().use { con ->
-                val sql = "select name from sys.databases where name not in ('master', 'tempdb', 'msdb', 'model')"
-                con.prepareStatement(sql).use { st ->
-                    st.executeQuery().use { rs ->
-                        while (rs.next()) {
-                            ret.add(rs.getString("name"))
-                        }
-                        return ret
+            val sql = "select name from sys.databases where name not in ('master', 'tempdb', 'msdb', 'model')"
+            connection.prepareStatement(sql).use { st ->
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        ret.add(rs.getString("name"))
                     }
+                    return ret
                 }
             }
         } catch (ex: SQLException) {
