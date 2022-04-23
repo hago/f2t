@@ -16,6 +16,7 @@ import com.hagoapp.f2t.JsonStringify;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * The basic configuration for database connections.
@@ -23,7 +24,7 @@ import java.sql.SQLException;
  * @author Chaojun Sun
  * @since 0.1
  */
-public abstract class DbConfig implements JsonStringify {
+public class DbConfig implements JsonStringify {
     protected String dbType;
     protected String username;
     protected String password;
@@ -77,5 +78,11 @@ public abstract class DbConfig implements JsonStringify {
         this.databaseName = databaseName;
     }
 
-    public abstract Connection createConnection() throws SQLException;
+    public Connection createConnection() throws SQLException {
+        throw new UnsupportedOperationException("The base class have no enough information to create connection!");
+    }
+
+    public Map<String, Object> getProperties() throws SQLException {
+        return Map.of();
+    }
 }

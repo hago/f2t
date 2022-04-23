@@ -11,6 +11,7 @@ import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.sql.Connection
+import java.sql.DriverManager
 
 /**
  * This is a factory class to create database target implementation. It will search any descendants of
@@ -43,7 +44,7 @@ class DbConnectionFactory {
                     try {
                         val template = t.getConstructor().newInstance()
                         typedConnectionMapper[template.getDriverName().lowercase()] = t
-                        logger.info("DbConnection ${t.canonicalName} registered")
+                        logger.info("DbConnection ${template.getDriverName()} registered")
                     } catch (e: Exception) {
                         logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
                     }
@@ -58,12 +59,13 @@ class DbConnectionFactory {
          * @return Database implementation instance
          */
         @JvmStatic
-        fun createDbConnection(connection: Connection): DbConnection {
-            val database = connection.metaData.databaseProductName.lowercase()
-            return when (val clz = typedConnectionMapper[database]) {
-                null -> throw F2TException("Unknown database type: $database")
+        fun createDbConnection(connection: Connection, properties: Map<String, Any> = mapOf()): DbConnection {
+            val name = DriverManager.getDriver(connection.metaData.url).javaClass.canonicalName.lowercase()
+            return when (val clz = typedConnectionMapper[name]) {
+                null -> throw F2TException("Unknown database type: $name")
                 else -> {
                     val con = clz.getConstructor().newInstance()
+                    con.extraProperties.putAll(properties)
                     con.open(connection)
                     con
                 }

@@ -21,7 +21,8 @@ import java.util.Properties;
  */
 public class MariaDbConfig extends DbConfig {
     private static final String DATABASE_TYPE_MARIADB = "MariaDB";
-    private static final String STORE_ENGINE_INNODB = "innodb";
+    public static final String DEFAULT_STORE_ENGINE_INNODB = "innodb";
+    public static final String STORE_ENGINE_NAME = "STORE_ENGINE";
     private String host;
     private Integer port = 3306;
     private String socketFile;
@@ -33,7 +34,7 @@ public class MariaDbConfig extends DbConfig {
     }
 
     public String getStoreEngine() {
-        return storeEngine != null ? storeEngine : STORE_ENGINE_INNODB;
+        return storeEngine != null ? storeEngine : DEFAULT_STORE_ENGINE_INNODB;
     }
 
     public void setStoreEngine(String storeEngine) {
@@ -74,5 +75,10 @@ public class MariaDbConfig extends DbConfig {
         var props = new Properties();
         props.putAll(Map.of("user", username, "password", password));
         return DriverManager.getConnection(conStr, props);
+    }
+
+    @Override
+    public Map<String, Object> getProperties() throws SQLException {
+        return Map.of(STORE_ENGINE_NAME, storeEngine);
     }
 }

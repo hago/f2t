@@ -23,15 +23,16 @@ import java.sql.SQLException
  */
 class MariaDBConnection : DbConnection() {
 
-    private lateinit var config: MariaDbConfig
-
     companion object {
         private const val MARIADB_DRIVER_CLASS_NAME = "org.mariadb.jdbc.Driver"
-        private val driver: Class<*> = Class.forName(MARIADB_DRIVER_CLASS_NAME)
+
+        init {
+            Class.forName(MARIADB_DRIVER_CLASS_NAME)
+        }
     }
 
     override fun getDriverName(): String {
-        return driver.canonicalName
+        return MARIADB_DRIVER_CLASS_NAME
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
@@ -124,9 +125,11 @@ class MariaDBConnection : DbConnection() {
         val content = tableDefinition.columns.joinToString(", ") { col ->
             "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)} null"
         }
+        val engine = extraProperties[MariaDbConfig.STORE_ENGINE_NAME]?.toString()
+            ?: MariaDbConfig.DEFAULT_STORE_ENGINE_INNODB
         val sql = """
             create table ${getFullTableName(table)} ($content) 
-            engine = ${config.storeEngine} 
+            engine = $engine
             default charset=utf8mb4
             """
         connection.prepareStatement(sql).use { stmt ->

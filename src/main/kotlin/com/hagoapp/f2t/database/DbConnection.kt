@@ -38,6 +38,7 @@ abstract class DbConnection : Closeable {
     protected val logger: Logger = F2TLogger.getLogger()
     protected val fieldValueSetters =
         mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
+    val extraProperties = mutableMapOf<String, Any>()
 
     /**
      * Help database factory to what kind of DbConfig should lead to the implementation.

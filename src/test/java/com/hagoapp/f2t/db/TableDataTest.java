@@ -6,6 +6,7 @@
 
 package com.hagoapp.f2t.db;
 
+import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.F2TException;
 import com.hagoapp.f2t.database.DbConnectionFactory;
@@ -15,7 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperties;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-import java.util.stream.Collectors;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 @EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".*")
 public class TableDataTest {
@@ -24,14 +26,15 @@ public class TableDataTest {
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_SCHEMA, matches = ".*"),
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_TABLE, matches = ".*")
     })
-    public void testReadData() throws F2TException {
+    public void testReadData() throws F2TException, SQLException {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        var connection = DbConnectionFactory.createDbConnection(config);
+        var connection = DbConnectionFactory.createDbConnection(
+                config.createConnection(), config.getProperties());
         var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
         var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
         var def = connection.getExistingTableDefinition(new TableName(table, schema));
         var rows = connection.readData(new TableName(table, schema),
-                def.getColumns().stream().collect(Collectors.toList()), 10);
+                new ArrayList<ColumnDefinition>(def.getColumns()), 10);
         System.out.print(rows);
     }
 }

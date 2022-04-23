@@ -9,7 +9,6 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.database.config.MsSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
 import com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement
 import microsoft.sql.DateTimeOffset
@@ -30,15 +29,16 @@ import kotlin.math.*
  */
 class MsSqlConnection : DbConnection() {
 
-    private lateinit var msConfig: MsSqlConfig
-
     companion object {
         private const val MSSQL_DRIVER_CLASS_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-        private val driver: Class<*> = Class.forName(MSSQL_DRIVER_CLASS_NAME)
+
+        init {
+            Class.forName(MSSQL_DRIVER_CLASS_NAME)
+        }
     }
 
     override fun getDriverName(): String {
-        return driver.canonicalName
+        return MSSQL_DRIVER_CLASS_NAME
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
@@ -304,7 +304,8 @@ class MsSqlConnection : DbConnection() {
     override fun isCaseSensitive(): Boolean {
         if (caseSensitive == null) {
             val sql =
-                "select convert(varchar, DATABASEPROPERTYEX('${msConfig.databaseName}', 'collation')) as SQLCollation"
+                "select convert(varchar, DATABASEPROPERTYEX('${connection.catalog}', 'collation')) as SQLCollation"
+            println(sql)
             caseSensitive = connection.prepareStatement(sql).use { stmt ->
                 stmt.executeQuery().use { rs ->
                     rs.next()

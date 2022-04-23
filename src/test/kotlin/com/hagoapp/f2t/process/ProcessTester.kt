@@ -51,7 +51,7 @@ class ProcessTester {
         val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
         val parser = FileParser(fileInfo)
         parser.addObserver(FileTestObserver())
-        val process = F2TProcess(parser, dbConfig, f2tConfig)
+        val process = F2TProcess(parser, dbConfig.createConnection(), f2tConfig)
         process.run()
         println(process.result)
         Assertions.assertTrue(process.result.succeeded())

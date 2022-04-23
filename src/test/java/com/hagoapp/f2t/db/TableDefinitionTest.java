@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperties;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import java.sql.SQLException;
+
 @EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".*")
 public class TableDefinitionTest {
 
@@ -24,9 +26,10 @@ public class TableDefinitionTest {
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_SCHEMA, matches = ".*"),
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_TABLE, matches = ".*")
     })
-    public void testFindTableDefinition() throws F2TException {
+    public void testFindTableDefinition() throws F2TException, SQLException {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        var connection = DbConnectionFactory.createDbConnection(config);
+        var connection = DbConnectionFactory.createDbConnection(
+                config.createConnection(), config.getProperties());
         var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
         var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
         var def = connection.getExistingTableDefinition(new TableName(table, schema));

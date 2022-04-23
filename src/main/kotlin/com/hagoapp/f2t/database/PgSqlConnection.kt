@@ -8,7 +8,6 @@ package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.database.config.DbConfig
-import com.hagoapp.f2t.database.config.PgSqlConfig
 import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.*
 import java.sql.JDBCType.*
@@ -23,11 +22,14 @@ class PgSqlConnection : DbConnection() {
 
     companion object {
         private const val PGSQL_DRIVER_CLASS_NAME = "org.postgresql.Driver"
-        private val driver: Class<*> = Class.forName(PGSQL_DRIVER_CLASS_NAME)
+
+        init {
+            Class.forName(PGSQL_DRIVER_CLASS_NAME)
+        }
     }
 
     override fun getDriverName(): String {
-        return driver.canonicalName
+        return PGSQL_DRIVER_CLASS_NAME
     }
 
     override fun canConnect(conf: DbConfig): Pair<Boolean, String> {
@@ -69,10 +71,6 @@ class PgSqlConnection : DbConnection() {
     }
 
     override fun listDatabases(conf: DbConfig): List<String> {
-        if (conf !is PgSqlConfig) {
-            throw F2TException("Not a configuration for PostgreSQL")
-        }
-        conf.databaseName = "postgres"
         try {
             val ret = mutableListOf<String>()
             conf.createConnection().use { con ->
