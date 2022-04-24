@@ -49,11 +49,12 @@ class D2TProcessTester {
         parser.parse()
         Assertions.assertTrue(dtObserver.succeeded)
 
-        val process = D2TProcess(dtObserver.getDataTable(), dbConfig.createConnection(), f2tConfig)
-
-        val result = process.run()
-        logger.debug("D2T result: {}", result)
-        Assertions.assertTrue(result.isSucceeded)
+        dbConfig.createConnection().use { con ->
+            val process = D2TProcess(dtObserver.getDataTable(), con, f2tConfig)
+            val result = process.run()
+            logger.debug("D2T result: {}", result)
+            Assertions.assertTrue(result.isSucceeded)
+        }
     }
 
     override fun toString(): String {

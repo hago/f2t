@@ -63,8 +63,10 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
      * start process.
      */
     fun run() {
-        parser.addObserver(this)
-        parser.parse()
+        connection.use {
+            parser.addObserver(this)
+            parser.parse()
+        }
     }
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition>) {

@@ -61,31 +61,33 @@ class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, conn: C
      * start process.
      */
     fun run(): ParseResult {
-        progressNotifier?.onStart()
-        val parseResult = ParseResult()
-        try {
-            if (!prepareTable()) {
-                throw F2TException("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
-            }
-            val count = dataTable.rows.size
-            dataTable.rows.forEachIndexed { i, row ->
-                try {
-                    onRowRead(row)
-                    progressNotifier?.onProgress(i.toFloat() / count.toFloat())
-                } catch (e: Throwable) {
-                    StackTraceWriter.writeToLogger(e, logger)
-                    parseResult.addError(i.toLong(), e)
+        connection.use {
+            progressNotifier?.onStart()
+            val parseResult = ParseResult()
+            try {
+                if (!prepareTable()) {
+                    throw F2TException("DataTable object doesn't match existing table $table in database, or new table creation is forbidden.")
                 }
+                val count = dataTable.rows.size
+                dataTable.rows.forEachIndexed { i, row ->
+                    try {
+                        onRowRead(row)
+                        progressNotifier?.onProgress(i.toFloat() / count.toFloat())
+                    } catch (e: Throwable) {
+                        StackTraceWriter.writeToLogger(e, logger)
+                        parseResult.addError(i.toLong(), e)
+                    }
+                }
+                it.flushRows(table)
+            } catch (e: Throwable) {
+                StackTraceWriter.writeToLogger(e, logger)
+                parseResult.addError(-1L, e)
+            } finally {
+                parseResult.end()
             }
-            connection.flushRows(table)
-        } catch (e: Throwable) {
-            StackTraceWriter.writeToLogger(e, logger)
-            parseResult.addError(-1L, e)
-        } finally {
-            parseResult.end()
+            progressNotifier?.onComplete(parseResult)
+            return parseResult
         }
-        progressNotifier?.onComplete(parseResult)
-        return parseResult
     }
 
     private fun prepareTable(): Boolean {

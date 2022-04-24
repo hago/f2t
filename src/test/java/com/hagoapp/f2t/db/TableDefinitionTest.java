@@ -28,32 +28,34 @@ public class TableDefinitionTest {
     })
     public void testFindTableDefinition() throws F2TException, SQLException {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        var connection = DbConnectionFactory.createDbConnection(
-                config.createConnection(), config.getProperties());
-        var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
-        var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
-        var def = connection.getExistingTableDefinition(new TableName(table, schema));
-        System.out.printf("def: %s%n", def);
-        Assertions.assertFalse(def.getColumns().isEmpty());
-        def.getColumns().forEach(colDef -> {
-            Assertions.assertNotNull(colDef.getDataType());
-            switch (colDef.getDataType()) {
-                case CHAR:
-                case NCHAR:
-                case VARCHAR:
-                case NVARCHAR:
-                case LONGNVARCHAR:
-                case BINARY:
-                case VARBINARY:
-                    Assertions.assertTrue(colDef.getTypeModifier().getMaxLength() > 0);
-                    break;
-                case FLOAT:
-                case DOUBLE:
-                case NUMERIC:
-                case DECIMAL:
-                    break;
+        try (var sqlCon = config.createConnection()) {
+            try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
+                var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
+                var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
+                var def = connection.getExistingTableDefinition(new TableName(table, schema));
+                System.out.printf("def: %s%n", def);
+                Assertions.assertFalse(def.getColumns().isEmpty());
+                def.getColumns().forEach(colDef -> {
+                    Assertions.assertNotNull(colDef.getDataType());
+                    switch (colDef.getDataType()) {
+                        case CHAR:
+                        case NCHAR:
+                        case VARCHAR:
+                        case NVARCHAR:
+                        case LONGNVARCHAR:
+                        case BINARY:
+                        case VARBINARY:
+                            Assertions.assertTrue(colDef.getTypeModifier().getMaxLength() > 0);
+                            break;
+                        case FLOAT:
+                        case DOUBLE:
+                        case NUMERIC:
+                        case DECIMAL:
+                            break;
+                    }
+                });
             }
-        });
+        }
     }
 
 }

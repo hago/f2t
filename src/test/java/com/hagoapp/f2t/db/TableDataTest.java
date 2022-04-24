@@ -28,13 +28,15 @@ public class TableDataTest {
     })
     public void testReadData() throws F2TException, SQLException {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        var connection = DbConnectionFactory.createDbConnection(
-                config.createConnection(), config.getProperties());
-        var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
-        var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
-        var def = connection.getExistingTableDefinition(new TableName(table, schema));
-        var rows = connection.readData(new TableName(table, schema),
-                new ArrayList<ColumnDefinition>(def.getColumns()), 10);
-        System.out.print(rows);
+        try (var sqlCon = config.createConnection()) {
+            try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
+                var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
+                var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
+                var def = connection.getExistingTableDefinition(new TableName(table, schema));
+                var rows = connection.readData(new TableName(table, schema),
+                        new ArrayList<ColumnDefinition>(def.getColumns()), 10);
+                System.out.print(rows);
+            }
+        }
     }
 }
