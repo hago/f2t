@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ParquetFileTest {
 
@@ -83,6 +85,18 @@ public class ParquetFileTest {
                 //parser.addObserver(observer);
                 parser.parse();
                 var d = parser.extractData();
+                d.getRows().forEach(row -> {
+                    for (int j = 0; j < row.getCells().size();j++) {
+                        var col = d.getColumnDefinition().get(j).getName();
+                        var value = row.getCells().get(j);
+                    }
+                    var rowStr = IntStream.range(0, row.getCells().size()).mapToObj(i -> {
+                        var col = d.getColumnDefinition().get(i).getName();
+                        var value = row.getCells().get(i).getData();
+                        return String.format("%s: %s", col, value);
+                    }).collect(Collectors.joining(", "));
+                    logger.info(rowStr);
+                });
                 Assertions.assertEquals(testConfig.getExpect().getColumnCount(), d.getColumnDefinition().size());
                 //Assertions.assertEquals(testConfig.getExpect().getRowCount(), d.getRows().size());
             }
