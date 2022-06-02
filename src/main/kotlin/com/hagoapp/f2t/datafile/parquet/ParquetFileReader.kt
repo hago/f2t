@@ -52,10 +52,9 @@ class ParquetFileReader : Reader {
                 if (rowCount < 0) {
                     parseHeader(record)
                     rowCount = 0
-                } else {
-                    parseRecord(record)
-                    rowCount++
                 }
+                parseRecord(record)
+                rowCount++
             }
         }
         if (rowCount < 0) {
@@ -64,16 +63,19 @@ class ParquetFileReader : Reader {
     }
 
     private fun parseRecord(record: GenericData.Record) {
-        data.add(record.schema.fields.map { field ->
+        val l = mutableListOf<String>()
+        for (i in 0 until record.schema.fields.size) {
             if (!skipTypeInfer) {
+                val field = record.schema.fields[i]
                 val col = columns.first { it.order == field.order().ordinal }
                 val existingTypes = col.possibleTypes
                 val possibleTypes = ParquetTypeUtils.guessJDBCType(field)
                 col.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existingTypes, possibleTypes)
                 setupColumnDefinition(col, field.name())
             }
-            field.name()
-        })
+            l.add(record[i].toString())
+        }
+        data.add(l)
     }
 
     private fun formatDateTime(value: Temporal?): String? {
