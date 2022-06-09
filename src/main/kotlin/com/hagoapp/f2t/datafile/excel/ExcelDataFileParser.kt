@@ -16,13 +16,9 @@ import java.io.InputStream
  * @author Chaojun Sun
  * @since 0.6
  */
-class ExcelDataFileParser(input: InputStream) {
+class ExcelDataFileParser {
 
     private lateinit var info: ExcelInfo
-
-    init {
-        init(input)
-    }
 
     private fun init(input: InputStream) {
         WorkbookFactory.create(input).use { workbook ->
@@ -42,7 +38,15 @@ class ExcelDataFileParser(input: InputStream) {
         }
     }
 
-    constructor(fileName: String) : this(FileInputStream(fileName).use { it })
+    private constructor()
+
+    constructor(input: InputStream) : this() {
+        init(input)
+    }
+
+    constructor(fileName: String) : this() {
+        FileInputStream(fileName).use { init(it) }
+    }
 
     /**
      * Return parsed meta information of the excel.
