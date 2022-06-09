@@ -135,8 +135,8 @@ class ParquetFileReader : Reader {
 
     private fun parseHeader(record: GenericData.Record) {
         val schema = record.schema
-        columns = schema.fields.map { field ->
-            val fileCol = FileColumnDefinition(field.name(), field.order().ordinal)
+        columns = schema.fields.mapIndexed { i, field ->
+            val fileCol = FileColumnDefinition(field.name(), i)
             fileCol.databaseTypeName = field.schema().type.name
             if (skipTypeInfer) {
                 val type = ParquetTypeUtils.mapAvroTypeToJDBCType(field.schema().type)
