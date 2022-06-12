@@ -7,7 +7,6 @@
 package com.hagoapp.f2t.datafile.parquet
 
 import java.io.InputStream
-import kotlin.math.pow
 
 class ParquetStreamReader(private val input: InputStream) {
 
@@ -31,7 +30,7 @@ class ParquetStreamReader(private val input: InputStream) {
 
         private fun littleEndianToNum(b: ByteArray): Int {
             return b.mapIndexed { i, v ->
-                (256.0.pow(i) * v).toInt()
+                v * (0x1 shl (i * 8))
             }.sum()
         }
     }
