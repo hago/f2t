@@ -11,10 +11,7 @@ import com.hagoapp.f2t.*;
 import com.hagoapp.f2t.csv.CsvTestConfig;
 import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
 import com.hagoapp.f2t.datafile.FileTypeDeterminer;
-import com.hagoapp.f2t.datafile.parquet.FileInfoParquet;
-import com.hagoapp.f2t.datafile.parquet.ParquetColumnarReader;
-import com.hagoapp.f2t.datafile.parquet.ParquetWriter;
-import com.hagoapp.f2t.datafile.parquet.ParquetWriterConfig;
+import com.hagoapp.f2t.datafile.parquet.*;
 import kotlin.Triple;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -29,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -177,6 +175,54 @@ public class ParquetFileTest {
                 pool.set(random.nextInt(pool.size()), "ColumnNotExisted");
                 logger.debug("to read: {}", pool);
                 Assertions.assertThrows(IllegalArgumentException.class, () -> reader.readColumns(pool));
+            }
+        }
+    }
+
+    @Test
+    @Order(value = 6)
+    public void testStreamsParquetReader() throws IOException {
+        Random random = new Random(Instant.now().getEpochSecond());
+        logger.debug("test: {}", testConfigFiles);
+        for (var config : testConfigFiles) {
+            logger.debug("{}", config);
+            try (var fis = new FileInputStream(config.getThird())) {
+                try (var ps = new StreamedParquetReader(fis)) {
+                    var columns = ps.getColumns();
+                    var colCount = random.nextInt(columns.size());
+                    var columnIndices = IntStream.range(0, columns.size()).boxed()
+                            .collect(Collectors.toList());
+                    var selectedColumns = IntStream.range(0, colCount).mapToObj(i -> {
+                        int randomIndex = random.nextInt(columnIndices.size());
+                        var elem = columns.get(columnIndices.get(randomIndex));
+                        columnIndices.remove(randomIndex);
+                        return elem;
+                    }).collect(Collectors.toSet());
+                    Predicate<String> columnSelector = selectedColumns::contains;
+                    logger.info("test read 1 row with all columns");
+                    var rows = ps.readRow();
+                    Assertions.assertEquals(1, rows.size());
+                    Assertions.assertEquals(columns.size(), rows.get(0).size());
+
+                    var indexArray = IntStream.range(0, columns.size()).boxed()
+                            .collect(Collectors.toList());
+                    logger.info("test read 10 row with all columns");
+                    rows = ps.readRow(10);
+                    Assertions.assertEquals(10, rows.size());
+                    Assertions.assertTrue(rows.stream().allMatch(r -> columns.size() == r.size()));
+                    Assertions.assertTrue(rows.stream()
+                            .allMatch(row -> indexArray.stream()
+                                    .allMatch(i -> columns.get(i).equals(row.get(i).getFieldName()))));
+
+                    logger.info("test read all remain row with all columns");
+                    rows = ps.readRow(1000000);
+                    Assertions.assertEquals(108 - 1 - 10, rows.size());
+                    Assertions.assertTrue(rows.stream().allMatch(r -> columns.size() == r.size()));
+                    Assertions.assertTrue(rows.stream()
+                            .allMatch(row -> indexArray.stream()
+                                    .allMatch(i -> columns.get(i).equals(row.get(i).getFieldName()))));
+
+                }
             }
         }
     }

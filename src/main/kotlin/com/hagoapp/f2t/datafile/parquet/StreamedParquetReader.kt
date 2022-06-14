@@ -17,7 +17,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-class StreamedParquetReader(val input: InputStream) : Closeable {
+class StreamedParquetReader(input: InputStream) : Closeable {
 
     companion object {
         class StreamedInputFile(input: InputStream, explicitLength: Long? = null) : InputFile {
@@ -86,8 +86,8 @@ class StreamedParquetReader(val input: InputStream) : Closeable {
         }
     }
 
-    private val row0: List<Pair<String, Any?>>
-    private val columns: List<String>
+    private val row0: List<RecordCell>
+    val columns: List<String>
     private var rowNo = 0L
     private val reader: ParquetReader<GenericData.Record>
 
@@ -97,7 +97,7 @@ class StreamedParquetReader(val input: InputStream) : Closeable {
         val record = reader.read()
         val info = parseSchema(record)
         columns = info.first
-        row0 = info.second.mapIndexed { i, value -> Pair(columns[i], value) }
+        row0 = info.second.mapIndexed { i, value -> RecordCell(columns[i], value) }
     }
 
     private fun parseSchema(record: GenericData.Record): Pair<List<String>, List<Any?>> {
@@ -110,22 +110,19 @@ class StreamedParquetReader(val input: InputStream) : Closeable {
         return Pair(cols, row)
     }
 
-    private fun parseRecord(record: GenericData.Record): List<Pair<String, Any?>> {
+    private fun parseRecord(record: GenericData.Record): List<RecordCell> {
         return List(record.schema.fields.size) { i ->
-            Pair(columns[i], record[i])
+            RecordCell(record.schema.fields[i].name(), record[i])
         }
     }
 
-    private fun filterColumns(
-        row: List<Pair<String, Any?>>,
-        columnSelector: (String) -> Boolean
-    ): List<Pair<String, Any?>> {
-        return row.filter { p -> columnSelector(p.first) }
+    private fun filterColumns(row: List<RecordCell>, columnSelector: (String) -> Boolean): List<RecordCell> {
+        return row.filter { p -> columnSelector(p.fieldName) }
     }
 
     @JvmOverloads
-    fun readRow(rowCount: Int? = null, columnSelector: (String) -> Boolean): List<List<Any?>> {
-        val ret = mutableListOf<List<Any?>>()
+    fun readRow(rowCount: Int? = null, columnSelector: (String) -> Boolean = { _ -> true }): List<List<RecordCell>> {
+        val ret = mutableListOf<List<RecordCell>>()
         var rowCountNeeded = rowCount ?: 1
         if (rowNo == 0L) {
             ret.add(filterColumns(row0, columnSelector))
