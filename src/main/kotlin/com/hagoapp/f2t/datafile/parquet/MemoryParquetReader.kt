@@ -6,27 +6,31 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
+import com.hagoapp.f2t.F2TLogger
 import org.apache.avro.generic.GenericData
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.io.InputFile
 import org.apache.parquet.io.SeekableInputStream
+import org.slf4j.Logger
 import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
-import java.io.InputStream
 import java.nio.ByteBuffer
 
-class StreamedParquetReader(input: InputStream) : Closeable {
+class MemoryParquetReader(input: ByteArray) : Closeable {
 
     companion object {
-        class StreamedInputFile(input: InputStream, explicitLength: Long? = null) : InputFile {
 
-            private val size = explicitLength ?: input.available().toLong()
-            private val seekableInputStream = SeekableFileInputStream(input)
+        private val logger: Logger = F2TLogger.getLogger()
+
+        class MemoryInputFile(input: ByteArray) : InputFile {
+
+            private val size = input.size
+            private val seekableInputStream = SeekableMemoryInputStream(input)
 
             override fun getLength(): Long {
-                return size
+                return size.toLong()
             }
 
             override fun newStream(): SeekableInputStream {
@@ -35,32 +39,42 @@ class StreamedParquetReader(input: InputStream) : Closeable {
 
         }
 
-        class SeekableFileInputStream(private val input: InputStream) : SeekableInputStream() {
+        class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStream() {
 
-            private var pos: Long = 0
+            private var pos = 0
 
             override fun read(buf: ByteBuffer?): Int {
                 buf ?: throw IOException("buffer is null")
+                if (pos >= input.size) {
+                    return -1
+                }
                 val remain = buf.remaining()
-                val actualRead = input.readNBytes(buf.array(), buf.capacity() - remain, remain)
-                pos += actualRead
-                return actualRead
+                val readable = input.size - pos
+                val shouldRead = if (remain >= readable) readable else remain
+                System.arraycopy(input, pos, buf.array(), 0, shouldRead)
+                pos += shouldRead
+                return shouldRead
             }
 
             override fun read(): Int {
-                val actualRead = input.read()
-                pos += actualRead
-                return actualRead
+                if (pos >= input.size) {
+                    return -1
+                }
+                val data = input[pos]
+                pos += 1
+                return data.toInt()
             }
 
             override fun getPos(): Long {
-                return pos
+                return pos.toLong()
             }
 
             override fun seek(newPos: Long) {
-                input.reset()
-                input.skip(newPos)
-                pos = newPos
+                logger.debug("seek: newPos")
+                if ((newPos >= input.size) || (newPos < 0)) {
+                    throw IOException("Exceeds seekable range")
+                }
+                pos = newPos.toInt()
             }
 
             override fun readFully(bytes: ByteArray?) {
@@ -70,11 +84,10 @@ class StreamedParquetReader(input: InputStream) : Closeable {
 
             override fun readFully(bytes: ByteArray?, start: Int, len: Int) {
                 bytes ?: throw IOException("null bytes")
-                val actualRead = input.read(bytes, start, len)
-                pos += actualRead
-                if (actualRead < len) {
-                    throw EOFException("EOF encountered, only $actualRead bytes read when $len needed")
+                if (pos + len >= input.size) {
+                    throw EOFException("EOF encountered, only ${input.size - pos} bytes readable when $len needed")
                 }
+                System.arraycopy(input, pos, bytes, start, len)
             }
 
             override fun readFully(buf: ByteBuffer?) {
@@ -92,7 +105,7 @@ class StreamedParquetReader(input: InputStream) : Closeable {
     private val reader: ParquetReader<GenericData.Record>
 
     init {
-        val inputFile = StreamedInputFile(input)
+        val inputFile = MemoryInputFile(input)
         reader = AvroParquetReader.builder<GenericData.Record>(inputFile).build()
         val record = reader.read()
         val info = parseSchema(record)

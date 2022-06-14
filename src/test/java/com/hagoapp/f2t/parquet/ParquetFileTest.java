@@ -13,6 +13,7 @@ import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
 import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.parquet.*;
 import kotlin.Triple;
+import org.apache.hadoop.io.file.tfile.ByteArray;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Order;
@@ -187,7 +188,8 @@ public class ParquetFileTest {
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
-                try (var ps = new StreamedParquetReader(fis)) {
+                var bytes = fis.readAllBytes();
+                try (var ps = new MemoryParquetReader(bytes)) {
                     var columns = ps.getColumns();
                     var colCount = random.nextInt(columns.size());
                     var columnIndices = IntStream.range(0, columns.size()).boxed()
