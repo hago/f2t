@@ -13,11 +13,7 @@ import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
 import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.parquet.*;
 import kotlin.Triple;
-import org.apache.hadoop.io.file.tfile.ByteArray;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -54,9 +50,9 @@ public class ParquetFileTest {
         }
     }
 
+    @BeforeAll
     @Test
-    @Order(value = 1)
-    public void testWriteParquet() throws IOException, F2TException {
+    static void testWriteParquet() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
@@ -182,7 +178,7 @@ public class ParquetFileTest {
 
     @Test
     @Order(value = 6)
-    public void testStreamsParquetReader() throws IOException {
+    public void testMemoryParquetReader() throws IOException {
         Random random = new Random(Instant.now().getEpochSecond());
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {

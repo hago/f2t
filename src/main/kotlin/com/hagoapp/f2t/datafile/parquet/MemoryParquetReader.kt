@@ -24,26 +24,38 @@ class MemoryParquetReader(input: ByteArray) : Closeable {
 
         private val logger: Logger = F2TLogger.getLogger()
 
-        class MemoryInputFile(input: ByteArray) : InputFile {
+        class MemoryInputFile(private val input: ByteArray) : InputFile {
 
             private val size = input.size
-            private val seekableInputStream = SeekableMemoryInputStream(input)
+            //private val seekableInputStream = SeekableMemoryInputStream(input)
 
             override fun getLength(): Long {
                 return size.toLong()
             }
 
             override fun newStream(): SeekableInputStream {
-                return seekableInputStream
+                return SeekableMemoryInputStream(input)
             }
 
+            override fun toString(): String {
+                return "implementation of org.apache.parquet.io.InputFile using data in memory, no actual file"
+            }
         }
 
         class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStream() {
 
             private var pos = 0
 
+            override fun available(): Int {
+                return input.size - pos
+            }
+
+            override fun reset() {
+                pos = 0
+            }
+
             override fun read(buf: ByteBuffer?): Int {
+                logger.debug("SeekableMemoryInputStream.read(buf: ByteBuffer?)")
                 buf ?: throw IOException("buffer is null")
                 if (pos >= input.size) {
                     return -1
@@ -57,20 +69,23 @@ class MemoryParquetReader(input: ByteArray) : Closeable {
             }
 
             override fun read(): Int {
+                logger.debug("SeekableMemoryInputStream.read() $pos ${input.size}")
                 if (pos >= input.size) {
                     return -1
                 }
-                val data = input[pos]
+                val data = input[pos].toUByte()
                 pos += 1
+                logger.debug("SeekableMemoryInputStream.read() $pos return $data")
                 return data.toInt()
             }
 
             override fun getPos(): Long {
+                logger.debug("SeekableMemoryInputStream.getPos()")
                 return pos.toLong()
             }
 
             override fun seek(newPos: Long) {
-                logger.debug("seek: newPos")
+                logger.debug("SeekableMemoryInputStream.seek($newPos)")
                 if ((newPos >= input.size) || (newPos < 0)) {
                     throw IOException("Exceeds seekable range")
                 }
@@ -78,22 +93,28 @@ class MemoryParquetReader(input: ByteArray) : Closeable {
             }
 
             override fun readFully(bytes: ByteArray?) {
+                logger.debug("SeekableMemoryInputStream.readFully(bytes: ByteArray?)")
                 bytes ?: throw IOException("null bytes")
                 readFully(bytes, 0, bytes.size)
             }
 
             override fun readFully(bytes: ByteArray?, start: Int, len: Int) {
+                logger.debug("SeekableMemoryInputStream.readFully(bytes: ByteArray?, start: Int, len: Int)")
                 bytes ?: throw IOException("null bytes")
-                if (pos + len >= input.size) {
+                if (pos + len > input.size) {
                     throw EOFException("EOF encountered, only ${input.size - pos} bytes readable when $len needed")
                 }
                 System.arraycopy(input, pos, bytes, start, len)
+                pos += len
             }
 
             override fun readFully(buf: ByteBuffer?) {
+                logger.debug("SeekableMemoryInputStream.readFully(buf: ByteBuffer?)")
                 buf ?: throw IOException("null bytes")
                 val content = buf.array()
+                val posBeforeRead = pos
                 readFully(content, 0, content.size)
+                buf.position(pos - posBeforeRead)
             }
 
         }
@@ -106,7 +127,10 @@ class MemoryParquetReader(input: ByteArray) : Closeable {
 
     init {
         val inputFile = MemoryInputFile(input)
-        reader = AvroParquetReader.builder<GenericData.Record>(inputFile).build()
+
+        reader = AvroParquetReader.builder<GenericData.Record>(inputFile)
+            .withCompatibility(true)
+            .build()
         val record = reader.read()
         val info = parseSchema(record)
         columns = info.first
