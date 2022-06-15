@@ -6,6 +6,12 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
+/**
+ * A class to represent a data cell read from parquet, containing its field name and value.
+ *
+ * @author Chaojun Sun
+ * @since 0.7
+ */
 class RecordCell(
     val fieldName: String,
     val value: Any?

@@ -9,6 +9,12 @@ package com.hagoapp.f2t.datafile.parquet
 import org.apache.parquet.io.InputFile
 import org.apache.parquet.io.SeekableInputStream
 
+/**
+ * The InputFile implementation to deal with file content in memory.
+ *
+ * @author Chaojun Sun
+ * @since 0.7
+ */
 class MemoryInputFile(private val input: ByteArray) : InputFile {
 
     private val size = input.size

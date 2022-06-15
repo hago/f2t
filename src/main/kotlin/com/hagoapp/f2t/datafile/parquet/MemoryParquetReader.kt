@@ -13,6 +13,12 @@ import org.apache.parquet.hadoop.ParquetReader
 import org.slf4j.Logger
 import java.io.Closeable
 
+/**
+ * A parquet file reader which is capable to handle memory content loaded from parquet file.
+ *
+ * @author Chaojun Sun
+ * @since 0.7
+ */
 class MemoryParquetReader(input: ByteArray) : Closeable {
 
     companion object {

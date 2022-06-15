@@ -13,6 +13,13 @@ import java.io.EOFException
 import java.io.IOException
 import java.nio.ByteBuffer
 
+/**
+ * The implementation of <code>SeekableInputStream</code> to help apache hadoop's parquet file reader to deal with
+ * memory content loaded from a parquet file.
+ *
+ * @author Chaojun Sun
+ * @since 0.7
+ */
 class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStream() {
 
     companion object {
