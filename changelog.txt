@@ -1,0 +1,1 @@
+2022/6/15 A parquet file reader is implemented and tested. This class is introduced to read data from memory loaded from a parquet file.
