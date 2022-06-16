@@ -31,6 +31,8 @@ dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
+    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
+
     runtimeOnly fileTree('libs') { include '*.jar' }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
@@ -38,7 +40,6 @@ dependencies {
 
     testImplementation group:'org.postgresql',name:'postgresql',version:'42.3.3'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
-    testImplementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testRuntimeOnly fileTree('libs') { include '*.jar' }
