@@ -43,8 +43,14 @@ class DbConnectionFactory {
                 r.getSubTypesOf(DbConnection::class.java).forEach { t ->
                     try {
                         val template = t.getConstructor().newInstance()
-                        typedConnectionMapper[template.getDriverName().lowercase()] = t
-                        logger.info("DbConnection ${template.getDriverName()} registered")
+                        val driver = template.getDriverName()
+                        try {
+                            Class.forName(driver)
+                            typedConnectionMapper[driver.lowercase()] = t
+                            logger.info("DbConnection ${template.getDriverName()} registered")
+                        } catch (e: ClassNotFoundException) {
+                            logger.warn("Driver $driver for ${t.canonicalName} not found, skipped")
+                        }
                     } catch (e: Exception) {
                         logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
                     }

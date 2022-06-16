@@ -24,10 +24,6 @@ class MariaDBConnection : DbConnection() {
 
     companion object {
         private const val MARIADB_DRIVER_CLASS_NAME = "org.mariadb.jdbc.Driver"
-
-        init {
-            Class.forName(MARIADB_DRIVER_CLASS_NAME)
-        }
     }
 
     override fun getDriverName(): String {

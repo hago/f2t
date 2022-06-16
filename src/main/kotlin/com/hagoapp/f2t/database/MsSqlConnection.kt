@@ -30,10 +30,6 @@ class MsSqlConnection : DbConnection() {
 
     companion object {
         private const val MSSQL_DRIVER_CLASS_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-
-        init {
-            Class.forName(MSSQL_DRIVER_CLASS_NAME)
-        }
     }
 
     override fun getDriverName(): String {

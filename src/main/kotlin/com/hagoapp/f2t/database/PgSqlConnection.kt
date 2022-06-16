@@ -21,10 +21,6 @@ class PgSqlConnection : DbConnection() {
 
     companion object {
         private const val PGSQL_DRIVER_CLASS_NAME = "org.postgresql.Driver"
-
-        init {
-            Class.forName(PGSQL_DRIVER_CLASS_NAME)
-        }
     }
 
     override fun getDriverName(): String {
