@@ -17,7 +17,7 @@ package com.hagoapp.f2t
  */
 data class TableUniqueDefinition<T : ColumnDefinition>(
     val name: String,
-    val columns: Set<T>,
+    val columns: List<T>,
     val caseSensitive: Boolean = true
 ) {
     /**

@@ -201,27 +201,34 @@ class MariaDBConnection : DbConnection() {
         }
     }
 
+    private data class MariaDbUniqueIndexItem(
+        val name: String,
+        val columnName: String,
+        val columnSeq: Int
+    )
+
     private fun getIndexes(
         table: TableName,
         refColumns: Set<ColumnDefinition>
     ): Pair<TableUniqueDefinition<ColumnDefinition>?, Set<TableUniqueDefinition<ColumnDefinition>>> {
         val sql = "show indexes from ${normalizeName(table.tableName)}"
         connection.prepareStatement(sql).use { stmt ->
-            val keys = mutableMapOf<String, MutableSet<String>>()
+            val keyColumnItemList = mutableListOf<MariaDbUniqueIndexItem>()
             stmt.executeQuery().use { rs ->
                 while (rs.next()) {
                     if (rs.getInt("Non_unique") != 0) {
                         continue
                     }
-                    val keyName = rs.getString("Key_name")
-                    val colName = rs.getString("Column_name")
-                    if (keys.containsKey(keyName)) {
-                        keys.getValue(keyName).add(colName)
-                    } else {
-                        keys[keyName] = mutableSetOf(colName)
-                    }
+                    val ki = MariaDbUniqueIndexItem(
+                        rs.getString("Key_name"),
+                        rs.getString("Column_name"),
+                        rs.getInt("Seq_in_index"),
+                    )
+                    keyColumnItemList.add(ki)
                 }
             }
+            val keys = keyColumnItemList.groupBy { it.name }
+                .mapValues { it.value.sortedBy { item -> item.columnSeq }.map { item -> item.columnName } }
             return Pair(
                 keys.filter { (key, _) -> key == "PRIMARY" }.firstNotNullOfOrNull {
                     buildUniqueDef(it.key, it.value, refColumns)
@@ -235,13 +242,13 @@ class MariaDBConnection : DbConnection() {
 
     private fun buildUniqueDef(
         name: String,
-        columns: Set<String>,
+        columns: List<String>,
         refColumns: Set<ColumnDefinition>
     ): TableUniqueDefinition<ColumnDefinition> {
         val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
         val tud = TableUniqueDefinition(name, columns.map { col ->
             refColumns.first { colMatcher(col, it.name) }
-        }.toSet(), isCaseSensitive())
+        }, isCaseSensitive())
         return tud
     }
 

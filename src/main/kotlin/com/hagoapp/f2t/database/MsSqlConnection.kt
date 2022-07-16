@@ -196,14 +196,15 @@ class MsSqlConnection : DbConnection() {
     }
 
     private fun getUniqueKeyConstraints(table: TableName, type: String): Map<String, List<String>> {
-        val sql = "SELECT kc.type, i.index_id, kc.name as index_name, c.name as column_name " +
-                "from sys.objects as o " +
-                "inner join sys.indexes as i on o.object_id = i.object_id " +
-                "inner join sys.index_columns as ic on o.object_id = ic.object_id and i.index_id = ic.index_id " +
-                "inner join sys.key_constraints as kc on i.name = kc.name " +
-                "inner join sys.columns as c on c.object_id = o.object_id and c.column_id = ic.column_id " +
-                "inner join sys.schemas as s on s.schema_id = o.schema_id " +
-                "where o.name = ? and s.name = ? and kc.type = ?"
+        val sql = """SELECT kc.type, i.index_id, kc.name as index_name, c.name as column_name
+                from sys.objects as o
+                inner join sys.indexes as i on o.object_id = i.object_id 
+                inner join sys.index_columns as ic on o.object_id = ic.object_id and i.index_id = ic.index_id 
+                inner join sys.key_constraints as kc on i.name = kc.name 
+                inner join sys.columns as c on c.object_id = o.object_id and c.column_id = ic.column_id 
+                inner join sys.schemas as s on s.schema_id = o.schema_id 
+                where o.name = ? and s.name = ? and kc.type = ?
+                order by ic.index_column_id"""
         val ret: MutableMap<String, MutableList<String>> = HashMap()
         try {
             connection.prepareStatement(sql).use { st ->
@@ -245,7 +246,7 @@ class MsSqlConnection : DbConnection() {
         val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
         val ret = mutableListOf<TableUniqueDefinition<ColumnDefinition>>()
         for ((keyName, columns) in uniques) {
-            val colDef = refColumns.filter { ref -> columns.any { col -> colMatcher.invoke(ref.name, col) } }.toSet()
+            val colDef = columns.map { col -> refColumns.first { refCol -> colMatcher.invoke(col, refCol.name) } }
             val unique = TableUniqueDefinition(keyName, colDef, isCaseSensitive())
             ret.add(unique)
         }

@@ -176,7 +176,7 @@ class PgSqlConnection : DbConnection() {
     ): Set<TableUniqueDefinition<ColumnDefinition>> {
         val sql = """
             select 
-            a.attname, con.conname 
+            a.attname, a.attnum, con.conname, con.conkey
             from 
             pg_catalog.pg_constraint as con
             inner join pg_namespace as n on con.connamespace = n.oid
@@ -195,17 +195,30 @@ class PgSqlConnection : DbConnection() {
                 while (rs.next()) {
                     val keyName = rs.getString("conname")
                     val colName = rs.getString("attname")
+                    val attNum = rs.getInt("attnum")
+                    val conKey = rs.getArray("conkey")
                     if (!map.contains(keyName)) {
-                        map[keyName] = mutableListOf(colName)
+                        conKey.resultSet.use { conKeyRs ->
+                            val attNumbers = mutableListOf<String>()
+                            while (conKeyRs.next()) {
+                                attNumbers.add(conKeyRs.getInt(0).toString())
+                            }
+                            attNumbers[attNum] = colName
+                            map[keyName] = attNumbers
+                        }
                     } else {
-                        map.getValue(keyName).add(colName)
+                        val index = map.getValue(keyName).indexOf(attNum.toString())
+                        if (index < 0) {
+                            throw UnsupportedOperationException("PostgreSQL key num error: $colName $attNum in Key $keyName")
+                        }
+                        map.getValue(keyName)[index] = colName
                     }
                 }
             }
             val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
             return map.map { (constraint, colNames) ->
                 val columns = refColumns.filter { ref -> colNames.any { colMatcher.invoke(it, ref.name) } }
-                TableUniqueDefinition(constraint, columns.toSet(), isCaseSensitive())
+                TableUniqueDefinition(constraint, columns, isCaseSensitive())
             }.toSet()
         }
     }
