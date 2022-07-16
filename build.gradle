@@ -1,21 +1,21 @@
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.20'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.0'
     id 'maven-publish'
-    id "org.jetbrains.dokka" version "1.6.10"
+    id "org.jetbrains.dokka" version "1.7.10"
 }
 
 group 'com.hagoapp'
-version '0.7.0'
+version '0.7.1'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.20'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.7.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.0'
 
     implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
@@ -39,7 +39,7 @@ dependencies {
     testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.2.3'
 
     testImplementation group:'org.postgresql',name:'postgresql',version:'42.3.3'
-    testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
+    testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.5'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testRuntimeOnly fileTree('libs') { include '*.jar' }
