@@ -191,23 +191,23 @@ class PgSqlConnection : DbConnection() {
             st.setString(2, table.tableName)
             st.setString(3, type)
             val map = mutableMapOf<String, MutableList<String>>()
+            val colOrderMap = mutableMapOf<String, MutableList<Int>>()
             st.executeQuery().use { rs ->
                 while (rs.next()) {
                     val keyName = rs.getString("conname")
                     val colName = rs.getString("attname")
                     val attNum = rs.getInt("attnum")
-                    val conKey = rs.getArray("conkey")
+                    val conKey = rs.getArray("conkey").array
+                    if (conKey !is Array<*>) {
+                        throw UnsupportedOperationException("PostgreSQL attNum err: $conKey")
+                    }
                     if (!map.contains(keyName)) {
-                        conKey.resultSet.use { conKeyRs ->
-                            val attNumbers = mutableListOf<String>()
-                            while (conKeyRs.next()) {
-                                attNumbers.add(conKeyRs.getInt(0).toString())
-                            }
-                            attNumbers[attNum] = colName
-                            map[keyName] = attNumbers
-                        }
+                        val attNumbers = conKey.map { it!!.toString().toInt() }.toMutableList()
+                        val fields = attNumbers.map { if (attNum == it) colName else "" }.toMutableList()
+                        map[keyName] = fields
+                        colOrderMap[keyName] = attNumbers
                     } else {
-                        val index = map.getValue(keyName).indexOf(attNum.toString())
+                        val index = colOrderMap.getValue(keyName).indexOf(attNum)
                         if (index < 0) {
                             throw UnsupportedOperationException("PostgreSQL key num error: $colName $attNum in Key $keyName")
                         }
@@ -217,7 +217,7 @@ class PgSqlConnection : DbConnection() {
             }
             val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
             return map.map { (constraint, colNames) ->
-                val columns = refColumns.filter { ref -> colNames.any { colMatcher.invoke(it, ref.name) } }
+                val columns = colNames.map { col -> refColumns.first { ref -> colMatcher.invoke(ref.name, col) } }
                 TableUniqueDefinition(constraint, columns, isCaseSensitive())
             }.toSet()
         }
