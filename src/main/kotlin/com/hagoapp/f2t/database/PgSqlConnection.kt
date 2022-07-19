@@ -160,7 +160,7 @@ class PgSqlConnection : DbConnection() {
                         "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
                     )
                 }
-                val ret = TableDefinition(tblColDef.toSet())
+                val ret = TableDefinition(tblColDef)
                 ret.caseSensitive = isCaseSensitive()
                 ret.primaryKey = findUniqueConstraint(table, ret.columns, "p").firstOrNull()
                 ret.uniqueConstraints = findUniqueConstraint(table, ret.columns)
@@ -171,7 +171,7 @@ class PgSqlConnection : DbConnection() {
 
     private fun findUniqueConstraint(
         table: TableName,
-        refColumns: Set<ColumnDefinition>,
+        refColumns: List<ColumnDefinition>,
         type: String = "u"
     ): Set<TableUniqueDefinition<ColumnDefinition>> {
         val sql = """

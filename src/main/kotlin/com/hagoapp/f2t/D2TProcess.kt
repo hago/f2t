@@ -104,7 +104,7 @@ class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, conn: C
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             //val difference = tblDef.diff(dataTable.columnDefinition.toSet())
-            val difference = TableDefinitionComparator.compare(dataTable.columnDefinition.toSet(), tblDef)
+            val difference = TableDefinitionComparator.compare(dataTable.columnDefinition, tblDef)
             return if (!difference.isOfSameSchema()) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
                 logger.error(difference.toString())
@@ -119,16 +119,16 @@ class D2TProcess(private var dataTable: DataTable<FileColumnDefinition>, conn: C
                     connection.clearTable(table)
                     logger.warn("table ${connection.getFullTableName(table)} cleared")
                 }
-                connection.prepareInsertion(TableDefinition(dataTable.columnDefinition.toSet()), table, tblDef)
+                connection.prepareInsertion(TableDefinition(dataTable.columnDefinition), table, tblDef)
                 logger.info("table $table found and matches")
                 true
             }
         } else {
             if (config.isCreateTableIfNeeded) {
-                val tblDef = TableDefinition(dataTable.columnDefinition.toSet())
+                val tblDef = TableDefinition(dataTable.columnDefinition)
                 return try {
                     connection.createTable(table, tblDef)
-                    connection.prepareInsertion(TableDefinition(dataTable.columnDefinition.toSet()), table, tblDef)
+                    connection.prepareInsertion(TableDefinition(dataTable.columnDefinition), table, tblDef)
                     tableMatchedFile = true
                     logger.info("table $table created")
                     true

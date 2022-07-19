@@ -39,7 +39,7 @@ class TableDefinitionComparator {
          * @return compare result
          */
         fun compare(
-            fileColumnDefinitions: Set<FileColumnDefinition>,
+            fileColumnDefinitions: List<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
         ): CompareTableResult {
             val colMatcher = ColumnMatcher.getColumnMatcher(dbTableDefinition.caseSensitive)

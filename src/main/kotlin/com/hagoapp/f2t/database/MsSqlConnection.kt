@@ -167,6 +167,7 @@ class MsSqlConnection : DbConnection() {
                 inner join sys.objects as o on s.schema_id = o.schema_id
                 inner join sys.columns as c on o.object_id = c.object_id
                 where o.name=? and o.type='U' and s.name = ?
+                order by c.column_id
             """.trimIndent()
         connection.prepareStatement(sql).use { stmt ->
             stmt.setString(1, table.tableName)
@@ -186,7 +187,7 @@ class MsSqlConnection : DbConnection() {
                     colDef.typeModifier.isNullable = rs.getBoolean("is_nullable")
                     tblColDef.add(colDef)
                 }
-                val ret = TableDefinition(tblColDef.toSet(), isCaseSensitive())
+                val ret = TableDefinition(tblColDef, isCaseSensitive())
                 val uqKeys = findPrimaryKeyAndUniques(table, ret.columns)
                 ret.primaryKey = uqKeys.first
                 ret.uniqueConstraints = uqKeys.second
@@ -229,7 +230,7 @@ class MsSqlConnection : DbConnection() {
     }
 
     private fun findPrimaryKeyAndUniques(
-        table: TableName, refColumns: Set<ColumnDefinition>
+        table: TableName, refColumns: List<ColumnDefinition>
     ): Pair<TableUniqueDefinition<ColumnDefinition>?, Set<TableUniqueDefinition<ColumnDefinition>>> {
         val pk = fromColumns(getUniqueKeyConstraints(table, "PK"), refColumns).firstOrNull()
         val uqs = fromColumns(getUniqueKeyConstraints(table, "UQ"), refColumns).toSet()
@@ -238,7 +239,7 @@ class MsSqlConnection : DbConnection() {
 
     private fun fromColumns(
         uniques: Map<String, List<String>>,
-        refColumns: Set<ColumnDefinition>
+        refColumns: List<ColumnDefinition>
     ): List<TableUniqueDefinition<ColumnDefinition>> {
         if (uniques.isEmpty()) {
             return listOf()

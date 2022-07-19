@@ -10,7 +10,7 @@ package com.hagoapp.f2t
  * This class represents definition of a table.
  *
  * @param T type of column definition
- * @property columns    columns to form this table
+ * @property columns    columns to form this table, ordered
  * @property caseSensitive  whether this table is case-sensitive, names and values
  * @property primaryKey the primary key constraint, if any
  * @constructor create a table definition for database table or file data table
@@ -18,7 +18,7 @@ package com.hagoapp.f2t
  * @since 0.1
  */
 class TableDefinition<T : ColumnDefinition>(
-    var columns: Set<T>,
+    var columns: List<T>,
     var caseSensitive: Boolean = true,
     var primaryKey: TableUniqueDefinition<T>? = null
 ) {

@@ -165,7 +165,7 @@ class MariaDBConnection : DbConnection() {
                     val cd = ColumnDefinition(desc.field, desc.type)
                     setupColumnDefinition(cd, desc.typeName, desc.isNullable)
                     cd
-                }.toSet())
+                })
                 val uniques = getIndexes(table, td.columns)
                 td.primaryKey = uniques.first
                 td.uniqueConstraints = uniques.second
@@ -209,7 +209,7 @@ class MariaDBConnection : DbConnection() {
 
     private fun getIndexes(
         table: TableName,
-        refColumns: Set<ColumnDefinition>
+        refColumns: List<ColumnDefinition>
     ): Pair<TableUniqueDefinition<ColumnDefinition>?, Set<TableUniqueDefinition<ColumnDefinition>>> {
         val sql = "show indexes from ${normalizeName(table.tableName)}"
         connection.prepareStatement(sql).use { stmt ->
@@ -243,7 +243,7 @@ class MariaDBConnection : DbConnection() {
     private fun buildUniqueDef(
         name: String,
         columns: List<String>,
-        refColumns: Set<ColumnDefinition>
+        refColumns: List<ColumnDefinition>
     ): TableUniqueDefinition<ColumnDefinition> {
         val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
         val tud = TableUniqueDefinition(name, columns.map { col ->

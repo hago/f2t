@@ -83,12 +83,12 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
                 columnDefinitionList.plus(batchCol)
             }
             else -> columnDefinitionList
-        }.toSet()
+        }
         val fileTableDef = TableDefinition(colDef)
         if (connection.isTableExists(table)) {
             val tblDef = connection.getExistingTableDefinition(table)
             //val difference = tblDef.diff(colDef.toSet())
-            val difference = TableDefinitionComparator.compare(colDef.toSet(), tblDef)
+            val difference = TableDefinitionComparator.compare(colDef, tblDef)
             if (!difference.isOfSameSchema()) {
                 logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
                 logger.error(difference.toString())
@@ -107,8 +107,8 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
             }
         } else {
             if (config.isCreateTableIfNeeded) {
-                val tblDef = TableDefinition(colDef.toSet())
-                result.tableDefinition = TableDefinition(colDef.toSet())
+                val tblDef = TableDefinition(colDef)
+                result.tableDefinition = TableDefinition(colDef)
                 try {
                     connection.createTable(table, result.tableDefinition!!)
                     connection.prepareInsertion(fileTableDef, table, tblDef)
