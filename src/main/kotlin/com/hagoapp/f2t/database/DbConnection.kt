@@ -73,7 +73,6 @@ abstract class DbConnection : Closeable {
     override fun close() {
         try {
             insertionMap.forEach { (table, _) -> flushRows(table) }
-            connection.close()
         } catch (e: Throwable) {
             logger.error("flush cached rows failed: {}", e.message)
             StackTraceWriter.writeToLogger(e, logger)
