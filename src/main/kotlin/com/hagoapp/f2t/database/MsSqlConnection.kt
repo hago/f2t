@@ -288,7 +288,7 @@ class MsSqlConnection : DbConnection() {
         if (caseSensitive == null) {
             val sql =
                 "select convert(varchar, DATABASEPROPERTYEX('${connection.catalog}', 'collation')) as SQLCollation"
-            println(sql)
+            //println(sql)
             caseSensitive = connection.prepareStatement(sql).use { stmt ->
                 stmt.executeQuery().use { rs ->
                     rs.next()
