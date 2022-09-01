@@ -24,7 +24,7 @@ public class CsvOnDemandTest {
     private static FileInfoCsv info;
 
     @BeforeAll
-    private static void loadFile() {
+    public static void loadFile() {
         var f = System.getProperty(Constants.ON_DEMAND_CSV_FILE);
         info = new FileInfoCsv();
         info.setFilename(f);

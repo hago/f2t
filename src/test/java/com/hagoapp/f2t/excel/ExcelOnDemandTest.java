@@ -26,7 +26,7 @@ public class ExcelOnDemandTest {
     private static FileInfoExcel info;
 
     @BeforeAll
-    private static void loadFile() {
+    public static void loadFile() {
         var f = System.getProperty(Constants.ON_DEMAND_EXCEL_FILE);
         info = new FileInfoExcel();
         info.setFilename(f);
