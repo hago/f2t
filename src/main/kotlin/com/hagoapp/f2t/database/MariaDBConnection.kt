@@ -191,12 +191,14 @@ class MariaDBConnection : DbConnection() {
                 if ((m != null) && m.groupValues.isNotEmpty()) Triple(m.groupValues.last().toInt(), 0, 0)
                 else Triple(0, 0, 0)
             }
+
             typeStr.startsWith("decimal") -> {
                 val m = Regex(".+?\\((\\d+),(\\d+)\\)").matchEntire(typeStr)
                 if ((m != null) && (m.groupValues.size > 2))
                     Triple(0, m.groupValues[1].toInt(), m.groupValues[2].toInt())
                 else Triple(0, 0, 0)
             }
+
             else -> Triple(0, 0, 0)
         }
     }
@@ -253,22 +255,23 @@ class MariaDBConnection : DbConnection() {
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
-        return when (typeName.substringBefore('(').lowercase()) {
-            "boolean" -> BOOLEAN
-            "tinyint" -> TINYINT
-            "smallint" -> SMALLINT
-            "int", "mediumint" -> INTEGER
-            "bigint" -> BIGINT
-            "float" -> FLOAT
-            "double" -> DOUBLE
-            "decimal", "dec", "numeric", "fixed" -> DECIMAL
-            "timestamp", "datetime" -> TIMESTAMP_WITH_TIMEZONE
-            "date" -> DATE
-            "time" -> TIME
-            "char" -> CHAR
-            "varchar" -> VARCHAR
-            "text", "longtext" -> CLOB
-            "binary", "blob", "char byte" -> VARBINARY
+        val type = typeName.substringBefore('(').lowercase()
+        return when {
+            type == "boolean" -> BOOLEAN
+            type.startsWith("tinyint") -> TINYINT
+            type.startsWith("smallint") -> SMALLINT
+            type.startsWith("int") || type.startsWith("mediumint") -> INTEGER
+            type.startsWith("bigint") -> BIGINT
+            type.startsWith("float") -> FLOAT
+            type.startsWith("double") -> DOUBLE
+            type in listOf("decimal", "dec", "numeric", "fixed") -> DECIMAL
+            type == "timestamp" || type == "datetime" -> TIMESTAMP_WITH_TIMEZONE
+            type == "date" -> DATE
+            type == "time" -> TIME
+            type == "char" -> CHAR
+            type == "varchar" -> VARCHAR
+            type == "text" || type == "longtext" -> CLOB
+            type in listOf("binary", "blob", "char byte") -> VARBINARY
             else -> throw java.lang.UnsupportedOperationException("unsupported type $typeName")
         }
     }
