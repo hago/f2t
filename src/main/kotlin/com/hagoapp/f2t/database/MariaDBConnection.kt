@@ -135,6 +135,8 @@ class MariaDBConnection : DbConnection() {
             DATE -> "date"
             TIME, TIME_WITH_TIMEZONE -> "time"
             TIMESTAMP_WITH_TIMEZONE, TIMESTAMP -> "timestamp"
+            BIT -> "bit"
+            BLOB -> "blob"
             else -> "binary"
         }
     }
@@ -257,21 +259,23 @@ class MariaDBConnection : DbConnection() {
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
         val type = typeName.substringBefore('(').lowercase()
         return when {
-            type == "boolean" -> BOOLEAN
+            type == "bit" -> BIT
+            type == "boolean" || type == "bool" -> BOOLEAN
+            type == "timestamp" || type == "datetime" -> TIMESTAMP_WITH_TIMEZONE
+            type == "text" || type == "longtext" || type == "mediumtext"|| type == "tinytext"-> CLOB
             type.startsWith("tinyint") -> TINYINT
             type.startsWith("smallint") -> SMALLINT
-            type.startsWith("int") || type.startsWith("mediumint") -> INTEGER
-            type.startsWith("bigint") -> BIGINT
-            type.startsWith("float") -> FLOAT
+            type.startsWith("int") || type.startsWith("mediumint") || type.startsWith("integer")-> INTEGER
+            type.startsWith("bigint")-> BIGINT
+            type.startsWith("float")|| type.startsWith("real") -> FLOAT
             type.startsWith("double") -> DOUBLE
             type in listOf("decimal", "dec", "numeric", "fixed") -> DECIMAL
-            type == "timestamp" || type == "datetime" -> TIMESTAMP_WITH_TIMEZONE
-            type == "date" -> DATE
-            type == "time" -> TIME
-            type == "char" -> CHAR
-            type == "varchar" -> VARCHAR
-            type == "text" || type == "longtext" -> CLOB
-            type in listOf("binary", "blob", "char byte") -> VARBINARY
+            type in listOf("date", "year") -> DATE
+            type in listOf("time") -> TIME
+            type in listOf("char", "enum", "set") -> CHAR
+            type in listOf("varchar", "long varchar") -> VARCHAR
+            type in listOf("binary", "char byte", "long varbinary", "varbinary") -> VARBINARY
+            type in listOf("blob", "longblob", "mediumblob", "tinyblob") -> BLOB
             else -> throw java.lang.UnsupportedOperationException("unsupported type $typeName")
         }
     }
