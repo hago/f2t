@@ -26,7 +26,7 @@ import kotlin.math.*
  * @author Chaojun Sun
  * @since 0.2
  */
-class MsSqlConnection : DbConnection() {
+open class MsSqlConnection : DbConnection() {
 
     companion object {
         private const val MSSQL_DRIVER_CLASS_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"

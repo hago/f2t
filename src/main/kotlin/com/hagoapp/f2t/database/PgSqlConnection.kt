@@ -17,7 +17,7 @@ import java.sql.JDBCType.*
  * @author Chaojun Sun
  * @since 0.1
  */
-class PgSqlConnection : DbConnection() {
+open class PgSqlConnection : DbConnection() {
 
     companion object {
         private const val PGSQL_DRIVER_CLASS_NAME = "org.postgresql.Driver"
@@ -230,12 +230,14 @@ class PgSqlConnection : DbConnection() {
                 if ((m != null) && m.groupValues.isNotEmpty()) Triple(m.groupValues.last().toInt(), 0, 0)
                 else Triple(0, 0, 0)
             }
+
             typeStr.startsWith("numeric") -> {
                 val m = Regex(".+?\\((\\d+),(\\d+)\\)").matchEntire(typeStr)
                 if ((m != null) && (m.groupValues.size > 2))
                     Triple(0, m.groupValues[1].toInt(), m.groupValues[2].toInt())
                 else Triple(0, 0, 0)
             }
+
             else -> Triple(0, 0, 0)
         }
     }

@@ -20,7 +20,7 @@ import java.sql.SQLException
  * @author Chaojun Sun
  * @since 0.6
  */
-class MariaDBConnection : DbConnection() {
+open class MariaDBConnection : DbConnection() {
 
     companion object {
         private const val MARIADB_DRIVER_CLASS_NAME = "org.mariadb.jdbc.Driver"
