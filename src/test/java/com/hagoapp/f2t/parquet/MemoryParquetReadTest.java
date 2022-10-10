@@ -29,8 +29,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MemoryParquetReadTest {
@@ -56,7 +58,6 @@ public class MemoryParquetReadTest {
     }
 
     @BeforeAll
-    @Test
     static void testWriteParquet() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
@@ -74,7 +75,6 @@ public class MemoryParquetReadTest {
 
     @Test
     public void testMemoryParquetDataReader() throws IOException {
-        Random random = new Random(Instant.now().getEpochSecond());
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -86,6 +86,47 @@ public class MemoryParquetReadTest {
                     Assertions.assertEquals(108, rows.length);
                     for (int i : IntStream.range(0, colCount).toArray()) {
                         Assertions.assertEquals(colCount, rows[i].length);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testMemoryParquetDataReaderWithColumnNames() throws IOException {
+        Random random = new Random();
+        logger.debug("test: {}", testConfigFiles);
+        for (var config : testConfigFiles) {
+            logger.debug("{}", config);
+            try (var fis = new FileInputStream(config.getThird())) {
+                var bytes = fis.readAllBytes();
+                try (var ps = new MemoryParquetDataReader(bytes)) {
+                    var columnNames = ps.getColumns();
+                    var colCount = ps.getColumns().size();
+                    var selectColCount = random.nextInt(colCount);
+                    var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
+                    var selectColumnNames = new ArrayList<String>();
+                    var selectColumnIndexes = new ArrayList<Integer>();
+                    for (int i = 0; i < selectColCount; i++) {
+                        var j = random.nextInt(pool.size());
+                        selectColumnNames.add(columnNames.get(pool.get(j)));
+                        selectColumnIndexes.add(pool.get(j));
+                        pool.remove(j);
+                    }
+                    ps.withColumnSelectByNames(selectColumnNames.toArray(new String[0]));
+                    var rows = ps.read();
+                    Assertions.assertEquals(108, rows.length);
+                    for (int i : IntStream.range(0, colCount).toArray()) {
+                        Assertions.assertEquals(colCount, rows[i].length);
+                    }
+                    for (var row : rows) {
+                        for (int i = 0; i < row.length; i++) {
+                            if (!selectColumnIndexes.contains(i)) {
+                                Assertions.assertNull(row[i]);
+                            } else {
+                                Assertions.assertNotNull(row[i]);
+                            }
+                        }
                     }
                 }
             }
