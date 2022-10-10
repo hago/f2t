@@ -19,6 +19,11 @@ import java.io.Closeable
  * @author Chaojun Sun
  * @since 0.7
  */
+@Deprecated(
+    "This class was created in hurry and not a good implementation",
+    replaceWith = ReplaceWith("MemoryParquetDataReader"),
+    level = DeprecationLevel.WARNING
+)
 class MemoryParquetReader(input: ByteArray) : Closeable {
 
     companion object {
