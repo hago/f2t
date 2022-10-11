@@ -93,6 +93,24 @@ public class MemoryParquetReadTest {
     }
 
     @Test
+    public void testMemoryParquetDataReaderSkip() throws IOException {
+        Random random = new Random();
+        logger.debug("test: {}", testConfigFiles);
+        for (var config : testConfigFiles) {
+            logger.debug("{}", config);
+            try (var fis = new FileInputStream(config.getThird())) {
+                var bytes = fis.readAllBytes();
+                try (var ps = new MemoryParquetDataReader(bytes)) {
+                    var skipCount = random.nextInt(108);
+                    ps.skip(skipCount);
+                    var rows = ps.read();
+                    Assertions.assertEquals(108 - skipCount, rows.length);
+                }
+            }
+        }
+    }
+
+    @Test
     public void testMemoryParquetDataReaderWithColumnNames() throws IOException {
         Random random = new Random();
         logger.debug("test: {}", testConfigFiles);

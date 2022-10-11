@@ -103,7 +103,7 @@ class MemoryParquetDataReader(input: ByteArray) : Closeable {
 
     fun skip(number: Long) {
         for (i in 0 until number) {
-            readRow()
+            readRow() ?: break
         }
     }
 
