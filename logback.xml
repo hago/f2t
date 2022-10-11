@@ -1,0 +1,52 @@
+<!--
+  ~  This Source Code Form is subject to the terms of the Mozilla Public
+  ~  License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-mm-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+    </root>
+    <logger name="org.apache.parquet.hadoop.InternalParquetRecordReader" level="OFF">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="org.apache.hadoop.util.Shell" level="OFF">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="org.apache.parquet.column.impl.ColumnReaderBase" level="OFF" />
+    <logger name="org.apache.parquet.column.values.plain.BinaryPlainValuesReader" level="OFF" />
+    <logger name="org.apache.parquet.format.converter.ParquetMetadataConverter" level="OFF" />
+    <logger name="org.apache.parquet.column.values.bitpacking.ByteBitPackingValuesReader" level="OFF" />
+    <logger name="org.apache.parquet.column.values.plain.PlainValuesReader" level="OFF" />
+    <logger name="org.apache.parquet.column.values.plain.BooleanPlainValuesReader" level="OFF" />
+    <logger name="org.apache.parquet.column.values.rle.RunLengthBitPackingHybridDecoder" level="OFF" />
+    <logger name="org.apache.parquet.column.values.dictionary.DictionaryValuesReader" level="OFF" />
+    <logger name="org.apache.parquet.bytes.BytesInput$StreamBytesInput" level="OFF" />
+    <logger name="org.apache.hadoop.io.compress.CodecPool" level="OFF" />
+    <logger name="org.apache.hadoop.util.NativeCodeLoader" level="OFF" />
+    <logger name="org.apache.parquet.bytes.BytesInput$StreamBytesInput" level="OFF" />
+    <logger name="org.apache.parquet.bytes.CapacityByteArrayOutputStream" level="OFF" />
+    <logger name="org.apache.parquet.io.RecordConsumerLoggingWrapper" level="OFF" />
+    <logger name="org.apache.parquet.io.MessageColumnIO" level="OFF" />
+    <logger name="org.apache.parquet.crypto.EncryptionPropertiesFactory" level="OFF" />
+    <logger name="org.apache.parquet.crypto.DecryptionPropertiesFactory" level="OFF" />
+    <logger name="org.apache.parquet.hadoop.ParquetFileReader" level="OFF" />
+    <logger name="org.apache.parquet.hadoop.ParquetFileWriter" level="OFF" />
+    <logger name="org.apache.parquet.bytes.BytesInput$SequenceBytesIn" level="OFF" />
+    <logger name="org.apache.parquet.bytes.BytesInput" level="OFF" />
+    <logger name="org.apache.parquet.column.values.bitpacking.ByteBasedBitPackingEncoder" level="OFF" />
+    <logger name="org.apache.parquet.hadoop.InternalParquetRecordWriter" level="OFF" />
+    <logger name="org.apache.parquet.column.values.bitpacking.ByteBasedBitPackingEncoder" level="OFF" />
+    <logger name="org.apache.parquet.column.values.rle.RunLengthBitPackingHybridEncoder" level="OFF" />
+    <logger name="org.apache.parquet.column.values.plain.PlainValuesWriter" level="OFF" />
+    <logger name="org.apache.parquet.column.values.dictionary.DictionaryValuesWriter" level="OFF" />
+    <logger name="org.apache.parquet.hadoop.ColumnChunkPageWriteStore" level="OFF" />
+    <logger name="org.apache.parquet.bytes.BytesUtils" level="OFF" />
+</configuration>
