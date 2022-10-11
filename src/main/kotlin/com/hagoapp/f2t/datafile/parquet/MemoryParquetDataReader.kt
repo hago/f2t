@@ -57,7 +57,7 @@ class MemoryParquetDataReader(input: ByteArray) : Closeable {
         }
     }
 
-    fun withColumnSelectionByIndexes(vararg columnIndexes: Int) {
+    fun withColumnSelectByIndexes(vararg columnIndexes: Int) {
         columnSelections.forEach { i -> columnSelections[i] = (if (columnIndexes.contains(i)) i else -1) }
     }
 

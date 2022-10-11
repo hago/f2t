@@ -169,7 +169,7 @@ public class MemoryParquetReadTest {
                         selectColumnIndexes.add(pool.get(j));
                         pool.remove(j);
                     }
-                    ps.withColumnSelectionByIndexes(selectColumnIndexes.stream().mapToInt(Integer::intValue).toArray());
+                    ps.withColumnSelectByIndexes(selectColumnIndexes.stream().mapToInt(Integer::intValue).toArray());
                     var rows = ps.read();
                     Assertions.assertEquals(108, rows.length);
                     for (int i : IntStream.range(0, colCount).toArray()) {
@@ -178,6 +178,77 @@ public class MemoryParquetReadTest {
                     for (var row : rows) {
                         for (int i = 0; i < row.length; i++) {
                             if (!selectColumnIndexes.contains(i)) {
+                                Assertions.assertNull(row[i]);
+                            } else {
+                                Assertions.assertNotNull(row[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testMemoryParquetDataReaderWithColumnNameSelector() throws IOException {
+        Random random = new Random();
+        logger.debug("test: {}", testConfigFiles);
+        for (var config : testConfigFiles) {
+            logger.debug("{}", config);
+            try (var fis = new FileInputStream(config.getThird())) {
+                var bytes = fis.readAllBytes();
+                try (var ps = new MemoryParquetDataReader(bytes)) {
+                    var columnNames = ps.getColumns();
+                    var colCount = ps.getColumns().size();
+                    var selectColCount = random.nextInt(colCount);
+                    var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
+                    var selectColumnNames = new ArrayList<String>();
+                    var selectColumnIndexes = new ArrayList<Integer>();
+                    for (int i = 0; i < selectColCount; i++) {
+                        var j = random.nextInt(pool.size());
+                        selectColumnNames.add(columnNames.get(pool.get(j)));
+                        selectColumnIndexes.add(pool.get(j));
+                        pool.remove(j);
+                    }
+                    ps.withColumnNameSelector(selectColumnNames::contains);
+                    var rows = ps.read();
+                    Assertions.assertEquals(108, rows.length);
+                    for (int i : IntStream.range(0, colCount).toArray()) {
+                        Assertions.assertEquals(colCount, rows[i].length);
+                    }
+                    for (var row : rows) {
+                        for (int i = 0; i < row.length; i++) {
+                            if (!selectColumnIndexes.contains(i)) {
+                                Assertions.assertNull(row[i]);
+                            } else {
+                                Assertions.assertNotNull(row[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testMemoryParquetDataReaderWithColumnIndexSelector() throws IOException {
+        Random random = new Random();
+        logger.debug("test: {}", testConfigFiles);
+        for (var config : testConfigFiles) {
+            logger.debug("{}", config);
+            try (var fis = new FileInputStream(config.getThird())) {
+                var bytes = fis.readAllBytes();
+                try (var ps = new MemoryParquetDataReader(bytes)) {
+                    var colCount = ps.getColumns().size();
+                    ps.withColumnIndexSelector(i -> i % 2 == 0);
+                    var rows = ps.read();
+                    Assertions.assertEquals(108, rows.length);
+                    for (int i : IntStream.range(0, colCount).toArray()) {
+                        Assertions.assertEquals(colCount, rows[i].length);
+                    }
+                    for (var row : rows) {
+                        for (int i = 0; i < row.length; i++) {
+                            if (i % 2 != 0) {
                                 Assertions.assertNull(row[i]);
                             } else {
                                 Assertions.assertNotNull(row[i]);
