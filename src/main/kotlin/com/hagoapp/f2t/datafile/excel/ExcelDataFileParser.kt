@@ -11,7 +11,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 
 /**
- * This class is used to parse sheet information of an excel file, no any data reading will trigger.
+ * This class is used to parse sheet information of an Excel file, no any data reading will trigger.
  *
  * @author Chaojun Sun
  * @since 0.6
@@ -26,13 +26,17 @@ class ExcelDataFileParser {
                 sheets = (0 until workbook.numberOfSheets).map { i ->
                     val sheet = workbook.getSheetAt(i)
                     val row = sheet.getRow(0)
-                    ExcelSheetInfo(
-                        rowCount = sheet.lastRowNum - sheet.firstRowNum + 1,
-                        columns = (row.firstCellNum until row.lastCellNum).mapNotNull { j ->
-                            row.getCell(j)?.stringCellValue
-                        },
-                        name = sheet.sheetName
-                    )
+                    if (row == null) {
+                        ExcelSheetInfo(listOf(), 0, "")
+                    } else {
+                        ExcelSheetInfo(
+                            rowCount = sheet.lastRowNum - sheet.firstRowNum + 1,
+                            columns = (row.firstCellNum until row.lastCellNum).mapNotNull { j ->
+                                row.getCell(j)?.stringCellValue
+                            },
+                            name = sheet.sheetName
+                        )
+                    }
                 }
             )
         }
