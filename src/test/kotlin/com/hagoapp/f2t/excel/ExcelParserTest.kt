@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import com.hagoapp.f2t.datafile.excel.ExcelDataFileParser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.io.FileInputStream
 
 class ExcelParserTest {
@@ -55,6 +56,19 @@ class ExcelParserTest {
             Assertions.assertTrue(
                 config.expect.types.keys.subtract(parser.getInfo().sheets[0].columns.toSet()).isEmpty()
             )
+        }
+    }
+
+    @Test
+    fun testEmptyXlsx() {
+        val fn = File("./tests/excel/empty.xlsx")
+        FileInputStream(fn).use { fis ->
+            val p = ExcelDataFileParser(fis)
+            val info = p.getInfo()
+            Assertions.assertEquals(3, info.sheets.size)
+            Assertions.assertTrue(info.sheets[0].columns.isEmpty())
+            Assertions.assertFalse(info.sheets[1].columns.isEmpty())
+            Assertions.assertTrue(info.sheets[2].columns.isEmpty())
         }
     }
 }
