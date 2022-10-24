@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.datafile.parquet
 
 import org.apache.parquet.io.SeekableInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 
@@ -39,7 +40,7 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
         var slotIndex = 0
         var slotPosition = 0
         while (slotIndex < slotNum) {
-            var toRead = memSlots[slotIndex].size - slotPosition
+            val toRead = memSlots[slotIndex].size - slotPosition
             val i = inputStream.read(memSlots[slotIndex], slotPosition, toRead)
             if (i == -1) {
                 break
@@ -66,11 +67,14 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     }
 
     override fun seek(newPos: Long) {
-        TODO("Not yet implemented")
+        if ((newPos >= length) || (newPos < 0)) {
+            throw IOException("attempt to seek position $newPos, which exceeds range 0 - $length")
+        }
+        position = newPos
     }
 
     override fun reset() {
-        super.reset()
+        position = 0
     }
 
     override fun readFully(bytes: ByteArray?) {
