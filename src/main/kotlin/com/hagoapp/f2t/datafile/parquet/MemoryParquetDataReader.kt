@@ -12,6 +12,7 @@ import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.hadoop.ParquetReader
 import org.slf4j.Logger
 import java.io.Closeable
+import java.io.InputStream
 import java.util.function.Function
 
 /**
@@ -19,11 +20,23 @@ import java.util.function.Function
  *
  * @author Chaojun Sun
  */
-class MemoryParquetDataReader(input: ByteArray) : Closeable {
+class MemoryParquetDataReader private constructor(inputFile: MemoryInputFile) : Closeable {
 
     companion object {
         private val logger: Logger = F2TLogger.getLogger()
         const val DEFAULT_FETCH_SIZE = 500000
+
+        @JvmStatic
+        fun create(input: ByteArray): MemoryParquetDataReader {
+            val inputFile = MemoryInputFile(input)
+            return MemoryParquetDataReader(inputFile)
+        }
+
+        @JvmStatic
+        fun create(input: InputStream, length: Long): MemoryParquetDataReader {
+            val inputFile = MemoryInputFile(input, length)
+            return MemoryParquetDataReader(inputFile)
+        }
     }
 
     private val row0: GenericData.Record
@@ -33,8 +46,6 @@ class MemoryParquetDataReader(input: ByteArray) : Closeable {
     private val columnSelections: IntArray
 
     init {
-        val inputFile = MemoryInputFile(input)
-
         reader = AvroParquetReader.builder<GenericData.Record>(inputFile)
             .withCompatibility(true)
             .build()

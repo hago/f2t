@@ -9,7 +9,6 @@ package com.hagoapp.f2t.parquet;
 import com.google.gson.Gson;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.F2TException;
-import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.csv.CsvTestConfig;
 import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,7 +40,7 @@ public class MemoryParquetReadTest {
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
-    private static final Logger logger = F2TLogger.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(MemoryParquetReadTest.class);
 
     @AfterAll
     public static void clean() {
@@ -79,7 +79,7 @@ public class MemoryParquetReadTest {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var colCount = ps.getColumns().size();
                     var rows = ps.read();
                     Assertions.assertEquals(108, rows.length);
@@ -99,7 +99,7 @@ public class MemoryParquetReadTest {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var skipCount = random.nextInt(108);
                     ps.skip(skipCount);
                     var rows = ps.read();
@@ -117,7 +117,7 @@ public class MemoryParquetReadTest {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var columnNames = ps.getColumns();
                     var colCount = ps.getColumns().size();
                     var selectColCount = random.nextInt(colCount);
@@ -158,8 +158,7 @@ public class MemoryParquetReadTest {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
-                    var columnNames = ps.getColumns();
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var colCount = ps.getColumns().size();
                     var selectColCount = random.nextInt(colCount);
                     var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
@@ -197,7 +196,7 @@ public class MemoryParquetReadTest {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var columnNames = ps.getColumns();
                     var colCount = ps.getColumns().size();
                     var selectColCount = random.nextInt(colCount);
@@ -232,13 +231,12 @@ public class MemoryParquetReadTest {
 
     @Test
     public void testMemoryParquetDataReaderWithColumnIndexSelector() throws IOException {
-        Random random = new Random();
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = new MemoryParquetDataReader(bytes)) {
+                try (var ps = MemoryParquetDataReader.create(bytes)) {
                     var colCount = ps.getColumns().size();
                     ps.withColumnIndexSelector(i -> i % 2 == 0);
                     var rows = ps.read();
