@@ -182,7 +182,7 @@ open class PgSqlConnection : DbConnection() {
             pg_catalog.pg_constraint as con
             inner join pg_namespace as n on con.connamespace = n.oid
             inner join pg_class as c on con.conrelid = c.oid
-            inner join pg_attribute a on a.attrelid = c.oid and array_position(con.conkey, a.attnum) >= 0
+            inner join pg_attribute a on a.attrelid = c.oid
             where 
             n.nspname = ? and c.relname = ? and con.contype = ?
             and a.attnum > 0 and not a.attisdropped and c.relkind= 'r'
@@ -202,8 +202,11 @@ open class PgSqlConnection : DbConnection() {
                     if (conKey !is Array<*>) {
                         throw UnsupportedOperationException("PostgreSQL attNum err: $conKey")
                     }
+                    val attNumbers = conKey.map { it!!.toString().toInt() }.toMutableList()
+                    if (!attNumbers.contains(attNum)) {
+                        continue
+                    }
                     if (!map.contains(keyName)) {
-                        val attNumbers = conKey.map { it!!.toString().toInt() }.toMutableList()
                         val fields = attNumbers.map { if (attNum == it) colName else "" }.toMutableList()
                         map[keyName] = fields
                         colOrderMap[keyName] = attNumbers
