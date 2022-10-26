@@ -27,7 +27,7 @@ class ExcelDataFileParser {
                     val sheet = workbook.getSheetAt(i)
                     val row = sheet.getRow(0)
                     if (row == null) {
-                        ExcelSheetInfo(listOf(), 0, "")
+                        ExcelSheetInfo(listOf(), 0, sheet.sheetName)
                     } else {
                         ExcelSheetInfo(
                             rowCount = sheet.lastRowNum - sheet.firstRowNum + 1,
