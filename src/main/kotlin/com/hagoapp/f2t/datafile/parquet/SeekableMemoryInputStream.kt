@@ -6,9 +6,9 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
-import com.hagoapp.f2t.F2TLogger
 import org.apache.parquet.io.SeekableInputStream
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.EOFException
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -24,7 +24,7 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
 
     companion object {
 
-        private val logger: Logger = F2TLogger.getLogger()
+        private val logger: Logger = LoggerFactory.getLogger(SeekableMemoryInputStream::class.java)
 
     }
 

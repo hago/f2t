@@ -10,13 +10,13 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.DataRow
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.util.ColumnMatcher
 import com.hagoapp.util.StackTraceWriter
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.math.BigDecimal
 import java.sql.*
@@ -34,7 +34,7 @@ abstract class DbConnection : Closeable {
     protected lateinit var connection: Connection
     protected val insertionMap = mutableMapOf<TableName, String>()
     protected val rows = mutableListOf<DataRow>()
-    protected val logger: Logger = F2TLogger.getLogger()
+    protected val logger: Logger = LoggerFactory.getLogger(DbConnection::class.java)
     protected val fieldValueSetters =
         mutableMapOf<TableName, List<(stmt: PreparedStatement, i: Int, value: Any?) -> Unit>>()
     val extraProperties = mutableMapOf<String, Any>()

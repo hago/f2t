@@ -7,9 +7,9 @@
 package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.DriverManager
 
@@ -25,10 +25,10 @@ class DbConnectionFactory {
     companion object {
 
         private val typedConnectionMapper = mutableMapOf<String, Class<out DbConnection>>()
-        private val logger = F2TLogger.getLogger()
+        private val logger = LoggerFactory.getLogger(DbConnectionFactory::class.java)
 
         init {
-            registerPackageNames(F2TLogger::class.java.packageName)
+            registerPackageNames("com.hagoapp.f2t")
         }
 
         /**

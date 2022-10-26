@@ -6,9 +6,9 @@
 package com.hagoapp.f2t.datafile
 
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import org.slf4j.LoggerFactory
 import java.lang.reflect.Constructor
 
 /**
@@ -23,7 +23,7 @@ class ReaderFactory {
 
     companion object {
         private val readerMap = mutableMapOf<Int, Constructor<out Reader>>()
-        private val logger = F2TLogger.getLogger()
+        private val logger = LoggerFactory.getLogger(ReaderFactory::class.java)
 
         init {
             registerPackageName(F2TException::class.java.packageName)

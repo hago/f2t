@@ -15,6 +15,7 @@ import com.hagoapp.util.NumericUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.mozilla.universalchardet.UnicodeBOMInputStream
+import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -55,7 +56,7 @@ class CSVDataReader : Reader {
     private val data = mutableListOf<List<String>>()
     private lateinit var columns: Map<Int, FileColumnDefinition>
     private var rowCount = -1
-    private val logger = F2TLogger.getLogger()
+    private val logger = LoggerFactory.getLogger(CSVDataReader::class.java)
     private var defaultDeterminer = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
     private var predefinedFormats = listOf<CSVFormat>(
