@@ -9,7 +9,6 @@ package com.hagoapp.f2t.parquet;
 import com.google.gson.Gson;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.F2TException;
-import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.FileParser;
 import com.hagoapp.f2t.csv.CsvTestConfig;
 import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,7 +40,7 @@ public class MemoryParquetReadTest {
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
-    private static final Logger logger = F2TLogger.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(MemoryParquetReadTest.class);
 
     @AfterAll
     public static void clean() {

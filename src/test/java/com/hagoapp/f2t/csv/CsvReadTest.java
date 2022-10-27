@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +36,7 @@ public class CsvReadTest {
     );
 
     private static final Map<CsvTestConfig, FileTypeDeterminer> testConfigs = new HashMap<>();
-    private static final Logger logger = F2TLogger.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(CsvReadTest.class);
 
     @BeforeAll
     public static void loadConfig() throws IOException {
