@@ -6,11 +6,11 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
-import com.hagoapp.f2t.F2TLogger
 import org.apache.avro.generic.GenericData
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.hadoop.ParquetReader
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 
 /**
@@ -28,7 +28,7 @@ class MemoryParquetReader(input: ByteArray) : Closeable {
 
     companion object {
 
-        private val logger: Logger = F2TLogger.getLogger()
+        private val logger: Logger = LoggerFactory.getLogger(MemoryParquetReader::class.java)
 
     }
 

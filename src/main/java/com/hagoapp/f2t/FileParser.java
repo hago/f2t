@@ -9,6 +9,7 @@ package com.hagoapp.f2t;
 import com.hagoapp.f2t.datafile.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class FileParser {
     private final FileInfo fileInfo;
     private final List<ParseObserver> observers = new ArrayList<>();
     private long rowCountToInferType = -1;
-    private final Logger logger = F2TLogger.getLogger();
+    private final Logger logger = LoggerFactory.getLogger(FileParser.class);
     private FileTypeDeterminer determiner =
             new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer());
 

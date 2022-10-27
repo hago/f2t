@@ -13,6 +13,7 @@ import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import com.hagoapp.util.StackTraceWriter
+import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
 import java.sql.Connection
 import java.sql.JDBCType
@@ -30,7 +31,7 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
     private var parser: FileParser = dataFileRParser
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
-    private val logger = F2TLogger.getLogger()
+    private val logger = LoggerFactory.getLogger(F2TProcess::class.java)
     private var tableMatchedFile = false
     private val table: TableName
     private var batchNum = -1L

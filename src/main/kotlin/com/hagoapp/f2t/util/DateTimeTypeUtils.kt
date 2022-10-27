@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t.util
 
-import com.hagoapp.f2t.F2TLogger
+import org.slf4j.LoggerFactory
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.LocalDate
@@ -26,7 +26,7 @@ import java.time.temporal.Temporal
 class DateTimeTypeUtils {
     companion object {
 
-        private val logger = F2TLogger.getLogger()
+        private val logger = LoggerFactory.getLogger(DateTimeTypeUtils::class.java)
 
         private val dateTimeFormatters: List<DateTimeFormatter> = listOf(
             DateTimeFormatter.ISO_INSTANT,

@@ -9,10 +9,10 @@ package com.hagoapp.f2t.database.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hagoapp.f2t.F2TException;
-import com.hagoapp.f2t.F2TLogger;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.util.Map;
 public class DbConfigReader {
 
     private final static Map<String, Class<? extends DbConfig>> dbConfigMap = new HashMap<>();
-    private final static Logger logger = F2TLogger.getLogger();
+    private final static Logger logger = LoggerFactory.getLogger(DbConfigReader.class);
 
     static {
         var clazz = new Reflections("com.hagoapp", Scanners.SubTypes).getSubTypesOf(DbConfig.class);

@@ -7,10 +7,10 @@
 package com.hagoapp.f2t.compare
 
 import com.hagoapp.f2t.ColumnDefinition
-import com.hagoapp.f2t.F2TLogger
 import com.hagoapp.f2t.FileColumnDefinition
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import org.slf4j.LoggerFactory
 import java.sql.JDBCType
 
 /**
@@ -25,7 +25,7 @@ class ColumnComparator {
 
         private val comparators = mutableMapOf<String, TypedColumnComparator>()
         private val transformers = mutableMapOf<String, TypedColumnTransformer>()
-        private val logger = F2TLogger.getLogger()
+        private val logger = LoggerFactory.getLogger(ColumnComparator::class.java)
 
         init {
             registerComparatorsAndConverters(ColumnComparator::class.java.packageName)

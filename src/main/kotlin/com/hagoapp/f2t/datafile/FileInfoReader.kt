@@ -8,9 +8,9 @@ package com.hagoapp.f2t.datafile
 
 import com.google.gson.GsonBuilder
 import com.hagoapp.f2t.F2TException
-import com.hagoapp.f2t.F2TLogger
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
+import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -26,7 +26,7 @@ class FileInfoReader {
 
         private val fileInfoMap = mutableMapOf<Int, Class<out FileInfo>>()
         private val fileInfoExtMap = mutableMapOf<String, Class<out FileInfo>>()
-        private val logger = F2TLogger.getLogger()
+        private val logger = LoggerFactory.getLogger(FileInfoReader::class.java)
 
         init {
             val r = Reflections(F2TException::class.java.packageName, Scanners.SubTypes)
