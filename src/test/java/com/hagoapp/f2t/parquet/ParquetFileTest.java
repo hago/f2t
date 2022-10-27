@@ -15,6 +15,7 @@ import com.hagoapp.f2t.datafile.parquet.*;
 import kotlin.Triple;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,7 +35,7 @@ public class ParquetFileTest {
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
-    private static final Logger logger = F2TLogger.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(ParquetFileTest.class);
 
     @AfterAll
     public static void clean() {

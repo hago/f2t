@@ -18,6 +18,7 @@ import com.hagoapp.f2t.datafile.ParseResult;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class FileTestObserver implements ParseObserver {
     private int rowCount;
     private final Map<String, Pair<FileColumnDefinition, Integer>> columns = new HashMap<>();
     private boolean rowDetail = false;
-    private final Logger logger = F2TLogger.getLogger();
+    private final Logger logger = LoggerFactory.getLogger(FileTestObserver.class);
 
     public int getRowCount() {
         logger.debug("getRowCount {}", rowCount);

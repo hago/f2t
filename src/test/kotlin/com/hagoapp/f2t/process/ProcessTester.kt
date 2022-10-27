@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperties
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -23,7 +24,7 @@ class ProcessTester {
     private val dbConfigFile: String
     private val processConfigFile: String
     private val fileConfigFile: String
-    private val logger = F2TLogger.getLogger()
+    private val logger = LoggerFactory.getLogger(ProcessTester::class.java)
 
     init {
         val required = listOf(Constants.DATABASE_CONFIG_FILE, Constants.PROCESS_CONFIG_FILE, Constants.FILE_CONFIG_FILE)

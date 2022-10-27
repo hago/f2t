@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t.util;
 
-import com.hagoapp.f2t.F2TLogger;
 import com.hagoapp.f2t.Quartet;
 import kotlin.Pair;
 import org.junit.jupiter.api.Assertions;
@@ -14,15 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.JDBCType;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Locale;
 
 public class DateTimeUtilsTest {
 
-    private final Logger logger = LoggerFactory.getLogger(F2TLogger.class.getPackageName());
+    private final Logger logger = LoggerFactory.getLogger(DateTimeUtilsTest.class);
 
     /**
      * 1 - toDateTime
