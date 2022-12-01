@@ -66,6 +66,7 @@ public class ColumnDefinition {
         return "ColumnDefinition{" +
                 "name='" + name + '\'' +
                 ", dataType=" + dataType +
+                ", databaseType=" + databaseTypeName +
                 ", typeModifier=" + typeModifier +
                 '}';
     }
