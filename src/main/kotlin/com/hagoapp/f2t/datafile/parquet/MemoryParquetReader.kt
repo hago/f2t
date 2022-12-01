@@ -6,90 +6,166 @@
 
 package com.hagoapp.f2t.datafile.parquet
 
-import org.apache.avro.generic.GenericData
-import org.apache.parquet.avro.AvroParquetReader
-import org.apache.parquet.hadoop.ParquetReader
-import org.slf4j.Logger
+import com.hagoapp.f2t.ColumnDefinition
+import org.apache.parquet.ParquetReadOptions
+import org.apache.parquet.column.page.PageReadStore
+import org.apache.parquet.example.data.Group
+import org.apache.parquet.example.data.simple.convert.GroupRecordConverter
+import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.io.ColumnIOFactory
+import org.apache.parquet.io.MessageColumnIO
+import org.apache.parquet.io.RecordReader
+import org.apache.parquet.schema.MessageType
+import org.apache.parquet.schema.Type
 import org.slf4j.LoggerFactory
 import java.io.Closeable
+import java.io.InputStream
+import java.lang.Exception
+import java.sql.JDBCType
+import java.util.function.Predicate
 
 /**
- * A parquet file reader which is capable to handle memory content loaded from parquet file.
+ * A parquet reader to read data from byte array and stream.
  *
- * @author Chaojun Sun
- * @since 0.7
+ * @since 0.7.5
+ * @author suncjs
  */
-@Deprecated(
-    "This class was created in hurry and not a good implementation",
-    replaceWith = ReplaceWith("MemoryParquetDataReader"),
-    level = DeprecationLevel.WARNING
-)
-class MemoryParquetReader(input: ByteArray) : Closeable {
+class MemoryParquetReader(input: MemoryInputFile) : Closeable {
 
     companion object {
 
-        private val logger: Logger = LoggerFactory.getLogger(MemoryParquetReader::class.java)
+        private val logger = LoggerFactory.getLogger(MemoryParquetReader::class.java)
 
+        @JvmStatic
+        fun create(buffer: ByteArray): MemoryParquetReader {
+            val file = MemoryInputFile(buffer)
+            return MemoryParquetReader(file)
+        }
+
+        @JvmStatic
+        fun create(stream: InputStream): MemoryParquetReader {
+            val size = stream.available()
+            logger.warn("size of stream not specified, {} estimated", size)
+            return create(stream, size.toLong())
+        }
+
+        @JvmStatic
+        fun create(stream: InputStream, length: Long): MemoryParquetReader {
+            val file = MemoryInputFile(stream, length)
+            return MemoryParquetReader(file)
+        }
     }
 
-    private val row0: List<RecordCell>
-    val columns: List<String>
-    private var rowNo = 0L
-    private val reader: ParquetReader<GenericData.Record>
+    private val reader: ParquetFileReader
+    private val schema: MessageType
+    val columns: List<ColumnDefinition>
+    private val columnsSelecting: Array<Boolean>
+    private var currentRowGroup: PageReadStore
+    private val ioFactory = ColumnIOFactory()
+    private var requestedSchema: MessageType
+    private lateinit var groupReader: RecordReader<Group>
+    private lateinit var columnIO: MessageColumnIO
+    private lateinit var groupRecordConverter: GroupRecordConverter
 
     init {
-        val inputFile = MemoryInputFile(input)
-
-        reader = AvroParquetReader.builder<GenericData.Record>(inputFile)
-            .withCompatibility(true)
-            .build()
-        val record = reader.read()
-        val info = parseSchema(record)
-        columns = info.first
-        row0 = info.second.mapIndexed { i, value -> RecordCell(columns[i], value) }
+        val opt = ParquetReadOptions.builder().build()
+        reader = ParquetFileReader(input, opt)
+        schema = reader.fileMetaData.schema
+        columns = schema.fields.map { fieldToColumn(it) }
+        columnsSelecting = Array(columns.size) { true }
+        requestedSchema = schema
+        updateRequestedSchema()
+        currentRowGroup = reader.readNextRowGroup()
     }
 
-    private fun parseSchema(record: GenericData.Record): Pair<List<String>, List<Any?>> {
-        val cols = mutableListOf<String>()
-        val row = record.schema.fields.mapIndexed { i, field ->
-            //val type = field.schema().type
-            cols.add(field.name())
-            record[i]
+    private fun fieldToColumn(type: Type): ParquetColumnDefinition {
+        val def = ParquetColumnDefinition()
+        def.name = type.name
+        def.parquetType = type.asPrimitiveType()
+        def.dataType = JDBCType.CLOB
+        return def
+    }
+
+    fun fetchColumnByNames(vararg names: String): MemoryParquetReader {
+        columnsSelecting.forEachIndexed { i, _ ->
+            columnsSelecting[i] = names.any { it == columns[i].name }
         }
-        return Pair(cols, row)
+        return this
     }
 
-    private fun parseRecord(record: GenericData.Record): List<RecordCell> {
-        return List(record.schema.fields.size) { i ->
-            RecordCell(record.schema.fields[i].name(), record[i])
+    fun fetchColumnByNameSelector(selector: Predicate<String>): MemoryParquetReader {
+        columnsSelecting.forEachIndexed { i, _ ->
+            columnsSelecting[i] = selector.test(columns[i].name)
         }
+        return this
     }
 
-    private fun filterColumns(row: List<RecordCell>, columnSelector: (String) -> Boolean): List<RecordCell> {
-        return row.filter { p -> columnSelector(p.fieldName) }
-    }
-
-    @JvmOverloads
-    fun readRow(rowCount: Int? = null, columnSelector: (String) -> Boolean = { _ -> true }): List<List<RecordCell>> {
-        val ret = mutableListOf<List<RecordCell>>()
-        var rowCountNeeded = rowCount ?: 1
-        if (rowNo == 0L) {
-            ret.add(filterColumns(row0, columnSelector))
-            rowCountNeeded--
-            rowNo += 1
+    fun fetchColumnByIndexes(vararg indexes: Int): MemoryParquetReader {
+        columnsSelecting.forEachIndexed { i, _ ->
+            columnsSelecting[i] = indexes.contains(i)
         }
-        for (i in 0 until rowCountNeeded) {
-            val record = reader.read() ?: break
-            ret.add(filterColumns(parseRecord(record), columnSelector))
-            rowNo++
+        return this
+    }
+
+    fun fetchColumnByIndexSelector(selector: Predicate<Int>): MemoryParquetReader {
+        columnsSelecting.forEachIndexed { i, _ ->
+            columnsSelecting[i] = selector.test(i)
+        }
+        return this
+    }
+
+    fun skip(rowCount: Int): Int {
+        var rowsSkipped = 0
+        while (rowsSkipped < rowCount) {
+            val group = groupReader.read()
+            if (group == null) {
+                currentRowGroup = reader.readNextRowGroup() ?: break
+                buildGroupReader()
+                continue
+            }
+            rowsSkipped++
+        }
+        return rowsSkipped
+    }
+
+    fun read(rowCount: Int): Array<Array<Any?>> {
+        val buffer = Array<Any?>(rowCount * columns.size) { null }
+        var rowsRead = 0
+        while (rowsRead < rowCount) {
+            val group = groupReader.read()
+            if (group == null) {
+                currentRowGroup = reader.readNextRowGroup() ?: break
+                buildGroupReader()
+                continue
+            }
+            for (i in columns.indices) {
+                buffer[rowsRead * columns.size + i] = if (columnsSelecting[i]) group.getString(i, 0) else null
+            }
+            rowsRead++
+        }
+        val ret = Array(rowsRead) {
+            Array<Any?>(columns.size) { null }
+        }
+        for (i in ret.indices) {
+            System.arraycopy(buffer, i * columns.size, ret[i], 0, columns.size)
         }
         return ret
+    }
+
+    private fun updateRequestedSchema() {
+        columnIO = ioFactory.getColumnIO(requestedSchema)
+        groupRecordConverter = GroupRecordConverter(requestedSchema)
+        buildGroupReader()
+    }
+
+    private fun buildGroupReader(): RecordReader<Group> {
+        return columnIO.getRecordReader(currentRowGroup, groupRecordConverter)
     }
 
     override fun close() {
         try {
             reader.close()
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             //
         }
     }
