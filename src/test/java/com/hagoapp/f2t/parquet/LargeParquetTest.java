@@ -6,7 +6,7 @@
 
 package com.hagoapp.f2t.parquet;
 
-import com.hagoapp.f2t.datafile.parquet.MemoryParquetDataReader;
+import com.hagoapp.f2t.datafile.parquet.MemoryParquetReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -29,7 +29,7 @@ public class LargeParquetTest {
         var largeFileName = System.clearProperty(LARGE_PARQUET_TEST_FILE);
         var f = new File(largeFileName);
         try (var fs = new FileInputStream(f)) {
-            try (var reader = MemoryParquetDataReader.create(fs, f.length())) {
+            try (var reader = MemoryParquetReader.create(fs, f.length())) {
                 var columns = reader.getColumns();
                 logger.debug("columns: {}", columns);
                 var lines = reader.read(1000);
