@@ -23,6 +23,8 @@ import java.io.InputStream
 import java.lang.Exception
 import java.lang.reflect.Method
 import java.sql.JDBCType
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 import java.util.function.Predicate
 
 /**
@@ -122,26 +124,15 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
     }
 
     fun skip(rowCount: Int): Int {
-        var rowsSkipped = 0
-        while (rowsSkipped < rowCount) {
-            val group = groupReader.read()
-            if (group == null) {
-                currentRowGroup = reader.readNextRowGroup() ?: break
-                buildGroupReader()
-                continue
-            }
-            rowsSkipped++
-        }
-        return rowsSkipped
+        return internalRead(rowCount)
     }
 
-    fun read(rowCount: Int): Array<Array<Any?>> {
-        val buffer = Array<Any?>(rowCount * columns.size) { null }
-        var rowsRead = 0
-        while (rowsRead < rowCount) {
+    private fun internalRead(rowCount: Int, rowProcessor: BiConsumer<Group, Int>? = null): Int {
+        var rowsFetched = 0
+        while (rowsFetched < rowCount) {
             logger.debug(
                 "row read: {}, row No in group: {}, group count: {}",
-                rowsRead,
+                rowsFetched,
                 rowsReadInGroup,
                 currentRowGroup.rowCount
             )
@@ -151,14 +142,23 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
                 continue
             }
             val group = groupReader.read()
-            rowsRead++
+            rowsFetched++
             rowsReadInGroup++
+            rowProcessor?.accept(group, rowsFetched)
+        }
+        return rowsFetched
+    }
+
+    fun read(rowCount: Int): Array<Array<Any?>> {
+        val buffer = Array<Any?>(rowCount * columns.size) { null }
+        val consumer: BiConsumer<Group, Int> = BiConsumer<Group, Int> { group, rowNo ->
             for (i in columns.indices) {
-                buffer[rowsRead * columns.size + i] = if (!columnsSelecting[i]) null
+                buffer[(rowNo - 1) * columns.size + i] = if (!columnsSelecting[i]) null
                 else columnValueMethods[i].invoke(group, i, 0)
             }
         }
-        val ret = Array(rowsRead) {
+        val actualRead = internalRead(rowCount, consumer)
+        val ret = Array(actualRead) {
             Array<Any?>(columns.size) { null }
         }
         for (i in ret.indices) {
