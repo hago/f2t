@@ -25,4 +25,12 @@ public class ParquetColumnDefinition extends ColumnDefinition {
     public void setParquetType(PrimitiveType parquetType) {
         this.parquetType = parquetType;
     }
+
+    @Override
+    public String toString() {
+        return "ParquetColumnDefinition{" +
+                "parquetType=" + parquetType +
+                "parent=" + super.toString() +
+                '}';
+    }
 }
