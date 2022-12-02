@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.InputStream
 import java.lang.Exception
+import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.util.function.Predicate
 
@@ -60,22 +61,28 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
     private val schema: MessageType
     val columns: List<ColumnDefinition>
     private val columnsSelecting: Array<Boolean>
+    private val columnValueMethods: Array<Method>
     private var currentRowGroup: PageReadStore
     private val ioFactory = ColumnIOFactory()
     private var requestedSchema: MessageType
     private lateinit var groupReader: RecordReader<Group>
     private lateinit var columnIO: MessageColumnIO
     private lateinit var groupRecordConverter: GroupRecordConverter
+    private var rowsReadInGroup = 0L
 
     init {
         val opt = ParquetReadOptions.builder().build()
         reader = ParquetFileReader(input, opt)
         schema = reader.fileMetaData.schema
         columns = schema.fields.map { fieldToColumn(it) }
+        columnValueMethods = schema.fields.map { t ->
+            val methodName = t.asPrimitiveType().primitiveTypeName.getMethod
+            Group::class.java.getMethod(methodName, Int::class.java, Int::class.java)
+        }.toTypedArray()
         columnsSelecting = Array(columns.size) { true }
+        currentRowGroup = reader.readNextRowGroup()
         requestedSchema = schema
         updateRequestedSchema()
-        currentRowGroup = reader.readNextRowGroup()
     }
 
     private fun fieldToColumn(type: Type): ParquetColumnDefinition {
@@ -132,16 +139,24 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         val buffer = Array<Any?>(rowCount * columns.size) { null }
         var rowsRead = 0
         while (rowsRead < rowCount) {
-            val group = groupReader.read()
-            if (group == null) {
+            logger.debug(
+                "row read: {}, row No in group: {}, group count: {}",
+                rowsRead,
+                rowsReadInGroup,
+                currentRowGroup.rowCount
+            )
+            if (rowsReadInGroup >= currentRowGroup.rowCount) {
                 currentRowGroup = reader.readNextRowGroup() ?: break
                 buildGroupReader()
                 continue
             }
-            for (i in columns.indices) {
-                buffer[rowsRead * columns.size + i] = if (columnsSelecting[i]) group.getString(i, 0) else null
-            }
+            val group = groupReader.read()
             rowsRead++
+            rowsReadInGroup++
+            for (i in columns.indices) {
+                buffer[rowsRead * columns.size + i] = if (!columnsSelecting[i]) null
+                else columnValueMethods[i].invoke(group, i, 0)
+            }
         }
         val ret = Array(rowsRead) {
             Array<Any?>(columns.size) { null }
@@ -158,8 +173,9 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         buildGroupReader()
     }
 
-    private fun buildGroupReader(): RecordReader<Group> {
-        return columnIO.getRecordReader(currentRowGroup, groupRecordConverter)
+    private fun buildGroupReader() {
+        groupReader = columnIO.getRecordReader(currentRowGroup, groupRecordConverter)
+        rowsReadInGroup = 0L
     }
 
     override fun close() {
