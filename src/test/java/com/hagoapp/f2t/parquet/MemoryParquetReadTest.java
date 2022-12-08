@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -97,13 +96,19 @@ public class MemoryParquetReadTest {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
+            CsvTestConfig csvConfig;
+            try (var fis = new FileInputStream(config.getFirst())) {
+                var json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
+            }
             try (var fis = new FileInputStream(config.getThird())) {
                 var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetDataReader.create(bytes)) {
-                    var skipCount = random.nextInt(108);
+                try (var ps = MemoryParquetReader.create(bytes)) {
+                    var rowCount = csvConfig.getExpect().getRowCount();
+                    var skipCount = random.nextInt(rowCount);
                     ps.skip(skipCount);
-                    var rows = ps.read();
-                    Assertions.assertEquals(108 - skipCount, rows.length);
+                    var rows = ps.read(rowCount);
+                    Assertions.assertEquals(rowCount - skipCount, rows.length);
                 }
             }
         }
