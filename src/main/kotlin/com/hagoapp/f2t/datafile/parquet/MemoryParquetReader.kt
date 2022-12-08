@@ -130,7 +130,7 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
     private fun internalRead(rowCount: Int, rowProcessor: BiConsumer<Group, Int>? = null): Int {
         var rowsFetched = 0
         while (rowsFetched < rowCount) {
-            logger.debug(
+            logger.trace(
                 "row read: {}, row No in group: {}, group count: {}",
                 rowsFetched,
                 rowsReadInGroup,
