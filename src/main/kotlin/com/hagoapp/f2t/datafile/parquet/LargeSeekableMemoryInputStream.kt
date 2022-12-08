@@ -25,7 +25,7 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     SeekableInputStream() {
 
     companion object {
-        private const val MEM_SLOT_SIZE = Int.MAX_VALUE
+        private const val MEM_SLOT_SIZE = Int.MAX_VALUE / 2
         private var logger = LoggerFactory.getLogger(LargeSeekableMemoryInputStream::class.java)
     }
 
@@ -58,7 +58,7 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     }
 
     override fun read(buf: ByteBuffer?): Int {
-        logger.debug("read(ByteBuffer)")
+        logger.trace("read(ByteBuffer)")
         buf ?: throw IOException("byteBuffer is null")
         if (position >= length) {
             return -1
@@ -103,17 +103,17 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
         val slotPosition = (position - MEM_SLOT_SIZE * slotIndex).toInt()
         val data = memSlots[slotIndex][slotPosition].toUByte()
         position += 1
-        logger.debug("read() $pos return $data")
+        logger.trace("read() $pos return $data")
         return data.toInt()
     }
 
     override fun getPos(): Long {
-        logger.debug("getPos() {}", position)
+        logger.trace("getPos() {}", position)
         return position
     }
 
     override fun seek(newPos: Long) {
-        logger.debug("seek({})", newPos)
+        logger.trace("seek({})", newPos)
         if ((newPos >= length) || (newPos < 0)) {
             throw IOException("attempt to seek position $newPos, which exceeds range 0 - $length")
         }
@@ -121,18 +121,18 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     }
 
     override fun reset() {
-        logger.debug("reset")
+        logger.trace("reset")
         position = 0
     }
 
     override fun readFully(bytes: ByteArray?) {
-        logger.debug("readFully(ByteArray?)")
+        logger.trace("readFully(ByteArray?)")
         bytes ?: throw IOException("null ByteBuffer")
         readFully(bytes, 0, bytes.size)
     }
 
     override fun readFully(bytes: ByteArray?, start: Int, len: Int) {
-        logger.debug("readFully(ByteArray, {}, {})", start, len)
+        logger.trace("readFully(ByteArray, {}, {})", start, len)
         bytes ?: throw IOException("null bytes")
         val needToRead = len - start
         if (needToRead > length - position) {
@@ -142,7 +142,7 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     }
 
     override fun readFully(buf: ByteBuffer?) {
-        logger.debug("readFully(ByteBuffer)")
+        logger.trace("readFully(ByteBuffer)")
         buf ?: throw IOException("null ByteBuffer")
         val content = buf.array()
         val posBefore = position
