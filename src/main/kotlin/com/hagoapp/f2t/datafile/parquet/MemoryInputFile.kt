@@ -47,10 +47,10 @@ class MemoryInputFile private constructor() : InputFile {
     }
 
     override fun newStream(): SeekableInputStream {
-        if (this::inputBytes.isInitialized) {
-            return SeekableMemoryInputStream(inputBytes)
+        return if (this::inputBytes.isInitialized) {
+            SeekableMemoryInputStream(inputBytes)
         } else if (this::inputStream.isInitialized) {
-            return LargeSeekableMemoryInputStream(inputStream, length)
+            LargeSeekableMemoryInputStream(inputStream, length)
         } else {
             throw IOException("No content")
         }
