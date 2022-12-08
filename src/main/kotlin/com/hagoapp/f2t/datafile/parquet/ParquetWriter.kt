@@ -15,6 +15,7 @@ import com.hagoapp.f2t.util.ParquetTypeUtils
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData
 import org.apache.parquet.avro.AvroParquetWriter
+import org.slf4j.LoggerFactory
 
 /**
  * A writer for parquet file.
@@ -25,6 +26,7 @@ import org.apache.parquet.avro.AvroParquetWriter
 class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private val config: ParquetWriterConfig) {
 
     private val schemaValue: String
+    private val logger = LoggerFactory.getLogger(ParquetWriter::class.java)
 
     init {
         val schema = SimpleAvroSchema();
@@ -51,7 +53,7 @@ class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private v
                     val record = GenericData.Record(avroSchema)
                     row.cells.forEachIndexed { i, cell ->
                         val col = data.columnDefinition[i].name
-                        println(cell.data)
+                        logger.trace("write data: {}", cell.data)
                         record.put(col, JDBCTypeUtils.toTypedValue(cell.data, data.columnDefinition[i].dataType))
                     }
                     writer.write(record)

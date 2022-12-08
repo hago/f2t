@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.hagoapp'
-version '0.7.4.2'
+version '0.7.5'
 
 repositories {
     mavenCentral()
@@ -50,10 +50,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
 }
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     options.encoding = "UTF-8"
 }
 
@@ -71,24 +71,9 @@ compileTestKotlin {
 }
 
 test {
+    // uncomment following 2 lines for large file test
+    // minHeapSize = "8192M"
+    // maxHeapSize = "16384M"
     useJUnitPlatform()
     systemProperties = System.properties as Map<String, ?>
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        mavenLocal()
-        maven {
-            url = uri("https://maven.pkg.github.com/hago/f2t")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-            }
-        }
-    }
 }

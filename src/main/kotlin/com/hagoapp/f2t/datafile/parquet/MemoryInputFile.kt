@@ -8,6 +8,9 @@ package com.hagoapp.f2t.datafile.parquet
 
 import org.apache.parquet.io.InputFile
 import org.apache.parquet.io.SeekableInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.Arrays
 
 /**
  * The InputFile implementation to deal with file content in memory.
@@ -15,20 +18,46 @@ import org.apache.parquet.io.SeekableInputStream
  * @author Chaojun Sun
  * @since 0.7
  */
-class MemoryInputFile(private val input: ByteArray) : InputFile {
+class MemoryInputFile private constructor() : InputFile {
 
-    private val size = input.size
-    //private val seekableInputStream = SeekableMemoryInputStream(input)
+    private lateinit var inputBytes: ByteArray
+    private lateinit var inputStream: InputStream
+    private var length: Long = -1
+
+    constructor(input: ByteArray) : this() {
+        loadBytes(input)
+    }
+
+    private fun loadBytes(input: ByteArray) {
+        this.inputBytes = input
+        this.length = input.size.toLong()
+
+    }
+
+    constructor(inputStream: InputStream, length: Long) : this() {
+        if (length < Int.MAX_VALUE - 10) {
+            this.loadBytes(inputStream.readAllBytes())
+        } else {
+            this.inputStream = inputStream
+            this.length = length
+        }
+    }
 
     override fun getLength(): Long {
-        return size.toLong()
+        return length
     }
 
     override fun newStream(): SeekableInputStream {
-        return SeekableMemoryInputStream(input)
+        return if (this::inputBytes.isInitialized) {
+            SeekableMemoryInputStream(inputBytes)
+        } else if (this::inputStream.isInitialized) {
+            LargeSeekableMemoryInputStream(inputStream, length)
+        } else {
+            throw IOException("No content")
+        }
     }
 
     override fun toString(): String {
-        return "implementation of org.apache.parquet.io.InputFile using data in memory, no actual file"
+        return "virtual file implementation of org.apache.parquet.io.InputFile using data in memory, size $length"
     }
 }
