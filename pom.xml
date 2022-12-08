@@ -1,47 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hagoapp</groupId>
   <artifactId>f2t</artifactId>
-  <version>0.7.4.2</version>
-  <name>F2T</name>
-  <description>A library that helps loading data from files(csv/Excel/parquet, and extendable) into databases.</description>
-  <url>https://github.com/hago/f2t</url>
-  <licenses>
-    <license>
-      <name>Mozilla Public License, Version 2.0</name>
-      <url>http://mozilla.org/MPL/2.0/</url>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <id>suncjs</id>
-      <name>Chaojun Sun</name>
-      <email>suncjs@hagoapp.com</email>
-    </developer>
-  </developers>
-  <scm>
-    <connection>scm:git:https://github.com/hago/f2t.git</connection>
-    <developerConnection>scm:git:https://github.com/hago/f2t.git</developerConnection>
-    <url>https://github.com/hago/f2t.git</url>
-  </scm>
+  <version>0.7.5</version>
   <dependencies>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib</artifactId>
-      <version>1.7.10</version>
+      <version>1.7.20</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk8</artifactId>
-      <version>1.7.10</version>
+      <version>1.7.20</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk7</artifactId>
-      <version>1.7.10</version>
+      <version>1.7.20</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -109,30 +93,6 @@
       <artifactId>mssql-jdbc</artifactId>
       <version>8.4.0.jre8</version>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.9.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.2.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.3.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mariadb.jdbc</groupId>
-      <artifactId>mariadb-java-client</artifactId>
-      <version>3.0.6</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
