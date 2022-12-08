@@ -77,3 +77,11 @@ test {
     useJUnitPlatform()
     systemProperties = System.properties as Map<String, ?>
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
