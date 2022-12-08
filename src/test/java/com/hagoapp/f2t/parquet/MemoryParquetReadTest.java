@@ -7,6 +7,7 @@
 package com.hagoapp.f2t.parquet;
 
 import com.google.gson.Gson;
+import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.Constants;
 import com.hagoapp.f2t.F2TException;
 import com.hagoapp.f2t.FileParser;
@@ -24,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -89,7 +91,6 @@ public class MemoryParquetReadTest {
         }
     }
 
-    @Disabled
     @Test
     public void testParquetMemoryReaderSkip() throws IOException {
         Random random = new Random();
@@ -108,40 +109,33 @@ public class MemoryParquetReadTest {
         }
     }
 
-    @Disabled
     @Test
-    public void testMemoryParquetDataReaderWithColumnNames() throws IOException {
-        Random random = new Random();
+    public void testParquetMemoryReaderWithColumnNames() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
+            var len = new File(config.getThird()).length();
+            CsvTestConfig csvConfig;
+            try (var fis = new FileInputStream(config.getFirst())) {
+                var json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
+            }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetDataReader.create(bytes)) {
-                    var columnNames = ps.getColumns();
-                    var colCount = ps.getColumns().size();
-                    var selectColCount = random.nextInt(colCount);
-                    var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
-                    var selectColumnNames = new ArrayList<String>();
-                    var selectColumnIndexes = new ArrayList<Integer>();
-                    for (int i = 0; i < selectColCount; i++) {
-                        var j = random.nextInt(pool.size());
-                        selectColumnNames.add(columnNames.get(pool.get(j)));
-                        selectColumnIndexes.add(pool.get(j));
-                        pool.remove(j);
-                    }
-                    ps.withColumnSelectByNames(selectColumnNames.toArray(new String[0]));
-                    var rows = ps.read();
-                    Assertions.assertEquals(108, rows.length);
-                    for (int i : IntStream.range(0, colCount).toArray()) {
-                        Assertions.assertEquals(colCount, rows[i].length);
-                    }
-                    for (var row : rows) {
-                        for (int i = 0; i < row.length; i++) {
-                            if (!selectColumnIndexes.contains(i)) {
+                try (var ps = MemoryParquetReader.create(fis, len)) {
+                    var columns = ps.getColumns();
+                    logger.debug("columns: {}", columns);
+                    var selectedColumnIndexes = selectRandomColumns(columns);
+                    var columnNames = selectedColumnIndexes.stream().map(i -> columns.get(i).getName())
+                            .toArray(String[]::new);
+                    logger.debug("selected column indexes: {}", selectedColumnIndexes);
+                    logger.debug("selected columns: {}", List.of(columnNames));
+                    ps.fetchColumnByNames(columnNames);
+                    var rows = ps.read(csvConfig.getExpect().getRowCount() * 2);
+                    Assertions.assertEquals(csvConfig.getExpect().getRowCount(), rows.length);
+                    for (Object[] row : rows) {
+                        for (var i = 0; i < columns.size(); i++) {
+                            if (!selectedColumnIndexes.contains(i)) {
                                 Assertions.assertNull(row[i]);
-                            } else {
-                                Assertions.assertNotNull(row[i]);
                             }
                         }
                     }
@@ -150,37 +144,46 @@ public class MemoryParquetReadTest {
         }
     }
 
-    @Disabled
-    @Test
-    public void testMemoryParquetDataReaderWithColumnIndexes() throws IOException {
+    private List<Integer> selectRandomColumns(List<ColumnDefinition> columns) {
         Random random = new Random();
+        var countNeeded = random.nextInt(columns.size() - 1) + 1;
+        var indexes = IntStream.range(0, columns.size()).boxed().collect(Collectors.toList());
+        var indexesNeeded = new ArrayList<Integer>();
+        for (var i = 0; i < countNeeded; i++) {
+            var j = random.nextInt(indexes.size());
+            indexesNeeded.add(indexes.get(j));
+            indexes.remove(j);
+        }
+        return indexesNeeded;
+    }
+
+    @Test
+    public void testParquetMemoryReaderWithColumnNameSelector() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
+            var len = new File(config.getThird()).length();
+            CsvTestConfig csvConfig;
+            try (var fis = new FileInputStream(config.getFirst())) {
+                var json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
+            }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetDataReader.create(bytes)) {
-                    var colCount = ps.getColumns().size();
-                    var selectColCount = random.nextInt(colCount);
-                    var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
-                    var selectColumnIndexes = new ArrayList<Integer>();
-                    for (int i = 0; i < selectColCount; i++) {
-                        var j = random.nextInt(pool.size());
-                        selectColumnIndexes.add(pool.get(j));
-                        pool.remove(j);
-                    }
-                    ps.withColumnSelectByIndexes(selectColumnIndexes.stream().mapToInt(Integer::intValue).toArray());
-                    var rows = ps.read();
-                    Assertions.assertEquals(108, rows.length);
-                    for (int i : IntStream.range(0, colCount).toArray()) {
-                        Assertions.assertEquals(colCount, rows[i].length);
-                    }
-                    for (var row : rows) {
-                        for (int i = 0; i < row.length; i++) {
-                            if (!selectColumnIndexes.contains(i)) {
+                try (var ps = MemoryParquetReader.create(fis, len)) {
+                    var columns = ps.getColumns();
+                    logger.debug("columns: {}", columns);
+                    var selectedColumnIndexes = selectRandomColumns(columns);
+                    var columnNames = selectedColumnIndexes.stream().map(i -> columns.get(i).getName())
+                            .toArray(String[]::new);
+                    logger.debug("selected column indexes: {}", selectedColumnIndexes);
+                    logger.debug("selected columns: {}", List.of(columnNames));
+                    ps.fetchColumnByNameSelector(s -> List.of(columnNames).contains(s));
+                    var rows = ps.read(csvConfig.getExpect().getRowCount() * 2);
+                    Assertions.assertEquals(csvConfig.getExpect().getRowCount(), rows.length);
+                    for (Object[] row : rows) {
+                        for (var i = 0; i < columns.size(); i++) {
+                            if (!selectedColumnIndexes.contains(i)) {
                                 Assertions.assertNull(row[i]);
-                            } else {
-                                Assertions.assertNotNull(row[i]);
                             }
                         }
                     }
@@ -189,40 +192,30 @@ public class MemoryParquetReadTest {
         }
     }
 
-    @Disabled
     @Test
-    public void testMemoryParquetDataReaderWithColumnNameSelector() throws IOException {
-        Random random = new Random();
+    public void testParquetMemoryReaderWithColumnIndexes() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
+            var len = new File(config.getThird()).length();
+            CsvTestConfig csvConfig;
+            try (var fis = new FileInputStream(config.getFirst())) {
+                var json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
+            }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetDataReader.create(bytes)) {
-                    var columnNames = ps.getColumns();
-                    var colCount = ps.getColumns().size();
-                    var selectColCount = random.nextInt(colCount);
-                    var pool = IntStream.range(0, colCount).boxed().collect(Collectors.toList());
-                    var selectColumnNames = new ArrayList<String>();
-                    var selectColumnIndexes = new ArrayList<Integer>();
-                    for (int i = 0; i < selectColCount; i++) {
-                        var j = random.nextInt(pool.size());
-                        selectColumnNames.add(columnNames.get(pool.get(j)));
-                        selectColumnIndexes.add(pool.get(j));
-                        pool.remove(j);
-                    }
-                    ps.withColumnNameSelector(selectColumnNames::contains);
-                    var rows = ps.read();
-                    Assertions.assertEquals(108, rows.length);
-                    for (int i : IntStream.range(0, colCount).toArray()) {
-                        Assertions.assertEquals(colCount, rows[i].length);
-                    }
-                    for (var row : rows) {
-                        for (int i = 0; i < row.length; i++) {
-                            if (!selectColumnIndexes.contains(i)) {
+                try (var ps = MemoryParquetReader.create(fis, len)) {
+                    var columns = ps.getColumns();
+                    logger.debug("columns: {}", columns);
+                    var selectedColumnIndexes = selectRandomColumns(columns);
+                    logger.debug("selected column indexes: {}", selectedColumnIndexes);
+                    ps.fetchColumnByIndexes(selectedColumnIndexes.stream().mapToInt(i -> i).toArray());
+                    var rows = ps.read(csvConfig.getExpect().getRowCount() * 2);
+                    Assertions.assertEquals(csvConfig.getExpect().getRowCount(), rows.length);
+                    for (Object[] row : rows) {
+                        for (var i = 0; i < columns.size(); i++) {
+                            if (!selectedColumnIndexes.contains(i)) {
                                 Assertions.assertNull(row[i]);
-                            } else {
-                                Assertions.assertNotNull(row[i]);
                             }
                         }
                     }
@@ -231,28 +224,30 @@ public class MemoryParquetReadTest {
         }
     }
 
-    @Disabled
     @Test
-    public void testMemoryParquetDataReaderWithColumnIndexSelector() throws IOException {
+    public void testParquetMemoryReaderWithColumnIndexSelector() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
+            var len = new File(config.getThird()).length();
+            CsvTestConfig csvConfig;
+            try (var fis = new FileInputStream(config.getFirst())) {
+                var json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
+            }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetDataReader.create(bytes)) {
-                    var colCount = ps.getColumns().size();
-                    ps.withColumnIndexSelector(i -> i % 2 == 0);
-                    var rows = ps.read();
-                    Assertions.assertEquals(108, rows.length);
-                    for (int i : IntStream.range(0, colCount).toArray()) {
-                        Assertions.assertEquals(colCount, rows[i].length);
-                    }
-                    for (var row : rows) {
-                        for (int i = 0; i < row.length; i++) {
-                            if (i % 2 != 0) {
+                try (var ps = MemoryParquetReader.create(fis, len)) {
+                    var columns = ps.getColumns();
+                    logger.debug("columns: {}", columns);
+                    var selectedColumnIndexes = selectRandomColumns(columns);
+                    logger.debug("selected column indexes: {}", selectedColumnIndexes);
+                    ps.fetchColumnByIndexSelector(selectedColumnIndexes::contains);
+                    var rows = ps.read(csvConfig.getExpect().getRowCount() * 2);
+                    Assertions.assertEquals(csvConfig.getExpect().getRowCount(), rows.length);
+                    for (Object[] row : rows) {
+                        for (var i = 0; i < columns.size(); i++) {
+                            if (!selectedColumnIndexes.contains(i)) {
                                 Assertions.assertNull(row[i]);
-                            } else {
-                                Assertions.assertNotNull(row[i]);
                             }
                         }
                     }
