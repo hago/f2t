@@ -29,8 +29,11 @@ public class ParquetColumnDefinition extends ColumnDefinition {
     @Override
     public String toString() {
         return "ParquetColumnDefinition{" +
+                "name='" + getName() + '\'' +
+                ", dataType=" + getDataType() +
+                ", databaseType=" + getDatabaseTypeName() +
+                ", typeModifier=" + getTypeModifier() +
                 "parquetType=" + parquetType +
-                "parent=" + super.toString() +
                 '}';
     }
 }
