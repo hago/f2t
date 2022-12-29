@@ -24,9 +24,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -92,7 +92,7 @@ public class MemoryParquetReadTest {
 
     @Test
     public void testParquetMemoryReaderSkip() throws IOException {
-        Random random = new Random();
+        var random = new SecureRandom();
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -150,7 +150,7 @@ public class MemoryParquetReadTest {
     }
 
     private List<Integer> selectRandomColumns(List<ColumnDefinition> columns) {
-        Random random = new Random();
+        var random = new SecureRandom();
         var countNeeded = random.nextInt(columns.size() - 1) + 1;
         var indexes = IntStream.range(0, columns.size()).boxed().collect(Collectors.toList());
         var indexesNeeded = new ArrayList<Integer>();
