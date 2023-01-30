@@ -96,8 +96,12 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
     }
 
     fun fetchColumnByNames(vararg names: String): MemoryParquetReader {
-        columnsSelecting.forEachIndexed { i, _ ->
-            columnsSelecting[i] = names.any { it == columns[i].name }
+        if (names.isNotEmpty()) {
+            columnsSelecting.forEachIndexed { i, _ ->
+                columnsSelecting[i] = names.any { it == columns[i].name }
+            }
+        } else {
+            logger.warn("null or empty column names provided")
         }
         return this
     }
@@ -106,12 +110,19 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         columnsSelecting.forEachIndexed { i, _ ->
             columnsSelecting[i] = selector.test(columns[i].name)
         }
+        if (columnsSelecting.none { it }) {
+            logger.warn("No columns selected by name selector")
+        }
         return this
     }
 
     fun fetchColumnByIndexes(vararg indexes: Int): MemoryParquetReader {
-        columnsSelecting.forEachIndexed { i, _ ->
-            columnsSelecting[i] = indexes.contains(i)
+        if (indexes.isNotEmpty()) {
+            columnsSelecting.forEachIndexed { i, _ ->
+                columnsSelecting[i] = indexes.contains(i)
+            }
+        } else {
+            logger.warn("null or empty column indexes provided")
         }
         return this
     }
@@ -119,6 +130,9 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
     fun fetchColumnByIndexSelector(selector: Predicate<Int>): MemoryParquetReader {
         columnsSelecting.forEachIndexed { i, _ ->
             columnsSelecting[i] = selector.test(i)
+        }
+        if (columnsSelecting.none { it }) {
+            logger.warn("No columns selected by index selector")
         }
         return this
     }
