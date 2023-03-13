@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.hagoapp'
-version '0.7.5'
+version '0.7.5.1'
 
 repositories {
     mavenCentral()
@@ -31,7 +31,7 @@ dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
-    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '8.4.0.jre8'
+    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '12.2.0.jre11'
 
     runtimeOnly fileTree('libs') { include '*.jar' }
 
