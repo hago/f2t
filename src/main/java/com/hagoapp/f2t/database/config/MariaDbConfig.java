@@ -66,6 +66,11 @@ public class MariaDbConfig extends DbConfig {
     }
 
     @Override
+    public String getDriverName() {
+        return "org.mariadb.jdbc.Driver";
+    }
+
+    @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "information_schema" : databaseName;
         if ((host == null) || (username == null) || (password == null)) {

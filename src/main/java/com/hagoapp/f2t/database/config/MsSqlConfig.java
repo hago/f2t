@@ -29,6 +29,15 @@ public class MsSqlConfig extends DbConfig {
 
     private String host;
     private int port = 1433;
+    private boolean trustServerCertificate = true;
+
+    public boolean isTrustServerCertificate() {
+        return trustServerCertificate;
+    }
+
+    public void setTrustServerCertificate(boolean trustServerCertificate) {
+        this.trustServerCertificate = trustServerCertificate;
+    }
 
     public String getHost() {
         return host;
@@ -47,12 +56,18 @@ public class MsSqlConfig extends DbConfig {
     }
 
     @Override
+    public String getDriverName() {
+        return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    }
+
+    @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "master" : databaseName;
         if ((host == null) || (username == null) || (password == null)) {
             throw new UnsupportedOperationException("Configuration is incomplete");
         }
-        var conStr = String.format("jdbc:sqlserver://%s:%d;databaseName = %s", host, port, db);
+        String conStr = String.format("jdbc:sqlserver://%s:%d;databaseName = %s", host, port, db) +
+                ";trustServerCertificate=" + trustServerCertificate;
         var props = new Properties();
         props.putAll(Map.of("user", username, "password", password));
         return DriverManager.getConnection(conStr, props);

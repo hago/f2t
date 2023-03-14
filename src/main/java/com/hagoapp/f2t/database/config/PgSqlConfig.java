@@ -45,6 +45,11 @@ public class PgSqlConfig extends DbConfig {
     }
 
     @Override
+    public String getDriverName() {
+        return "org.postgresql.Driver";
+    }
+
+    @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "postgres" : databaseName;
         if ((host == null) || (username == null) || (password == null)) {

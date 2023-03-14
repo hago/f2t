@@ -30,6 +30,10 @@ public class DbConfig implements JsonStringify {
     protected String password;
     protected String databaseName;
 
+    public String getDriverName() {
+        throw new UnsupportedOperationException("Not implemented for the DbConfig base class");
+    }
+
     /**
      * Database type or brand name, an identifier for a specified database.
      *

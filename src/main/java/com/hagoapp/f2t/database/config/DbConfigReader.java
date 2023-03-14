@@ -38,6 +38,7 @@ public class DbConfigReader {
         for (var clz : clazz) {
             try {
                 var instance = clz.getConstructor().newInstance();
+                Class.forName(instance.getDriverName());
                 var i = instance.getDbType();
                 if (dbConfigMap.containsKey(i)) {
                     logger.warn("duplicate database type {} for {}  and {}, {} is ignored", i,
@@ -49,6 +50,8 @@ public class DbConfigReader {
             } catch (InstantiationException | IllegalAccessException |
                      InvocationTargetException | NoSuchMethodException e) {
                 logger.error("error {} occurs in instantiating {}", e.getMessage(), clz.getCanonicalName());
+            } catch (ClassNotFoundException e) {
+                logger.error("JDBC Driver for {} not found, skipped", clz.getCanonicalName());
             }
         }
     }
