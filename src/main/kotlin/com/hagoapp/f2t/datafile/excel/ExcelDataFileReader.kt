@@ -44,7 +44,9 @@ class ExcelDataFileReader : Reader {
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
             columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                Pair(i, FileColumnDefinition(cellToString(cell), i))
+                val def = FileColumnDefinition(cellToString(cell), i)
+                def.dataType = CLOB
+                Pair(i, def)
             }.toMap()
         }
         return columns.values.sortedBy { it.name }
@@ -125,8 +127,10 @@ class ExcelDataFileReader : Reader {
         sheet = when {
             infoExcel.sheetIndex != null && workbook.getSheetAt(infoExcel.sheetIndex!!) != null ->
                 workbook.getSheetAt(infoExcel.sheetIndex!!)
+
             infoExcel.sheetName != null && workbook.getSheet(infoExcel.sheetName) != null ->
                 workbook.getSheet(infoExcel.sheetName)
+
             else -> workbook.getSheetAt(0)
         }
     }
@@ -193,6 +197,7 @@ class ExcelDataFileReader : Reader {
                 ret.add(TIME)
                 DateTimeTypeUtils.getDefaultTimeFormatter().format(v)
             }
+
             cell.numericCellValue - cell.numericCellValue.roundToLong().toDouble() == 0.0 -> {
                 ret.add(DATE)
                 if (v.isSupported(ChronoField.OFFSET_SECONDS)) {
@@ -201,6 +206,7 @@ class ExcelDataFileReader : Reader {
                     DateTimeTypeUtils.getDefaultDateFormatter().format(ZonedDateTime.of(v, ZoneId.systemDefault()))
                 }
             }
+
             else -> {
                 ret.add(DATE)
                 ret.add(TIMESTAMP_WITH_TIMEZONE)
@@ -251,6 +257,7 @@ class ExcelDataFileReader : Reader {
             (cell.cellType == CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell) -> getDateCellValue(cell)
             cell.cellType == CellType.NUMERIC -> if (type == BIGINT) cell.numericCellValue.toLong()
             else JDBCTypeUtils.toTypedValue(cellToString(cell), type)
+
             cell.cellType == CellType.BLANK -> cellToString(cell)
             else -> JDBCTypeUtils.toTypedValue(cellToString(cell), type)
         }
