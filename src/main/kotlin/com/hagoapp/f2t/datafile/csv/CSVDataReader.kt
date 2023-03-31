@@ -119,7 +119,7 @@ class CSVDataReader : Reader {
             fileInfo.filename == null -> StandardCharsets.UTF_8
             else -> Charset.forName(EncodingUtils.guessEncoding(fileInfo.filename!!))
         }
-        logger.debug("file encoding is $enc")
+        logger.debug("file encoding is {}", enc)
         return enc
     }
 
@@ -199,7 +199,7 @@ class CSVDataReader : Reader {
                 //column.dataType = JDBCTypeUtils.guessMostAccurateType(column.possibleTypes.toList())
                 column.dataType = defaultDeterminer.determineType(column)
             }
-            logger.debug("inferred: ${columns.values.associate { Pair(it.name, it.dataType) }}")
+            logger.debug("inferred: {}", columns.values.associate { Pair(it.name, it.dataType) })
         }
     }
 
