@@ -8,19 +8,23 @@ package com.hagoapp.f2t.excel
 
 import com.google.gson.Gson
 import com.hagoapp.f2t.FileParser
+import com.hagoapp.f2t.FileParserOption
 import com.hagoapp.f2t.FileTestObserver
 import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer
 import com.hagoapp.f2t.datafile.FileTypeDeterminer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.sql.JDBCType
 
 class ExcelReadTest {
     private val observer = FileTestObserver()
+    private val logger = LoggerFactory.getLogger(ExcelReadTest::class.java)
 
     companion object {
         private val testConfigFiles = mapOf(
@@ -54,7 +58,7 @@ class ExcelReadTest {
     fun readExcelUnTyped() {
         observer.isRowDetail = true
         testConfigs.forEach { (testConfig, determiner) ->
-            println("test ${testConfig.fileInfo.filename} using $determiner")
+            logger.debug("test {} using {}", testConfig.fileInfo.filename, determiner)
             val parser = FileParser(testConfig.fileInfo)
             parser.determiner = FileTypeDeterminer(determiner)
             parser.addObserver(observer)
@@ -69,9 +73,32 @@ class ExcelReadTest {
     }
 
     @Test
+    fun readExcelUnTypedNoTypeInfer() {
+        observer.isRowDetail = true
+        testConfigs.forEach { (testConfig, determiner) ->
+            logger.debug("test {} using {}", testConfig.fileInfo.filename, determiner)
+            val parser = FileParser(testConfig.fileInfo)
+            parser.determiner = FileTypeDeterminer(determiner)
+            parser.addObserver(observer)
+            val parseConfig = FileParserOption()
+            parseConfig.isInferColumnTypes = false
+            parseConfig.isReadData = false
+            parser.parse(parseConfig)
+            //Assertions.assertEquals(testConfig.expect.rowCount, observer.rowCount)
+            Assertions.assertEquals(testConfig.expect.columnCount, observer.columns.size)
+            logger.debug("{}", observer.columns.values.map { it.first.dataType })
+            val type =
+                if (determiner === FileColumnTypeDeterminer.MostTypeDeterminer) JDBCType.CLOB else JDBCType.VARCHAR
+            Assertions.assertTrue(
+                observer.columns.values.all { it.first.dataType === type }
+            )
+        }
+    }
+
+    @Test
     fun extractExcelUnTyped() {
         testConfigs.forEach { (testConfig, determiner) ->
-            println("test ${testConfig.fileInfo.filename} using $determiner")
+            logger.debug("test {} using {}", testConfig.fileInfo.filename, determiner)
             val parser = FileParser(testConfig.fileInfo)
             parser.determiner = FileTypeDeterminer(determiner)
             parser.addObserver(observer)
