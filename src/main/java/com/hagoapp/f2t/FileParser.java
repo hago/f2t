@@ -130,6 +130,9 @@ public class FileParser {
         ParseResult result = new ParseResult();
         try (Reader reader = ReaderFactory.Companion.getReader(fileInfo)) {
             reader.setupTypeDeterminer(determiner);
+            if (!option.isInferColumnTypes()) {
+                reader.skipTypeInfer();
+            }
             notifyObserver("onParseStart", fileInfo);
             reader.open(fileInfo);
             Integer rowNo = reader.getRowCount();
