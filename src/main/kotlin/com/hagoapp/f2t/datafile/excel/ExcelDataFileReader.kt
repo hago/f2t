@@ -40,41 +40,47 @@ class ExcelDataFileReader : Reader {
     private lateinit var columns: Map<Int, FileColumnDefinition>
     private var determiner = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
+    private var inferSampleCount = 100L
 
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
-            columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
-                val def = FileColumnDefinition(cellToString(cell), i)
-                def.dataType = CLOB
-                Pair(i, def)
-            }.toMap()
+            doInitColumns(inferSampleCount)
         }
         return columns.values.sortedBy { it.name }
     }
 
     override fun inferColumnTypes(sampleRowCount: Long): List<FileColumnDefinition> {
-        if (!this::columns.isInitialized || columns.values.any { it.dataType == null }) {
-            if (skipTypeInfer) {
-                columns.values.forEach { it.possibleTypes = setOf(NCHAR, NVARCHAR, NCLOB) }
-            } else {
-                val lastRowNum =
-                    if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
-                for (i in sheet.firstRowNum + 1..lastRowNum) {
-                    val row = sheet.getRow(i)
-                    if (row.lastCellNum > columns.size) {
-                        throw F2TException("format error in ${infoExcel.filename}, line $i contains more cells than field row")
-                    }
-                    for (colIndex in columns.keys.indices) {
-                        val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-                        setupColumnDefinition(columns.getValue(colIndex), cell)
-                    }
-                }
-            }
-            columns.values.forEach { column ->
-                column.dataType = determiner.determineType(column)
-            }
+        if ((!this::columns.isInitialized) || ((inferSampleCount > 0) && (sampleRowCount > inferSampleCount))) {
+            inferSampleCount = sampleRowCount
+            doInitColumns(inferSampleCount)
         }
         return columns.values.sortedBy { it.name }
+    }
+
+    private fun doInitColumns(sampleRowCount: Long) {
+        columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
+            val def = FileColumnDefinition(cellToString(cell), i)
+            Pair(i, def)
+        }.toMap()
+        if (skipTypeInfer) {
+            columns.values.forEach { it.possibleTypes = setOf(NCHAR, NVARCHAR, NCLOB) }
+        } else {
+            val lastRowNum =
+                if (sampleRowCount <= 0) sheet.lastRowNum else (sheet.firstRowNum + sampleRowCount).toInt()
+            for (i in sheet.firstRowNum + 1..lastRowNum) {
+                val row = sheet.getRow(i)
+                if (row.lastCellNum > columns.size) {
+                    throw F2TException("format error in ${infoExcel.filename}, line $i contains more cells than field row")
+                }
+                for (colIndex in columns.keys.indices) {
+                    val cell = row.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
+                    setupColumnDefinition(columns.getValue(colIndex), cell)
+                }
+            }
+        }
+        columns.values.forEach { column ->
+            column.dataType = determiner.determineType(column)
+        }
     }
 
     override fun getSupportedFileType(): Set<Int> {
