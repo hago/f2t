@@ -51,9 +51,10 @@ class FileTypeDeterminer(private val defaultDeterminer: FileColumnTypeDeterminer
      * @param columnName    column name to be used to find determiner
      * @param fileColumnDefinition  column definition to be used as context
      * @return JDBC type
-     */    fun determineType(columnName: String, fileColumnDefinition: FileColumnDefinition): JDBCType {
+     */
+    fun determineType(columnName: String, fileColumnDefinition: FileColumnDefinition): JDBCType {
         val determiner = exceptions[columnName]
         return determiner?.determineType(fileColumnDefinition) ?: defaultDeterminer.determineType(fileColumnDefinition)
     }
-    
+
 }
