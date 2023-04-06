@@ -109,6 +109,8 @@ class ParquetDataFileReader : Reader {
         if (lines.isNotEmpty()) {
             currentRow = lines[0]
             rowNo++
+        } else {
+            currentRow = null
         }
         val cells = ret.mapIndexed { index, cell ->
             DataCell(cell, index)
