@@ -24,7 +24,6 @@ import java.lang.Exception
 import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.util.function.BiConsumer
-import java.util.function.Consumer
 import java.util.function.Predicate
 
 /**
