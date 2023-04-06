@@ -1,0 +1,22 @@
+{
+  "fileInfo": {
+    "type": 1,
+    "filename": "tests/parquet/shuihu_least.parquet"
+  },
+  "expect": {
+    "rowCount": 108,
+    "columnCount": 10,
+    "types": {
+      "座次": "TINYINT",
+      "星宿": "NVARCHAR",
+      "诨名": "NVARCHAR",
+      "姓名": "NVARCHAR",
+      "布尔": "BOOLEAN",
+      "浮点": "FLOAT",
+      "整数": "INTEGER",
+      "日期": "TIMESTAMP_WITH_TIMEZONE",
+      "年月日": "DATE",
+      "时分秒": "TIME_WITH_TIMEZONE"
+    }
+  }
+}
