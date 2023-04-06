@@ -138,7 +138,7 @@ open class PgSqlConnection : DbConnection() {
             from pg_attribute as a
             inner join pg_class as c on c.oid = a.attrelid
             inner join pg_namespace as n on n.oid = c.relnamespace
-            where a.attnum > 0 and not a.attisdropped and c.relkind= 'r' and c.relname = ? and n.nspname = ?"""
+            where a.attnum > 0 and not a.attisdropped and c.relkind in ('r', 'p') and c.relname = ? and n.nspname = ?"""
         connection.prepareStatement(sql).use { stmt ->
             val schema = table.schema.ifBlank { getDefaultSchema() }
             stmt.setString(1, table.tableName)
