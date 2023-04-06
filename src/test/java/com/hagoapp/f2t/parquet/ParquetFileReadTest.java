@@ -54,6 +54,9 @@ public class ParquetFileReadTest {
             try (var reader = new ParquetDataFileReader()) {
                 reader.open(testConfig.getFileInfo());
                 var columns = reader.findColumns().stream().map(ColumnDefinition::getName).collect(Collectors.toSet());
+                logger.debug("column def: {}", reader.findColumns().stream()
+                        .map(col -> String.format("%s - %s", col.getName(), col.getDataType()))
+                        .collect(Collectors.toList()));
                 var expectedColumns = testConfig.getExpect().getTypes().keySet();
                 Assertions.assertEquals(testConfig.getExpect().getColumnCount(), columns.size());
                 Assertions.assertTrue(expectedColumns.containsAll(columns));
