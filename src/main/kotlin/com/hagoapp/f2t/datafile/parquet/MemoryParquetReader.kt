@@ -15,7 +15,13 @@ import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.ColumnIOFactory
 import org.apache.parquet.io.MessageColumnIO
 import org.apache.parquet.io.RecordReader
+import org.apache.parquet.schema.LogicalTypeAnnotation
+import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation
+import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation
+import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation
+import org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation
 import org.apache.parquet.schema.MessageType
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type
 import org.slf4j.LoggerFactory
 import java.io.Closeable
@@ -25,6 +31,7 @@ import java.lang.reflect.Method
 import java.sql.JDBCType
 import java.util.function.BiConsumer
 import java.util.function.Predicate
+import kotlin.jvm.Throws
 
 /**
  * A parquet reader to read data from byte array and stream.
@@ -55,6 +62,41 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         fun create(stream: InputStream, length: Long): MemoryParquetReader {
             val file = MemoryInputFile(stream, length)
             return MemoryParquetReader(file)
+        }
+
+        @JvmStatic
+        @Throws(UnsupportedOperationException::class)
+        fun mapParquetTypeToJdbcType(parquetType: Type): JDBCType {
+            val primitiveType = parquetType.asPrimitiveType()
+            when (primitiveType.primitiveTypeName) {
+                PrimitiveTypeName.INT32 -> return JDBCType.INTEGER
+                PrimitiveTypeName.INT64 -> return JDBCType.BIGINT
+                PrimitiveTypeName.INT96 -> return JDBCType.NUMERIC
+                PrimitiveTypeName.BOOLEAN -> return JDBCType.BOOLEAN
+                PrimitiveTypeName.DOUBLE -> return JDBCType.DOUBLE
+                PrimitiveTypeName.FLOAT -> return JDBCType.FLOAT
+                PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY -> return JDBCType.BINARY
+                PrimitiveTypeName.BINARY -> {
+                    return when (parquetType.logicalTypeAnnotation) {
+                        is StringLogicalTypeAnnotation -> JDBCType.CLOB
+                        is DateLogicalTypeAnnotation -> JDBCType.DATE
+                        is TimeLogicalTypeAnnotation -> JDBCType.TIME_WITH_TIMEZONE
+                        is TimestampLogicalTypeAnnotation -> JDBCType.TIME_WITH_TIMEZONE
+                        else -> {
+                            logger.warn(
+                                "Logical annotation {} of type {} is ignored as CLOB",
+                                parquetType.logicalTypeAnnotation, parquetType
+                            )
+                            JDBCType.CLOB
+                        }
+                    }
+                }
+
+                else -> {
+                    logger.warn("type {} is ignored as CLOB", parquetType)
+                    return JDBCType.CLOB
+                }
+            }
         }
     }
 
@@ -90,7 +132,7 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         val def = ParquetColumnDefinition()
         def.name = type.name
         def.parquetType = type.asPrimitiveType()
-        def.dataType = JDBCType.CLOB
+        def.dataType = mapParquetTypeToJdbcType(type)
         return def
     }
 
