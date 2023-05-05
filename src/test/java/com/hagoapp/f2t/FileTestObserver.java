@@ -70,6 +70,9 @@ public class FileTestObserver implements ParseObserver {
         for (int i = 0; i < columnDefinitionList.size(); i++) {
             var def = columnDefinitionList.get(i);
             columns.put(def.getName(), new Pair<>(def, i));
+            logger.debug("column '{}'", def.getName());
+            logger.debug("data type: {} from types {}", def.getDataType(), def.getPossibleTypes());
+            logger.debug("modifier: {}", def.getTypeModifier());
         }
     }
 
