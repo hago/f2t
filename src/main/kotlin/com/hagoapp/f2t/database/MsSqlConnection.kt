@@ -18,7 +18,10 @@ import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import kotlin.math.*
+import kotlin.math.log10
+import kotlin.math.pow
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 /**
  * Database operation implementation for Microsoft SQL Server.
@@ -316,17 +319,20 @@ open class MsSqlConnection : DbConnection() {
             val dbCol = tableDefinition.columns.first { columnMatcher(it.name, fileCol.name) }
             val transformer = ColumnComparator.getTransformer(fileCol, dbCol)
             when (dbCol.databaseTypeName) {
-                "datetimeoffset" -> { stmt: PreparedStatement, i: Int, value: Any? ->
-                    val newValue = transformer.transform(value, fileCol, dbCol)
-                    if (newValue != null) {
-                        val st = stmt as SQLServerPreparedStatement
-                        val ts = newValue as ZonedDateTime
-                        val dto =
-                            DateTimeOffset.valueOf(Timestamp.from(ts.toInstant()), GregorianCalendar.getInstance())
-                        st.setDateTimeOffset(i, dto)
-                        logger.warn("SQL Server datetimeoffset")
-                    } else stmt.setNull(i, Types.CHAR)
-                }
+                "datetimeoffset" -> object : DbFieldSetter() {
+                    override fun set(stmt: PreparedStatement, i: Int, value: Any?) {
+                        val newValue = this.transformer.transform(value)
+                        if (newValue != null) {
+                            val st = stmt as SQLServerPreparedStatement
+                            val ts = newValue as ZonedDateTime
+                            val dto =
+                                DateTimeOffset.valueOf(Timestamp.from(ts.toInstant()), GregorianCalendar.getInstance())
+                            st.setDateTimeOffset(i, dto)
+                            logger.warn("SQL Server datetimeoffset")
+                        } else stmt.setNull(i, Types.CHAR)
+                    }
+                }.withTransformer { src -> transformer.transform(src, fileCol, dbCol) }
+
                 else -> setter
             }
         }
@@ -364,6 +370,7 @@ open class MsSqlConnection : DbConnection() {
                     round(v * factor) / factor
                 }
             }
+
             else -> super.createDataGetter(jdbcType)
         }
     }
