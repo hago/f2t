@@ -47,7 +47,7 @@ class ColumnComparator {
                             val destinations = instance.supportDestinationTypes().sorted()
                             sources.forEach { src ->
                                 destinations.forEach { dest ->
-                                    logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                    //logger.debug("{} supports comparing {} -> {}", clz.canonicalName, src, dest)
                                     val key = calcKey(src, dest)
                                     if (comparators.containsKey(key)) {
                                         logger.warn(
@@ -80,7 +80,7 @@ class ColumnComparator {
                             val destinations = instance.supportDestinationTypes().sorted()
                             sources.forEach { src ->
                                 destinations.forEach { dest ->
-                                    logger.debug("${clz.canonicalName} supports $src -> $dest")
+                                    //logger.debug("{} supports converting {} -> {}", clz.canonicalName, src, dest)
                                     val key = calcKey(src, dest)
                                     if (transformers.containsKey(key)) {
                                         logger.warn(
