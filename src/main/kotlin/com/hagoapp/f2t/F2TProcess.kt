@@ -12,6 +12,7 @@ import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
+import com.hagoapp.f2t.util.ColumnMatcher
 import com.hagoapp.util.StackTraceWriter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
@@ -27,14 +28,15 @@ import java.time.Instant
  * @author Chaojun Sun
  * @since 0.1
  */
-class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TConfig) : ParseObserver {
-    private var parser: FileParser = dataFileRParser
+class F2TProcess(dataFileParser: FileParser, conn: Connection, f2TConfig: F2TConfig) : ParseObserver {
+    private var parser: FileParser = dataFileParser
     private val connection: DbConnection
     private var config: F2TConfig = f2TConfig
     private val logger = LoggerFactory.getLogger(F2TProcess::class.java)
     private var tableMatchedFile = false
     private val table: TableName
     private var batchNum = -1L
+    private val colMatcher: (String, String) -> Boolean
 
     /**
      * Execution result of ths process.
@@ -58,6 +60,7 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
         }
         table = TableName(config.targetTable, config.targetSchema ?: "")
         connection = DbConnectionFactory.createDbConnection(conn)
+        colMatcher = ColumnMatcher.getColumnMatcher(connection.isCaseSensitive())
     }
 
     /**
@@ -73,16 +76,28 @@ class F2TProcess(dataFileRParser: FileParser, conn: Connection, f2TConfig: F2TCo
     override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition>) {
         val colDef = when {
             config.isAddBatch -> {
-                batchNum = Instant.now().toEpochMilli()
-                logger.info("batch column ${config.batchColumnName} added automatically for data from file ${parser.fileInfo.filename}")
-                val batchCol = FileColumnDefinition(
-                    config.batchColumnName,
-                    mutableSetOf(JDBCType.BIGINT),
-                    JDBCType.BIGINT
-                )
-                batchCol.order = columnDefinitionList.size
-                columnDefinitionList.plus(batchCol)
+                val existedBatchCol = columnDefinitionList.firstOrNull { it.name == config.batchColumnName }
+                if (existedBatchCol == null) {
+                    batchNum = Instant.now().toEpochMilli()
+                    logger.info(
+                        "batch column {} added automatically for data from file {}",
+                        config.batchColumnName, parser.fileInfo.filename
+                    )
+                    val batchCol = FileColumnDefinition(
+                        config.batchColumnName,
+                        mutableSetOf(JDBCType.BIGINT),
+                        JDBCType.BIGINT
+                    )
+                    batchCol.order = columnDefinitionList.size
+                    columnDefinitionList.plus(batchCol)
+                } else {
+                    if (existedBatchCol.dataType != JDBCType.BIGINT) {
+                        throw F2TException("Batch column ${existedBatchCol.name} is not in Long type!")
+                    }
+                    columnDefinitionList
+                }
             }
+
             else -> columnDefinitionList
         }
         val fileTableDef = TableDefinition(colDef)
