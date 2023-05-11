@@ -260,7 +260,7 @@ abstract class DbConnection : Closeable {
      * @param table table name
      */
     open fun flushRows(table: TableName) {
-        val fieldValueSetter = fieldValueSetters.getValue(table)
+        val fieldValueSetter = fieldValueSetters[table] ?: return
         //logger.debug(insertionMap.getValue(table))
         val def = getExistingTableDefinition(table)
         connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
