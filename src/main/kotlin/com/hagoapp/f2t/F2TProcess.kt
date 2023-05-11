@@ -6,19 +6,15 @@
 
 package com.hagoapp.f2t
 
-import com.hagoapp.f2t.compare.TableDefinitionComparator
 import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.datafile.FileInfo
 import com.hagoapp.f2t.datafile.ParseResult
 import com.hagoapp.f2t.util.ColumnMatcher
-import com.hagoapp.util.StackTraceWriter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
 import java.sql.Connection
-import java.sql.JDBCType
-import java.time.Instant
 
 /**
  * This class implements a process that extract data from data file, create according table(if necessary, based on
@@ -28,15 +24,13 @@ import java.time.Instant
  * @author Chaojun Sun
  * @since 0.1
  */
-class F2TProcess(dataFileParser: FileParser, conn: Connection, f2TConfig: F2TConfig) : ParseObserver {
+class F2TProcess(dataFileParser: FileParser, conn: Connection, private val f2TConfig: F2TConfig) : ParseObserver {
     private var parser: FileParser = dataFileParser
     private val connection: DbConnection
-    private var config: F2TConfig = f2TConfig
     private val logger = LoggerFactory.getLogger(F2TProcess::class.java)
-    private var tableMatchedFile = false
     private val table: TableName
-    private var batchNum = -1L
     private val colMatcher: (String, String) -> Boolean
+    private lateinit var writer: FileDataTableWriter
 
     /**
      * Execution result of ths process.
@@ -54,11 +48,11 @@ class F2TProcess(dataFileParser: FileParser, conn: Connection, f2TConfig: F2TCon
     }
 
     init {
-        if (config.isAddBatch && (config.batchColumnName == null)) {
+        if (f2TConfig.isAddBatch && (f2TConfig.batchColumnName == null)) {
             logger.error("identity column can't be null when addIdentity set to true")
             throw F2TException("identity column can't be null when addIdentity set to true")
         }
-        table = TableName(config.targetTable, config.targetSchema ?: "")
+        table = TableName(f2TConfig.targetTable, f2TConfig.targetSchema ?: "")
         connection = DbConnectionFactory.createDbConnection(conn)
         colMatcher = ColumnMatcher.getColumnMatcher(connection.isCaseSensitive())
     }
@@ -74,81 +68,14 @@ class F2TProcess(dataFileParser: FileParser, conn: Connection, f2TConfig: F2TCon
     }
 
     override fun onColumnTypeDetermined(columnDefinitionList: List<FileColumnDefinition>) {
-        val colDef = when {
-            config.isAddBatch -> {
-                val existedBatchCol = columnDefinitionList.firstOrNull { it.name == config.batchColumnName }
-                if (existedBatchCol == null) {
-                    batchNum = Instant.now().toEpochMilli()
-                    logger.info(
-                        "batch column {} added automatically for data from file {}",
-                        config.batchColumnName, parser.fileInfo.filename
-                    )
-                    val batchCol = FileColumnDefinition(
-                        config.batchColumnName,
-                        mutableSetOf(JDBCType.BIGINT),
-                        JDBCType.BIGINT
-                    )
-                    batchCol.order = columnDefinitionList.size
-                    columnDefinitionList.plus(batchCol)
-                } else {
-                    if (existedBatchCol.dataType != JDBCType.BIGINT) {
-                        throw F2TException("Batch column ${existedBatchCol.name} is not in Long type!")
-                    }
-                    columnDefinitionList
-                }
-            }
-
-            else -> columnDefinitionList
-        }
-        val fileTableDef = TableDefinition(colDef)
-        if (connection.isTableExists(table)) {
-            val tblDef = connection.getExistingTableDefinition(table)
-            //val difference = tblDef.diff(colDef.toSet())
-            val difference = TableDefinitionComparator.compare(colDef, tblDef)
-            if (!difference.isOfSameSchema()) {
-                logger.error("table $table existed and differ from data to be imported, all follow-up database actions aborted")
-                logger.error(difference.toString())
-            } else if (!difference.isIdentical()) {
-                logger.error("table $table existed and varies in data definition, data may loss while writing")
-                logger.error(difference.toString())
-            } else {
-                if (config.isClearTable) {
-                    connection.clearTable(table)
-                    logger.warn("table ${connection.getFullTableName(table)} cleared")
-                }
-                connection.prepareInsertion(fileTableDef, table, tblDef)
-                tableMatchedFile = true
-                result.tableDefinition = tblDef
-                logger.info("table $table found and matches ${parser.fileInfo.filename}")
-            }
-        } else {
-            if (config.isCreateTableIfNeeded) {
-                val tblDef = TableDefinition(colDef)
-                result.tableDefinition = TableDefinition(colDef)
-                try {
-                    connection.createTable(table, result.tableDefinition!!)
-                    connection.prepareInsertion(fileTableDef, table, tblDef)
-                    tableMatchedFile = true
-                    logger.info("table $table created on ${parser.fileInfo.filename}")
-                } catch (e: Throwable) {
-                    result.errors.add(e)
-                    logger.error("Error occurs when creating table $table: ${e.message}")
-                    StackTraceWriter.writeToLogger(e, logger)
-                }
-            } else {
-                logger.error("table $table not existed and auto creation is not enabled, all follow-up database actions aborted")
-            }
-        }
+        writer = FileDataTableWriter(connection, f2TConfig, columnDefinitionList)
     }
 
     override fun onRowRead(row: DataRow) {
-        if (tableMatchedFile) {
-            val r = if (batchNum < 0) row else DataRow(
-                row.rowNo, row.cells.toMutableList()
-                    .plus(DataCell(batchNum, row.cells.size))
-            )
-            connection.writeRow(table, r)
-            result.rowCount++
+        try {
+            writer.writeRow(row)
+        } catch (e: Exception) {
+            result.errors.add(e)
         }
     }
 
