@@ -263,6 +263,9 @@ abstract class DbConnection : Closeable {
         val fieldValueSetter = fieldValueSetters[table] ?: return
         //logger.debug(insertionMap.getValue(table))
         val def = getExistingTableDefinition(table)
+        if (rows.isEmpty()) {
+            return
+        }
         connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
             rows.forEach { row ->
                 row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
