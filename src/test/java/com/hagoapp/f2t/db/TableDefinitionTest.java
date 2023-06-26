@@ -67,9 +67,11 @@ public class TableDefinitionTest {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
         try (var sqlCon = config.createConnection()) {
             try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
-                connection.getAvailableTables().forEach((schema, tableNames) -> tableNames
-                        .forEach(tableName ->
-                                logger.debug("Found table: '{}'", connection.getFullTableName(tableName))));
+                connection.getAvailableTables().forEach((schema, tableNames) -> {
+                    logger.debug("Found schema: {}", schema);
+                    tableNames.forEach(tableName ->
+                            logger.debug("Found table: '{}'", connection.getFullTableName(tableName)));
+                });
             }
         }
     }
