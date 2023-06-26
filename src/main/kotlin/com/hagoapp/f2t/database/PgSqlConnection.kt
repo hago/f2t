@@ -8,9 +8,9 @@ package com.hagoapp.f2t.database
 
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.util.ColumnMatcher
-import java.sql.*
+import java.sql.JDBCType
 import java.sql.JDBCType.*
-import java.util.stream.IntStream
+import java.sql.SQLException
 
 /**
  * Database operations implementation for PostgreSQL.
@@ -33,7 +33,7 @@ open class PgSqlConnection : DbConnection() {
             val ret = mutableMapOf<String, MutableList<TableName>>()
             val sql = """
                     select schemaname, tablename, tableowner from pg_tables 
-                    where schemaname<>'pg_catalog' and schemaname<>'information_schema'
+                    where schemaname<>'pg_catalog' and schemaname<>'pg_toast' and schemaname<>'information_schema'
                     order by schemaname, tablename
                     """
             connection.prepareStatement(sql).use { st ->
@@ -46,10 +46,24 @@ open class PgSqlConnection : DbConnection() {
                         }
                         ret.getValue(schema).add(TableName(table, schema))
                     }
-                    return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
                 }
             }
+            // Add empty schemas
+            val schemaSql = """
+                select * from information_schema.schemata
+                where schema_name<>'pg_catalog' and schema_name<>'pg_toast' and schema_name<>'information_schema'
+            """
+            connection.prepareStatement(schemaSql).use { st ->
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val schema = rs.getString("schema_name")
+                        ret.putIfAbsent(schema, mutableListOf())
+                    }
+                }
+            }
+            return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
         } catch (ex: SQLException) {
+            logger.error("Error while get schema and table list: {}", ex.message)
             return mapOf()
         }
     }

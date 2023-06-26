@@ -31,6 +31,7 @@ abstract class DbConnection : Closeable {
     protected val rows = mutableListOf<DataRow>()
     protected val logger: Logger = LoggerFactory.getLogger(DbConnection::class.java)
     protected val fieldValueSetters = mutableMapOf<TableName, List<DbFieldSetter>>()
+    private val tableDefinitions = mutableMapOf<TableName, TableDefinition<in ColumnDefinition>>()
     val extraProperties = mutableMapOf<String, Any>()
 
     /**
@@ -196,6 +197,11 @@ abstract class DbConnection : Closeable {
      */
     abstract fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition>
 
+    private fun getCachedExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition> {
+        val def = tableDefinitions[table]
+        return def ?: getExistingTableDefinition(table)
+    }
+
     /**
      * Find JDBC type on database local type.
      *
@@ -242,7 +248,8 @@ abstract class DbConnection : Closeable {
      * batch limit is reached.
      *
      * @param table table name
-     * @param row   data row
+     * @param row   data row. The order of cells should be identical with the order of target table, or error will
+     * occur
      */
     open fun writeRow(table: TableName, row: DataRow) {
         if (!insertionMap.contains(table)) {
@@ -262,7 +269,7 @@ abstract class DbConnection : Closeable {
     open fun flushRows(table: TableName) {
         val fieldValueSetter = fieldValueSetters[table] ?: return
         //logger.debug(insertionMap.getValue(table))
-        val def = getExistingTableDefinition(table)
+        val def = getCachedExistingTableDefinition(table)
         if (rows.isEmpty()) {
             return
         }
