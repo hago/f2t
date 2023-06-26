@@ -44,7 +44,7 @@ open class MsSqlConnection : DbConnection() {
             val ret = mutableMapOf<String, MutableList<TableName>>()
             val sql = """
                 select s.name as [schema], o.name as [table] 
-                from sys.schemas as s inner join sys.objects as o on s.schema_id = o.schema_id 
+                from sys.schemas as s left outer join sys.objects as o on s.schema_id = o.schema_id 
                 where o.[type]='U'
                 order by s.name, o.name
                 """
@@ -56,11 +56,21 @@ open class MsSqlConnection : DbConnection() {
                         if (!ret.containsKey(schema)) {
                             ret[schema] = mutableListOf()
                         }
-                        ret.getValue(schema).add(TableName(table, schema))
+                        if (table != null) {
+                            ret.getValue(schema).add(TableName(table, schema))
+                        }
                     }
-                    return ret.ifEmpty { mapOf(connection.catalog to listOf()) }
                 }
             }
+            connection.prepareStatement("select * from sys.schemas where principal_id=1").use { st ->
+                st.executeQuery().use { rs ->
+                    while (rs.next()) {
+                        val schema = rs.getString("name")
+                        ret.putIfAbsent(schema, mutableListOf())
+                    }
+                }
+            }
+            return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
         } catch (ex: SQLException) {
             logger.error("fetch table list error: $ex")
             // println(ex)
