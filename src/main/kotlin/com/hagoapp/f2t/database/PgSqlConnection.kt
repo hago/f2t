@@ -147,6 +147,8 @@ open class PgSqlConnection : DbConnection() {
     }
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
+        val ret: TableDefinition<ColumnDefinition>
+        val schema = table.schema.ifBlank { getDefaultSchema() }
         val sql = """select
             a.attname, format_type(a.atttypid, a.atttypmod) as typename, a.attnotnull
             from pg_attribute as a
@@ -154,7 +156,6 @@ open class PgSqlConnection : DbConnection() {
             inner join pg_namespace as n on n.oid = c.relnamespace
             where a.attnum > 0 and not a.attisdropped and c.relkind in ('r', 'p') and c.relname = ? and n.nspname = ?"""
         connection.prepareStatement(sql).use { stmt ->
-            val schema = table.schema.ifBlank { getDefaultSchema() }
             stmt.setString(1, table.tableName)
             stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->
@@ -175,13 +176,27 @@ open class PgSqlConnection : DbConnection() {
                         "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
                     )
                 }
-                val ret = TableDefinition(tblColDef)
+                ret = TableDefinition(tblColDef)
                 ret.caseSensitive = isCaseSensitive()
                 ret.primaryKey = findUniqueConstraint(table, ret.columns, "p").firstOrNull()
                 ret.uniqueConstraints = findUniqueConstraint(table, ret.columns)
-                return ret
             }
         }
+        val sql1 = """
+            select c.relispartition from pg_class as c 
+            inner join pg_namespace as n on n.oid = c.relnamespace
+            where c.relname = ? and n.nspname = ?
+        """
+        connection.prepareStatement(sql1).use { st ->
+            st.setString(1, table.tableName)
+            st.setString(2, schema)
+            st.executeQuery().use { rs ->
+                rs.next()
+                logger.debug("relkind {}", rs.getBoolean(1))
+                ret.isPartition = rs.getBoolean(1)
+            }
+        }
+        return ret
     }
 
     private fun findUniqueConstraint(

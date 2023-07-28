@@ -20,7 +20,8 @@ package com.hagoapp.f2t
 class TableDefinition<T : ColumnDefinition>(
     var columns: List<T>,
     var caseSensitive: Boolean = true,
-    var primaryKey: TableUniqueDefinition<T>? = null
+    var primaryKey: TableUniqueDefinition<T>? = null,
+    var isPartition: Boolean = false
 ) {
 
     /**
@@ -47,6 +48,7 @@ class TableDefinition<T : ColumnDefinition>(
         result = 31 * result + caseSensitive.hashCode()
         result = 31 * result + (primaryKey?.hashCode() ?: 0)
         result = 31 * result + uniqueConstraints.hashCode()
+        result = 31 * result + isPartition.hashCode()
         return result
     }
 
@@ -56,7 +58,8 @@ class TableDefinition<T : ColumnDefinition>(
             columns=$columns, 
             caseSensitive=$caseSensitive, 
             primaryKey=$primaryKey, 
-            uniqueConstraints=$uniqueConstraints)
+            uniqueConstraints=$uniqueConstraints,
+            isPartition=$isPartition)
             """
     }
 
