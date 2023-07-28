@@ -1,3 +1,7 @@
+create user f2t with nosuperuser noinherit encrypted password 'f2t';
+
+create database f2tdb owner 'f2t' encoding 'utf-8';
+
 create table if not exists demo (
     id serial not null,
     "name" varchar(100),
