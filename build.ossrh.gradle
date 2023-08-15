@@ -23,10 +23,10 @@ dependencies {
     implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation group: 'org.apache.poi', name: 'poi', version: '5.2.3'
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.3'
-    implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.13.0'
-    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5'
+    implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.13.1'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6'
     //implementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.12.2'
-    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.3.5'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.3.6'
 
     implementation 'com.github.albfernandez:juniversalchardet:2.4.0'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
@@ -39,7 +39,7 @@ dependencies {
     runtimeOnly fileTree('libs') { include '*.jar' }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-    testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.2.9'
+    testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.4.11'
 
     testImplementation group:'org.postgresql',name:'postgresql',version:'42.5.1'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.6'
