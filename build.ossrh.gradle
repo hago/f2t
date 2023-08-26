@@ -41,8 +41,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.4.11'
 
-    testImplementation group:'org.postgresql',name:'postgresql',version:'42.5.1'
-    testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.6'
+    testImplementation group:'org.postgresql',name:'postgresql',version:'42.6.0'
+    testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.10'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
     testRuntimeOnly fileTree('libs') { include '*.jar' }
