@@ -86,7 +86,7 @@ public class DbConfig implements JsonStringify {
         throw new UnsupportedOperationException("The base class have no enough information to create connection!");
     }
 
-    public Map<String, Object> getProperties() throws SQLException {
+    public Map<String, Object> getProperties() {
         return Map.of();
     }
 }

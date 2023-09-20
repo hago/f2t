@@ -83,7 +83,7 @@ public class MariaDbConfig extends DbConfig {
     }
 
     @Override
-    public Map<String, Object> getProperties() throws SQLException {
+    public Map<String, Object> getProperties() {
         return Map.of(STORE_ENGINE_NAME, storeEngine);
     }
 }
