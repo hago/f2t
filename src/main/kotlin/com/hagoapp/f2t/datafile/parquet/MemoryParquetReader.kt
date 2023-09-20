@@ -15,7 +15,6 @@ import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.ColumnIOFactory
 import org.apache.parquet.io.MessageColumnIO
 import org.apache.parquet.io.RecordReader
-import org.apache.parquet.schema.LogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation
@@ -68,16 +67,16 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         @Throws(UnsupportedOperationException::class)
         fun mapParquetTypeToJdbcType(parquetType: Type): JDBCType {
             val primitiveType = parquetType.asPrimitiveType()
-            when (primitiveType.primitiveTypeName) {
-                PrimitiveTypeName.INT32 -> return JDBCType.INTEGER
-                PrimitiveTypeName.INT64 -> return JDBCType.BIGINT
-                PrimitiveTypeName.INT96 -> return JDBCType.NUMERIC
-                PrimitiveTypeName.BOOLEAN -> return JDBCType.BOOLEAN
-                PrimitiveTypeName.DOUBLE -> return JDBCType.DOUBLE
-                PrimitiveTypeName.FLOAT -> return JDBCType.FLOAT
-                PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY -> return JDBCType.BINARY
+            return when (primitiveType.primitiveTypeName) {
+                PrimitiveTypeName.INT32 -> JDBCType.INTEGER
+                PrimitiveTypeName.INT64 -> JDBCType.BIGINT
+                PrimitiveTypeName.INT96 -> JDBCType.NUMERIC
+                PrimitiveTypeName.BOOLEAN -> JDBCType.BOOLEAN
+                PrimitiveTypeName.DOUBLE -> JDBCType.DOUBLE
+                PrimitiveTypeName.FLOAT -> JDBCType.FLOAT
+                PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY -> JDBCType.BINARY
                 PrimitiveTypeName.BINARY -> {
-                    return when (parquetType.logicalTypeAnnotation) {
+                    when (parquetType.logicalTypeAnnotation) {
                         is StringLogicalTypeAnnotation -> JDBCType.CLOB
                         is DateLogicalTypeAnnotation -> JDBCType.DATE
                         is TimeLogicalTypeAnnotation -> JDBCType.TIME_WITH_TIMEZONE
@@ -94,7 +93,7 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
 
                 else -> {
                     logger.warn("type {} is ignored as CLOB", parquetType)
-                    return JDBCType.CLOB
+                    JDBCType.CLOB
                 }
             }
         }

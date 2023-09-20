@@ -17,7 +17,7 @@ import java.sql.JDBCType.*
  * @author Chaojun Sun
  * @since 0.6
  */
-interface FileColumnTypeDeterminer {
+fun interface FileColumnTypeDeterminer {
     fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType
 
     companion object {
@@ -29,30 +29,23 @@ interface FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
                 val modifier = fileColumnDefinition.typeModifier
-                return if (types.isEmpty()) {
-                    determineTextType(modifier)
-                } else if (types.size == 1) {
-                    types.first()
-                } else if (types.contains(DOUBLE) || types.contains(FLOAT) ||
-                    types.contains(DECIMAL) || types.contains(INTEGER) ||
-                    types.contains(SMALLINT) || types.contains(TINYINT) ||
-                    types.contains(BIGINT)
-                ) {
-                    determineNumberType(types)
-                } else if (types.contains(BOOLEAN)) {
-                    BOOLEAN
-                } else if (types.contains(TIMESTAMP_WITH_TIMEZONE) || types.contains(TIMESTAMP)) {
-                    TIMESTAMP_WITH_TIMEZONE
-                } else if (types.contains(DATE)) {
-                    DATE
-                } else if (types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE)) {
-                    TIME_WITH_TIMEZONE
-                } else if (types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
-                    types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
-                ) {
-                    determineTextType(modifier)
-                } else {
-                    throw NotImplementedError("types $types not supported yet")
+                return when {
+                    types.isEmpty() -> determineTextType(modifier)
+                    types.size == 1 -> types.first()
+                    types.contains(DOUBLE) || types.contains(FLOAT) ||
+                            types.contains(DECIMAL) || types.contains(INTEGER) ||
+                            types.contains(SMALLINT) || types.contains(TINYINT) ||
+                            types.contains(BIGINT) -> determineNumberType(types)
+
+                    types.contains(BOOLEAN) -> BOOLEAN
+                    types.contains(TIMESTAMP_WITH_TIMEZONE) || types.contains(TIMESTAMP) -> TIMESTAMP_WITH_TIMEZONE
+                    types.contains(DATE) -> DATE
+                    types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE) -> TIME_WITH_TIMEZONE
+                    types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
+                            types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
+                    -> determineTextType(modifier)
+
+                    else -> throw NotImplementedError("types $types not supported yet")
                 }
             }
 
@@ -70,14 +63,11 @@ interface FileColumnTypeDeterminer {
                 ) {
                     determineFloatPointType(types)
                 } else {
-                    if (types.contains(BIGINT)) {
-                        BIGINT
-                    } else if (types.contains(INTEGER)) {
-                        INTEGER
-                    } else if (types.contains(SMALLINT)) {
-                        SMALLINT
-                    } else {
-                        TINYINT
+                    when {
+                        types.contains(BIGINT) -> BIGINT
+                        types.contains(INTEGER) -> INTEGER
+                        types.contains(SMALLINT) -> SMALLINT
+                        else -> TINYINT
                     }
                 }
             }
@@ -100,30 +90,23 @@ interface FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
                 val modifier = fileColumnDefinition.typeModifier
-                return if (types.isEmpty()) {
-                    if (modifier.isContainsNonAscii) NVARCHAR else NCLOB
-                } else if (types.size == 1) {
-                    types.first()
-                } else if (types.contains(DOUBLE) || types.contains(FLOAT) ||
-                    types.contains(DECIMAL) || types.contains(INTEGER) ||
-                    types.contains(SMALLINT) || types.contains(TINYINT) ||
-                    types.contains(BIGINT)
-                ) {
-                    determineNumberType(types)
-                } else if (types.contains(BOOLEAN)) {
-                    BOOLEAN
-                } else if (types.contains(TIMESTAMP_WITH_TIMEZONE) || types.contains(TIMESTAMP)) {
-                    TIMESTAMP_WITH_TIMEZONE
-                } else if (types.contains(DATE)) {
-                    DATE
-                } else if (types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE)) {
-                    TIME_WITH_TIMEZONE
-                } else if (types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
-                    types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
-                ) {
-                    determineTextType(modifier)
-                } else {
-                    VARBINARY
+                return when {
+                    types.isEmpty() -> if (modifier.isContainsNonAscii) NVARCHAR else NCLOB
+                    types.size == 1 -> types.first()
+                    types.contains(DOUBLE) || types.contains(FLOAT) ||
+                            types.contains(DECIMAL) || types.contains(INTEGER) ||
+                            types.contains(SMALLINT) || types.contains(TINYINT) ||
+                            types.contains(BIGINT) -> determineNumberType(types)
+
+                    types.contains(BOOLEAN) -> BOOLEAN
+                    types.contains(TIMESTAMP_WITH_TIMEZONE) || types.contains(TIMESTAMP) -> TIMESTAMP_WITH_TIMEZONE
+                    types.contains(DATE) -> DATE
+                    types.contains(TIME) || types.contains(TIME_WITH_TIMEZONE) -> TIME_WITH_TIMEZONE
+                    types.contains(CHAR) || types.contains(VARCHAR) || types.contains(CLOB) ||
+                            types.contains(NCHAR) || types.contains(NVARCHAR) || types.contains(NCLOB)
+                    -> determineTextType(modifier)
+
+                    else -> VARBINARY
                 }
             }
 
@@ -141,14 +124,11 @@ interface FileColumnTypeDeterminer {
                 ) {
                     determineFloatPointType(types)
                 } else {
-                    if (types.contains(TINYINT)) {
-                        TINYINT
-                    } else if (types.contains(SMALLINT)) {
-                        SMALLINT
-                    } else if (types.contains(INTEGER)) {
-                        INTEGER
-                    } else {
-                        BIGINT
+                    when {
+                        types.contains(TINYINT) -> TINYINT
+                        types.contains(SMALLINT) -> SMALLINT
+                        types.contains(INTEGER) -> INTEGER
+                        else -> BIGINT
                     }
                 }
             }

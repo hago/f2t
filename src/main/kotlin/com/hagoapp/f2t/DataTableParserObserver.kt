@@ -40,7 +40,6 @@ class DataTableParserObserver : ParseObserver {
     }
 
     override fun onRowRead(row: DataRow) {
-        //println("read row $lineNo")
         rows.add(row)
         lineNo++
     }

@@ -82,12 +82,12 @@ class DateTimeTypeUtils {
             for (dtFmt in dateTimeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = ZonedDateTime.ofInstant(Instant.from(dtFmt.parse(input)), ZoneId.systemDefault())
-                    //logger.debug("stringToDateTimeOrNull parsing successfully using $dtFmt for $input")
+                    logger.debug("stringToDateTimeOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
                 } catch (ex: DateTimeParseException) {
-                    //logger.debug("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
+                    logger.error("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
                 } catch (ex: DateTimeException) {
-                    //logger.debug("stringToDateTimeOrNull parsing error DateTimeException $ex using $dtFmt")
+                    logger.error("stringToDateTimeOrNull parsing error DateTimeException $ex using $dtFmt")
                 }
             }
             return d
@@ -119,14 +119,14 @@ class DateTimeTypeUtils {
             for (dtFmt in dateFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalDate.from(dtFmt.parse(input))
-                    //logger.debug("stringToDateOrNull parsing successfully using $dtFmt for $input")
+                    logger.debug("stringToDateOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
                 } catch (ex: DateTimeParseException) {
-                    //logger.debug("stringToDateOrNull parsing error DateTimeParseException $ex using $dtFmt")
+                    logger.error("stringToDateOrNull parsing error DateTimeParseException $ex using $dtFmt")
                 } catch (ex: IllegalArgumentException) {
-                    //logger.debug("stringToDateOrNull parsing error IllegalArgumentException $ex using $dtFmt")
+                    logger.error("stringToDateOrNull parsing error IllegalArgumentException $ex using $dtFmt")
                 } catch (ex: DateTimeException) {
-                    //logger.debug("stringToDateOrNull parsing error DateTimeException $ex using $dtFmt")
+                    logger.error("stringToDateOrNull parsing error DateTimeException $ex using $dtFmt")
                 }
             }
             return d
@@ -158,14 +158,14 @@ class DateTimeTypeUtils {
             for (dtFmt in timeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalTime.from(dtFmt.parse(input))
-                    //logger.debug("stringToTimeOrNull parsing successfully using $dtFmt for $input")
+                    logger.debug("stringToTimeOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
                 } catch (ex: DateTimeParseException) {
-                    //logger.debug("stringToTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
+                    logger.error("stringToTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
                 } catch (ex: IllegalArgumentException) {
-                    //logger.debug("stringToTimeOrNull parsing error IllegalArgumentException $ex using $dtFmt")
+                    logger.error("stringToTimeOrNull parsing error IllegalArgumentException $ex using $dtFmt")
                 } catch (ex: DateTimeException) {
-                    //logger.debug("stringToTimeOrNull parsing error DateTimeException $ex using $dtFmt")
+                    logger.error("stringToTimeOrNull parsing error DateTimeException $ex using $dtFmt")
                 }
             }
             return d
@@ -315,8 +315,8 @@ class DateTimeTypeUtils {
          */
         fun getDateTimeFormatter(format: String?): DateTimeFormatter {
             return try {
-                format ?: DateTimeFormatter.ISO_OFFSET_DATE_TIME
-                DateTimeFormatter.ofPattern(format)
+                if (format == null) DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                else DateTimeFormatter.ofPattern(format)
             } catch (e: java.lang.IllegalArgumentException) {
                 DateTimeFormatter.ISO_OFFSET_DATE_TIME
             }
@@ -330,8 +330,8 @@ class DateTimeTypeUtils {
          */
         fun getDateFormatter(format: String?): DateTimeFormatter {
             return try {
-                format ?: DateTimeFormatter.ISO_OFFSET_DATE
-                DateTimeFormatter.ofPattern(format)
+                if (format == null) DateTimeFormatter.ISO_OFFSET_DATE
+                else DateTimeFormatter.ofPattern(format)
             } catch (e: java.lang.IllegalArgumentException) {
                 return DateTimeFormatter.ISO_OFFSET_DATE
             }
@@ -345,8 +345,8 @@ class DateTimeTypeUtils {
          */
         fun getDTimeFormatter(format: String?): DateTimeFormatter {
             return try {
-                format ?: DateTimeFormatter.ISO_OFFSET_TIME
-                DateTimeFormatter.ofPattern(format)
+                if (format == null) DateTimeFormatter.ISO_OFFSET_TIME
+                else DateTimeFormatter.ofPattern(format)
             } catch (e: java.lang.IllegalArgumentException) {
                 return DateTimeFormatter.ISO_OFFSET_TIME
             }

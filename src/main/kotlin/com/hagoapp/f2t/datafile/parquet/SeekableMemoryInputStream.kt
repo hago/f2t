@@ -25,7 +25,7 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     companion object {
 
         private val logger: Logger = LoggerFactory.getLogger(SeekableMemoryInputStream::class.java)
-
+        private const val NULL_BYTES_ERROR_MESSAGE = "null bytes"
     }
 
     private var pos = 0
@@ -39,7 +39,6 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     }
 
     override fun read(buf: ByteBuffer?): Int {
-        //logger.trace("SeekableMemoryInputStream.read(buf: ByteBuffer?)")
         buf ?: throw IOException("buffer is null")
         if (pos >= input.size) {
             return -1
@@ -53,7 +52,6 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     }
 
     override fun read(): Int {
-        //logger.trace("SeekableMemoryInputStream.read() $pos ${input.size}")
         if (pos >= input.size) {
             return -1
         }
@@ -64,12 +62,10 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     }
 
     override fun getPos(): Long {
-        //logger.trace("SeekableMemoryInputStream.getPos()")
         return pos.toLong()
     }
 
     override fun seek(newPos: Long) {
-        //logger.trace("SeekableMemoryInputStream.seek($newPos)")
         if ((newPos >= input.size) || (newPos < 0)) {
             throw IOException("Exceeds seekable range")
         }
@@ -77,14 +73,12 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     }
 
     override fun readFully(bytes: ByteArray?) {
-        //logger.trace("SeekableMemoryInputStream.readFully(bytes: ByteArray?)")
-        bytes ?: throw IOException("null bytes")
+        bytes ?: throw IOException(NULL_BYTES_ERROR_MESSAGE)
         readFully(bytes, 0, bytes.size)
     }
 
     override fun readFully(bytes: ByteArray?, start: Int, len: Int) {
-        //logger.trace("SeekableMemoryInputStream.readFully(bytes: ByteArray?, start: Int, len: Int)")
-        bytes ?: throw IOException("null bytes")
+        bytes ?: throw IOException(NULL_BYTES_ERROR_MESSAGE)
         if (pos + len > input.size) {
             throw EOFException("EOF encountered, only ${input.size - pos} bytes readable when $len needed")
         }
@@ -93,8 +87,7 @@ class SeekableMemoryInputStream(private val input: ByteArray) : SeekableInputStr
     }
 
     override fun readFully(buf: ByteBuffer?) {
-        //logger.trace("SeekableMemoryInputStream.readFully(buf: ByteBuffer?)")
-        buf ?: throw IOException("null bytes")
+        buf ?: throw IOException(NULL_BYTES_ERROR_MESSAGE)
         val content = buf.array()
         val posBeforeRead = pos
         readFully(content, 0, content.size)

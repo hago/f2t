@@ -10,7 +10,6 @@ import org.apache.parquet.io.InputFile
 import org.apache.parquet.io.SeekableInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.util.Arrays
 
 /**
  * The InputFile implementation to deal with file content in memory.
