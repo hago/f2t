@@ -153,16 +153,10 @@ public class FileParser {
             }
             int i = 0;
             while (reader.hasNext()) {
-                try {
-                    DataRow row = reader.next();
-                    notifyObserver("onRowRead", row);
-                    i++;
-                } catch (Throwable e) {
-                    result.addError(i, e);
-                    if (observers.stream().noneMatch(observer -> observer.onRowError(e))) {
-                        break;
-                    }
+                if (!readOneRow(reader, result, i)) {
+                    break;
                 }
+                i++;
             }
             if (rowNo == null) {
                 notifyObserver("onRowCountDetermined", i);
@@ -172,6 +166,17 @@ public class FileParser {
             result.addError(-1, e);
         } finally {
             endParse(result);
+        }
+    }
+
+    private boolean readOneRow(Reader reader, ParseResult result, int i) {
+        try {
+            DataRow row = reader.next();
+            notifyObserver("onRowRead", row);
+            return true;
+        } catch (Throwable e) {
+            result.addError(i, e);
+            return observers.stream().anyMatch(observer -> observer.onRowError(e));
         }
     }
 
@@ -186,8 +191,6 @@ public class FileParser {
                 Method method = methods.get(methodName);
                 if (method != null) {
                     method.invoke(observer, params);
-                    //logger.debug("callback {} of ParseObserver {} invoked", methodName,
-                    //        observer.getClass().getCanonicalName());
                 } else {
                     logger.warn("callback {} of ParseObserver not found", methodName);
                 }
