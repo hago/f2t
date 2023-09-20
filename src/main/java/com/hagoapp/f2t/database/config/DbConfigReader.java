@@ -30,8 +30,8 @@ import java.util.Map;
  */
 public class DbConfigReader {
 
-    private final static Map<String, Class<? extends DbConfig>> dbConfigMap = new HashMap<>();
-    private final static Logger logger = LoggerFactory.getLogger(DbConfigReader.class);
+    private static final Map<String, Class<? extends DbConfig>> dbConfigMap = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(DbConfigReader.class);
 
     static {
         var clazz = new Reflections("com.hagoapp", Scanners.SubTypes).getSubTypesOf(DbConfig.class);
@@ -54,6 +54,9 @@ public class DbConfigReader {
                 logger.error("JDBC Driver for {} not found, skipped", clz.getCanonicalName());
             }
         }
+    }
+
+    private DbConfigReader() {
     }
 
     /**
