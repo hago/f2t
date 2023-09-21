@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.*
 import com.hagoapp.f2t.compare.ColumnComparator
 import com.hagoapp.f2t.util.ColumnMatcher
+import com.hagoapp.util.StackTraceWriter
 import com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement
 import microsoft.sql.DateTimeOffset
 import java.sql.*
@@ -73,7 +74,7 @@ open class MsSqlConnection : DbConnection() {
             return ret.ifEmpty { mapOf(getDefaultSchema() to listOf()) }
         } catch (ex: SQLException) {
             logger.error("fetch table list error: $ex")
-            // println(ex)
+            StackTraceWriter.writeToLogger(ex, logger)
             return mapOf()
         }
     }
@@ -92,7 +93,7 @@ open class MsSqlConnection : DbConnection() {
             }
         } catch (ex: SQLException) {
             logger.error("fetch database list error: $ex")
-            // println(ex)
+            StackTraceWriter.writeToLogger(ex, logger)
             return listOf()
         }
     }
@@ -301,7 +302,6 @@ open class MsSqlConnection : DbConnection() {
         if (caseSensitive == null) {
             val sql =
                 "select convert(varchar, DATABASEPROPERTYEX('${connection.catalog}', 'collation')) as SQLCollation"
-            //println(sql)
             caseSensitive = connection.prepareStatement(sql).use { stmt ->
                 stmt.executeQuery().use { rs ->
                     rs.next()

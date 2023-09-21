@@ -128,15 +128,15 @@ public class FileParser {
      * @param option parse options
      */
     public void parse(FileParserOption option) {
-        ParseResult result = new ParseResult();
-        try (Reader reader = ReaderFactory.Companion.getReader(fileInfo)) {
+        var result = new ParseResult();
+        try (var reader = ReaderFactory.Companion.getReader(fileInfo)) {
             reader.setupTypeDeterminer(determiner);
             if (!option.isInferColumnTypes()) {
                 reader.skipTypeInfer();
             }
             notifyObserver("onParseStart", fileInfo);
             reader.open(fileInfo);
-            Integer rowNo = reader.getRowCount();
+            var rowNo = reader.getRowCount();
             if (rowNo != null) {
                 notifyObserver("onRowCountDetermined", rowNo);
             }

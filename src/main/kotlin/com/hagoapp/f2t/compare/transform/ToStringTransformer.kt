@@ -36,7 +36,6 @@ class ToStringTransformer : TypedColumnTransformer {
             TIME -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
-                //println(src)
                 DateTimeTypeUtils.getDTimeFormatter(fmt).format(src)
             }
             TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> {
