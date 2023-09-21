@@ -158,7 +158,6 @@ class CSVDataReader : Reader {
         val row = DataRow(
             currentRow.toLong(),
             data[currentRow].mapIndexed { i, cell ->
-                //logger.debug("convert '$cell' to ${columns.getValue(i).dataType!!}")
                 DataCell(JDBCTypeUtils.toTypedValue(cell, columns.getValue(i).dataType!!), i)
             }
         )
@@ -205,10 +204,8 @@ class CSVDataReader : Reader {
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: String) {
         val possibleTypes = if (cell.isNotBlank()) JDBCTypeUtils.guessTypes(cell).toSet() else emptySet()
-        //logger.debug("value '{}' could be types: {}", cell, possibleTypes)
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
-        //logger.debug("combined '{}'", columnDefinition.possibleTypes)
         val typeModifier = columnDefinition.typeModifier
         if (cell.length > typeModifier.maxLength) {
             typeModifier.maxLength = cell.length

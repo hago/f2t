@@ -20,11 +20,11 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import java.io.IOException;
 
 @EnabledIfSystemProperty(named = Constants.ON_DEMAND_CSV_FILE, matches = ".*")
-public class CsvOnDemandTest {
+class CsvOnDemandTest {
     private static FileInfoCsv info;
 
     @BeforeAll
-    public static void loadFile() {
+    static void loadFile() {
         var f = System.getProperty(Constants.ON_DEMAND_CSV_FILE);
         info = new FileInfoCsv();
         info.setFilename(f);
@@ -42,7 +42,7 @@ public class CsvOnDemandTest {
     private final FileTestObserver observer = new FileTestObserver();
 
     @Test
-    public void readTest() throws IOException {
+    void readTest() throws IOException {
         observer.setRowDetail(true);
         var fp = new FileParser(info);
         fp.setDeterminer(new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer()));

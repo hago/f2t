@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class CsvReadTest {
+class CsvReadTest {
 
     private static final Map<String, FileColumnTypeDeterminer> testConfigFiles = Map.of(
             "./tests/csv/shuihudata.json",
@@ -39,7 +39,7 @@ public class CsvReadTest {
     private static final Logger logger = LoggerFactory.getLogger(CsvReadTest.class);
 
     @BeforeAll
-    public static void loadConfig() throws IOException {
+    static void loadConfig() throws IOException {
         for (var item : testConfigFiles.entrySet()) {
             var testConfigFile = item.getKey();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
@@ -56,7 +56,7 @@ public class CsvReadTest {
     }
 
     @Test
-    public void readCsv() throws IOException {
+    void readCsv() throws IOException {
         for (var item : testConfigs.entrySet()) {
             var testConfig = item.getKey();
             var determiner = item.getValue();
@@ -80,7 +80,7 @@ public class CsvReadTest {
     FileTestObserver observer = new FileTestObserver();
 
     @Test
-    public void extractCsv() throws IOException, F2TException {
+    void extractCsv() throws IOException, F2TException {
         for (var item : testConfigs.entrySet()) {
             var testConfig = item.getKey();
             var determiner = item.getValue();
