@@ -17,7 +17,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public class DateTimeUtilsTest {
+class DateTimeUtilsTest {
 
     private final Logger logger = LoggerFactory.getLogger(DateTimeUtilsTest.class);
 
@@ -35,7 +35,7 @@ public class DateTimeUtilsTest {
     );
 
     @Test
-    public void testDateTimeParsing() {
+    void testDateTimeParsing() {
         for (var x : cases) {
             var dateTimeStr = x.getFirst();
             logger.debug("try parsing {}", dateTimeStr);
@@ -67,7 +67,7 @@ public class DateTimeUtilsTest {
     );
 
     @Test
-    public void testDateTimeParsingValue() {
+    void testDateTimeParsingValue() {
         for (var x : valueCases) {
             var dateTimeStr = x.getFirst();
             logger.debug("try parsing {}", dateTimeStr);

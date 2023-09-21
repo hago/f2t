@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 
 @EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".*")
-public class TableDefinitionTest {
+class TableDefinitionTest {
 
     private final Logger logger = LoggerFactory.getLogger(TableDefinitionTest.class);
 
@@ -30,7 +30,7 @@ public class TableDefinitionTest {
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_SCHEMA, matches = ".*"),
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_TABLE, matches = ".*")
     })
-    public void testFindTableDefinition() throws F2TException, SQLException {
+    void testFindTableDefinition() throws F2TException, SQLException {
         var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
         try (var sqlCon = config.createConnection()) {
             try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
@@ -63,17 +63,19 @@ public class TableDefinitionTest {
     }
 
     @Test
-    public void testFindTables() throws F2TException, SQLException {
-        var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        try (var sqlCon = config.createConnection()) {
-            try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
-                connection.getAvailableTables().forEach((schema, tableNames) -> {
-                    logger.debug("Found schema: {}", schema);
-                    tableNames.forEach(tableName ->
-                            logger.debug("Found table: '{}'", connection.getFullTableName(tableName)));
-                });
+    void testFindTables() {
+        Assertions.assertDoesNotThrow(() -> {
+            var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
+            try (var sqlCon = config.createConnection()) {
+                try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
+                    connection.getAvailableTables().forEach((schema, tableNames) -> {
+                        logger.debug("Found schema: {}", schema);
+                        tableNames.forEach(tableName ->
+                                logger.debug("Found table: '{}'", connection.getFullTableName(tableName)));
+                    });
+                }
             }
-        }
+        });
     }
 
 }

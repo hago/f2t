@@ -20,12 +20,12 @@ import java.io.IOException;
 import static com.hagoapp.f2t.parquet.LargeParquetTest.LARGE_PARQUET_TEST_FILE;
 
 @EnabledIfSystemProperty(named = LARGE_PARQUET_TEST_FILE, matches = ".*?")
-public class LargeParquetTest {
+class LargeParquetTest {
     private static final Logger logger = LoggerFactory.getLogger(LargeParquetTest.class);
     public static final String LARGE_PARQUET_TEST_FILE = "f2t.parquet.file.2g";
 
     @Test
-    public void testLargeMemoryParquetOver2GBReading() throws IOException {
+    void testLargeMemoryParquetOver2GBReading() throws IOException {
         var largeFileName = System.clearProperty(LARGE_PARQUET_TEST_FILE);
         var f = new File(largeFileName);
         try (var fs = new FileInputStream(f)) {

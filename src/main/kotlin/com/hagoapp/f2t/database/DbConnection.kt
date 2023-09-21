@@ -268,7 +268,6 @@ abstract class DbConnection : Closeable {
      */
     open fun flushRows(table: TableName) {
         val fieldValueSetter = fieldValueSetters[table] ?: return
-        //logger.debug(insertionMap.getValue(table))
         val def = getCachedExistingTableDefinition(table)
         if (rows.isEmpty()) {
             return

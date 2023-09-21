@@ -7,6 +7,7 @@
 package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.*;
+import com.hagoapp.util.StackTraceWriter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +98,7 @@ public class FileParser {
             throw new IOException("null file");
         }
         this.fileInfo = fileInfo;
-        File f = new File(Objects.requireNonNull(fileInfo.getFilename()));
+        var f = new File(Objects.requireNonNull(fileInfo.getFilename()));
         if (!f.exists() || !f.canRead()) {
             throw new IOException(String.format("'%s' not existed or not accessible", fileInfo.getFilename()));
         }
@@ -151,7 +152,7 @@ public class FileParser {
                 endParse(result);
                 return;
             }
-            int i = 0;
+            var i = 0;
             while (reader.hasNext()) {
                 if (!readOneRow(reader, result, i)) {
                     break;
@@ -161,7 +162,7 @@ public class FileParser {
             if (rowNo == null) {
                 notifyObserver("onRowCountDetermined", i);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             notifyObserver("onError", e);
             result.addError(-1, e);
         } finally {
@@ -174,7 +175,7 @@ public class FileParser {
             DataRow row = reader.next();
             notifyObserver("onRowRead", row);
             return true;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             result.addError(i, e);
             return observers.stream().anyMatch(observer -> observer.onRowError(e));
         }
@@ -188,16 +189,16 @@ public class FileParser {
     private void notifyObserver(String methodName, Object... params) {
         observers.forEach(observer -> {
             try {
-                Method method = methods.get(methodName);
+                var method = methods.get(methodName);
                 if (method != null) {
                     method.invoke(observer, params);
                 } else {
                     logger.warn("callback {} of ParseObserver not found", methodName);
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.error("callback {} of ParseObserver {} failed: {}", methodName,
                         observer.getClass().getCanonicalName(), e.getMessage());
-                e.printStackTrace();
+                StackTraceWriter.writeToLogger(e, logger);
             }
         });
     }
@@ -209,7 +210,7 @@ public class FileParser {
      * @throws F2TException if anything wrong
      */
     public DataTable<FileColumnDefinition> extractData() throws F2TException {
-        ExtractorObserver observer = new ExtractorObserver();
+        var observer = new ExtractorObserver();
         this.addObserver(observer);
         parse();
         return observer.getData();

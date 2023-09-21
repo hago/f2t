@@ -7,6 +7,7 @@
 package com.hagoapp.util
 
 import org.mozilla.universalchardet.UniversalDetector
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -23,6 +24,8 @@ import java.nio.charset.StandardCharsets
  */
 class EncodingUtils {
     companion object {
+
+        private val logger = LoggerFactory.getLogger(EncodingUtils::class.java)
 
         /**
          * This method will try to figure out which character set the input stream is using.
@@ -49,7 +52,7 @@ class EncodingUtils {
                     }
                 }
             }
-            //println(det.detectedCharset)
+            logger.debug("{} detected", det.detectedCharset)
             return normalizeEncoding(det.detectedCharset)
         }
 

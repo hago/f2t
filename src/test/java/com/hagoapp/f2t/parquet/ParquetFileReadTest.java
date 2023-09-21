@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ParquetFileReadTest {
+class ParquetFileReadTest {
     private static final List<String> testConfigFiles = List.of(
             "./tests/parquet/shuihudata_most.json",
             "./tests/parquet/shuihudata_least.json"
@@ -33,7 +33,7 @@ public class ParquetFileReadTest {
     private static final Logger logger = LoggerFactory.getLogger(ParquetFileReadTest.class);
 
     @BeforeAll
-    public static void loadConfig() throws IOException {
+    static void loadConfig() throws IOException {
         for (var testConfigFile : testConfigFiles) {
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
                 String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
@@ -49,7 +49,7 @@ public class ParquetFileReadTest {
     }
 
     @Test
-    public void readParquet() throws IOException {
+    void readParquet() throws IOException {
         for (var testConfig : testConfigs) {
             try (var reader = new ParquetDataFileReader()) {
                 reader.open(testConfig.getFileInfo());

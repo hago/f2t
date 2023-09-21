@@ -150,7 +150,6 @@ open class MariaDBConnection : DbConnection() {
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<ColumnDefinition> {
         val sql = "desc ${normalizeName(table.tableName)};"
-        //logger.debug(sql)
         connection.prepareStatement(sql).use { stmt ->
             stmt.executeQuery().use { rs ->
                 val def = mutableListOf<DescResult>()

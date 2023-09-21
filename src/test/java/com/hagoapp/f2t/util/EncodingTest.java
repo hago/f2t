@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-public class EncodingTest {
+class EncodingTest {
     @Test
-    public void testAsciiDetect() {
+    void testAsciiDetect() {
         Map.of(
                 "张三", false,
                 "1234abcL", true,

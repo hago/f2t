@@ -39,12 +39,7 @@ class ToStringTransformer : TypedColumnTransformer {
                 //println(src)
                 DateTimeTypeUtils.getDTimeFormatter(fmt).format(src)
             }
-            TIMESTAMP -> {
-                src as Temporal? ?: return null
-                val fmt = if (extra.isNotEmpty()) extra[0] else null
-                DateTimeTypeUtils.getDateTimeFormatter(fmt).format(src)
-            }
-            TIMESTAMP_WITH_TIMEZONE -> {
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
                 DateTimeTypeUtils.getDateTimeFormatter(fmt).format(src)

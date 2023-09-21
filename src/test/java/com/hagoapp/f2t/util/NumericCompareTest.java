@@ -18,7 +18,7 @@ import java.util.List;
 
 import static java.sql.JDBCType.*;
 
-public class NumericCompareTest {
+class NumericCompareTest {
 
     private final List<Triple<Triple<JDBCType, Integer, Integer>, JDBCType, Boolean>> float2IntCases = List.of(
             new Triple<>(new Triple<>(FLOAT, 2, 0), TINYINT, true),
@@ -33,7 +33,7 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void float2IntTest() {
+    void float2IntTest() {
         for (var i : float2IntCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst().getFirst());
@@ -61,7 +61,7 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void int2FloatTest() {
+    void int2FloatTest() {
         for (var i : int2FloatCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst());
@@ -86,7 +86,7 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void int2IntTest() {
+    void int2IntTest() {
         for (var i : int2IntCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst());
@@ -105,7 +105,7 @@ public class NumericCompareTest {
     );
 
     @Test
-    public void float2FloatTest() {
+    void float2FloatTest() {
         for (var i : float2FloatCases) {
             var fileCol = new FileColumnDefinition();
             fileCol.setDataType(i.getFirst().getFirst());

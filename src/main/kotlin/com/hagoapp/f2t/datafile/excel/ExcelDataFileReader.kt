@@ -17,6 +17,7 @@ import com.hagoapp.f2t.util.JDBCTypeUtils
 import com.hagoapp.util.EncodingUtils
 import com.hagoapp.util.NumericUtils
 import org.apache.poi.ss.usermodel.*
+import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.sql.JDBCType
 import java.sql.JDBCType.*
@@ -41,6 +42,7 @@ class ExcelDataFileReader : Reader {
     private var determiner = FileTypeDeterminer(FileColumnTypeDeterminer.LeastTypeDeterminer)
     private var skipTypeInfer = false
     private var inferSampleCount = 100L
+    private val logger = LoggerFactory.getLogger(ExcelDataFileReader::class.java)
 
     override fun findColumns(): List<FileColumnDefinition> {
         if (!this::columns.isInitialized) {
@@ -118,7 +120,7 @@ class ExcelDataFileReader : Reader {
         val dataCells = columns.keys.map { colIndex ->
             val rawCell = rawRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
             val cellValue = getCellValue(rawCell, columns.getValue(colIndex).dataType)
-            //println("${columns.getValue(colIndex).name}: $cellValue")
+            logger.debug("{}: {}", columns.getValue(colIndex).name, cellValue)
             DataCell(cellValue, colIndex)
         }
         return DataRow(currentRow.toLong() - 1, dataCells)
@@ -147,7 +149,7 @@ class ExcelDataFileReader : Reader {
 
     private fun setupColumnDefinition(columnDefinition: FileColumnDefinition, cell: Cell) {
         val possibleTypes = guessCellType(cell, columnDefinition.typeModifier)
-        //println("guessed ${possibleTypes.size} types ${possibleTypes}")
+        logger.debug("guessed {} types: {}", possibleTypes.size, possibleTypes)
         val existTypes = columnDefinition.possibleTypes
         columnDefinition.possibleTypes = JDBCTypeUtils.combinePossibleTypes(existTypes, possibleTypes)
         setRange(columnDefinition, cellToString(cell))

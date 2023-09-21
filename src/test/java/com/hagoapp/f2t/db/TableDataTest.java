@@ -12,6 +12,7 @@ import com.hagoapp.f2t.F2TException;
 import com.hagoapp.f2t.database.DbConnectionFactory;
 import com.hagoapp.f2t.database.TableName;
 import com.hagoapp.f2t.database.config.DbConfigReader;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperties;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -20,23 +21,25 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 @EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".*")
-public class TableDataTest {
+class TableDataTest {
     @Test
     @EnabledIfSystemProperties({
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_SCHEMA, matches = ".*"),
             @EnabledIfSystemProperty(named = Constants.DATABASE_TEST_TABLE, matches = ".*")
     })
-    public void testReadData() throws F2TException, SQLException {
-        var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
-        try (var sqlCon = config.createConnection()) {
-            try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
-                var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
-                var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
-                var def = connection.getExistingTableDefinition(new TableName(table, schema));
-                var rows = connection.readData(new TableName(table, schema),
-                        new ArrayList<ColumnDefinition>(def.getColumns()), 10);
-                System.out.print(rows);
+    void testReadData() {
+        Assertions.assertDoesNotThrow(() -> {
+            var config = DbConfigReader.readConfig(System.getProperty(Constants.DATABASE_CONFIG_FILE));
+            try (var sqlCon = config.createConnection()) {
+                try (var connection = DbConnectionFactory.createDbConnection(sqlCon, config.getProperties())) {
+                    var schema = System.getProperty(Constants.DATABASE_TEST_SCHEMA);
+                    var table = System.getProperty(Constants.DATABASE_TEST_TABLE);
+                    var def = connection.getExistingTableDefinition(new TableName(table, schema));
+                    var rows = connection.readData(new TableName(table, schema),
+                            new ArrayList<ColumnDefinition>(def.getColumns()), 10);
+                    System.out.print(rows);
+                }
             }
-        }
+        });
     }
 }

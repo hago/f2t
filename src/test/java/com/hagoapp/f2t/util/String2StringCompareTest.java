@@ -21,7 +21,7 @@ import java.util.List;
 
 import static java.sql.JDBCType.*;
 
-public class String2StringCompareTest {
+class String2StringCompareTest {
 
     private final List<Triple<JDBCType, JDBCType, Boolean>> clobCases = List.of(
             new Triple<>(CLOB, CLOB, true),
@@ -31,7 +31,7 @@ public class String2StringCompareTest {
     );
 
     @Test
-    public void text2TextColumnTest() {
+    void text2TextColumnTest() {
         for (var i : clobCases) {
             var fc = new FileColumnDefinition();
             fc.setDataType(i.getFirst());
@@ -50,7 +50,7 @@ public class String2StringCompareTest {
     );
 
     @Test
-    public void string2TextColumnTest() {
+    void string2TextColumnTest() {
         for (var i : stringClobCases) {
             var fc = new FileColumnDefinition();
             fc.setDataType(i.getFirst());
@@ -70,7 +70,7 @@ public class String2StringCompareTest {
     );
 
     @Test
-    public void text2StringColumnTest() {
+    void text2StringColumnTest() {
         for (var i : clobStringCases) {
             System.out.println(i);
             var fc = new FileColumnDefinition();
@@ -91,7 +91,7 @@ public class String2StringCompareTest {
     );
 
     @Test
-    public void string2StringColumnTest() {
+    void string2StringColumnTest() {
         for (var i : stringStringCases) {
             var fc = new FileColumnDefinition();
             fc.setDataType(i.getFirst());

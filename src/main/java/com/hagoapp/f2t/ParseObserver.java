@@ -8,7 +8,9 @@ package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
+import com.hagoapp.util.StackTraceWriter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -91,7 +93,8 @@ public interface ParseObserver {
      * @param e error detail
      */
     default void onError(@NotNull Throwable e) {
-        System.err.println(e.getMessage());
-        e.printStackTrace();
+        var logger = LoggerFactory.getLogger(this.getClass().getCanonicalName());
+        logger.error(e.getMessage());
+        StackTraceWriter.writeToLogger(e, logger);
     }
 }

@@ -356,7 +356,6 @@ open class MsSqlConnection : DbConnection() {
         val ret = mutableListOf<List<Any?>>()
         println(sqlBuilder)
         connection.prepareStatement(sqlBuilder.toString()).use { stmt ->
-            //stmt.setInt(1, limit)
             stmt.executeQuery().use { rs ->
                 while (rs.next()) {
                     val row = validColumns.map { col ->

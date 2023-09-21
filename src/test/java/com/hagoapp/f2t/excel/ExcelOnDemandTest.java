@@ -21,12 +21,12 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import java.io.IOException;
 
 @EnabledIfSystemProperty(named = Constants.ON_DEMAND_EXCEL_FILE, matches = ".*")
-public class ExcelOnDemandTest {
+class ExcelOnDemandTest {
 
     private static FileInfoExcel info;
 
     @BeforeAll
-    public static void loadFile() {
+    static void loadFile() {
         var f = System.getProperty(Constants.ON_DEMAND_EXCEL_FILE);
         info = new FileInfoExcel();
         info.setFilename(f);
@@ -42,7 +42,7 @@ public class ExcelOnDemandTest {
     private final FileTestObserver observer = new FileTestObserver();
 
     @Test
-    public void readTest() throws IOException {
+    void readTest() throws IOException {
         observer.setRowDetail(true);
         var fp = new FileParser(info);
         fp.setDeterminer(new FileTypeDeterminer(FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer()));

@@ -24,7 +24,7 @@ import java.util.function.BiFunction;
 
 import static java.sql.JDBCType.*;
 
-public class FromStringTransformTest {
+class FromStringTransformTest {
 
     /**
      * value
@@ -71,7 +71,7 @@ public class FromStringTransformTest {
     );
 
     @Test
-    public void testNumber() {
+    void testNumber() {
         doTest(numberCases);
     }
 
@@ -149,7 +149,7 @@ public class FromStringTransformTest {
     );
 
     @Test
-    public void testBool() {
+    void testBool() {
         doTest(boolCases);
     }
 
@@ -184,7 +184,7 @@ public class FromStringTransformTest {
     );
 
     @Test
-    public void testDateTime() {
+    void testDateTime() {
         var func = new BiFunction<Object, Object, Boolean>() {
 
             @Override

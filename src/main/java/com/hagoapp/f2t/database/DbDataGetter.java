@@ -7,7 +7,6 @@
 package com.hagoapp.f2t.database;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
@@ -94,7 +93,7 @@ public interface DbDataGetter<T> {
      * Predefined binary array reader implementation.
      */
     DbDataGetter<byte[]> BINARYDataGetter = (resultSet, column) -> {
-        try (InputStream inputStream = resultSet.getBinaryStream(column)) {
+        try (var inputStream = resultSet.getBinaryStream(column)) {
             return inputStream.readAllBytes();
         }
     };

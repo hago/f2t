@@ -21,7 +21,7 @@ import java.util.Set;
 
 import static java.sql.JDBCType.*;
 
-public class ToStringTransformTest {
+class ToStringTransformTest {
 
     /**
      * value
@@ -105,7 +105,7 @@ public class ToStringTransformTest {
     );
 
     @Test
-    public void testTransform() {
+    void testTransform() {
         for (var item : cases) {
             var src = item.getFirst();
             var fileCol = item.getSecond();

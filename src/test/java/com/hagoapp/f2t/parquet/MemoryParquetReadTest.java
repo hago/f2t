@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class MemoryParquetReadTest {
+class MemoryParquetReadTest {
     private static final List<Triple<String, FileColumnTypeDeterminer, String>> testConfigFiles = List.of(
             //new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
@@ -39,7 +39,7 @@ public class MemoryParquetReadTest {
     private static final Logger logger = LoggerFactory.getLogger(MemoryParquetReadTest.class);
 
     @AfterAll
-    public static void clean() {
+    static void clean() {
         if (!System.getProperties().contains(Constants.KEEP_PARQUET_FILE_GENERATED)) {
             testConfigFiles.forEach(item -> {
                 try {
@@ -69,7 +69,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReader() throws IOException {
+    void testParquetMemoryReader() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -91,7 +91,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReaderSkip() throws IOException {
+    void testParquetMemoryReaderSkip() throws IOException {
         var random = new SecureRandom();
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
@@ -115,7 +115,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReaderWithColumnNames() throws IOException {
+    void testParquetMemoryReaderWithColumnNames() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -163,7 +163,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReaderWithColumnNameSelector() throws IOException {
+    void testParquetMemoryReaderWithColumnNameSelector() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -198,7 +198,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReaderWithColumnIndexes() throws IOException {
+    void testParquetMemoryReaderWithColumnIndexes() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);
@@ -230,7 +230,7 @@ public class MemoryParquetReadTest {
     }
 
     @Test
-    public void testParquetMemoryReaderWithColumnIndexSelector() throws IOException {
+    void testParquetMemoryReaderWithColumnIndexSelector() throws IOException {
         logger.debug("test: {}", testConfigFiles);
         for (var config : testConfigFiles) {
             logger.debug("{}", config);

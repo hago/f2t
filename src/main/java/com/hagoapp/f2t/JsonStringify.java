@@ -23,7 +23,7 @@ public interface JsonStringify {
      * @return JSON string
      */
     default String toJson() {
-        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+        var gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
         return gson.toJson(this);
     }
 }
