@@ -37,72 +37,85 @@ class ColumnComparator {
          * @param packageNames  the package name to search for implementations.
          */
         fun registerComparatorsAndConverters(vararg packageNames: String) {
-            for (packageName in packageNames) {
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnComparator::class.java)
-                    .forEach { clz ->
-                        try {
-                            logger.debug("${clz.canonicalName} is found for ColumnComparator")
-                            val instance = clz.getConstructor().newInstance()
-                            val sources = instance.supportSourceTypes().sorted()
-                            val destinations = instance.supportDestinationTypes().sorted()
-                            sources.forEach { src ->
-                                destinations.forEach { dest ->
-                                    //logger.debug("{} supports comparing {} -> {}", clz.canonicalName, src, dest)
-                                    val key = calcKey(src, dest)
-                                    if (comparators.containsKey(key)) {
-                                        logger.warn(
-                                            "comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${
-                                                comparators.getValue(
-                                                    key
-                                                )::class.java.canonicalName
-                                            }"
-                                        )
-                                        logger.warn(
-                                            "comparator: $src -> $dest: ${
-                                                comparators.getValue(key)::class.java.canonicalName
-                                            } is override"
-                                        )
-                                    }
-                                    comparators[key] = instance
-                                }
-                            }
-                        } catch (e: Exception) {
-                            logger.error("error occurs in instantiating ${clz.canonicalName}")
-                        }
-                    }
+            registerComparators(*packageNames)
+            registerTransformers(*packageNames)
+        }
 
-                Reflections(packageName, Scanners.SubTypes).getSubTypesOf(TypedColumnTransformer::class.java)
-                    .forEach { clz ->
-                        try {
-                            logger.debug("${clz.canonicalName} is found for ColumnConverter")
-                            val instance = clz.getConstructor().newInstance()
-                            val sources = instance.supportSourceTypes().sorted()
-                            val destinations = instance.supportDestinationTypes().sorted()
-                            sources.forEach { src ->
-                                destinations.forEach { dest ->
-                                    //logger.debug("{} supports converting {} -> {}", clz.canonicalName, src, dest)
-                                    val key = calcKey(src, dest)
-                                    if (transformers.containsKey(key)) {
-                                        logger.warn(
-                                            "converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${
-                                                transformers.getValue(
-                                                    key
-                                                )::class.java.canonicalName
-                                            }"
-                                        )
-                                        logger.warn(
-                                            "converter: $src -> $dest: ${
-                                                transformers.getValue(key)::class.java.canonicalName
-                                            } is override"
-                                        )
-                                    }
-                                    transformers[key] = instance
-                                }
+        private fun registerComparators(vararg packageNames: String) {
+            for (packageName in packageNames) {
+                val typedColumnComparators = Reflections(packageName, Scanners.SubTypes)
+                    .getSubTypesOf(TypedColumnComparator::class.java)
+                for (clz in typedColumnComparators) {
+                    val instance: TypedColumnComparator
+                    try {
+                        logger.debug("${clz.canonicalName} is found for ColumnComparator")
+                        instance = clz.getConstructor().newInstance()
+                    } catch (e: Exception) {
+                        logger.error("error occurs in instantiating ${clz.canonicalName}")
+                        continue
+                    }
+                    val sources = instance.supportSourceTypes().sorted()
+                    val destinations = instance.supportDestinationTypes().sorted()
+                    sources.forEach { src ->
+                        destinations.forEach { dest ->
+                            val key = calcKey(src, dest)
+                            if (comparators.containsKey(key)) {
+                                logger.warn(
+                                    "comparator conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                        comparators.getValue(
+                                            key
+                                        )::class.java.canonicalName
+                                    }"
+                                )
+                                logger.warn(
+                                    "comparator: $src -> $dest: ${
+                                        comparators.getValue(key)::class.java.canonicalName
+                                    } is override"
+                                )
                             }
-                        } catch (e: Exception) {
-                            logger.error("error occurs in instantiating ${clz.canonicalName}")
+                            comparators[key] = instance
                         }
                     }
+                }
+            }
+        }
+
+        private fun registerTransformers(vararg packageNames: String) {
+            for (packageName in packageNames) {
+                val typedColumnTransformers = Reflections(packageName, Scanners.SubTypes)
+                    .getSubTypesOf(TypedColumnTransformer::class.java)
+                for (clz in typedColumnTransformers) {
+                    val instance: TypedColumnTransformer
+                    try {
+                        logger.debug("${clz.canonicalName} is found for ColumnConverter")
+                        instance = clz.getConstructor().newInstance()
+                    } catch (e: Exception) {
+                        logger.error("error occurs in instantiating ${clz.canonicalName}")
+                        continue
+                    }
+                    val sources = instance.supportSourceTypes().sorted()
+                    val destinations = instance.supportDestinationTypes().sorted()
+                    sources.forEach { src ->
+                        destinations.forEach { dest ->
+                            val key = calcKey(src, dest)
+                            if (transformers.containsKey(key)) {
+                                logger.warn(
+                                    "converter conflicted: $src -> $dest: ${clz.canonicalName} -- ${
+                                        transformers.getValue(
+                                            key
+                                        )::class.java.canonicalName
+                                    }"
+                                )
+                                logger.warn(
+                                    "converter: $src -> $dest: ${
+                                        transformers.getValue(key)::class.java.canonicalName
+                                    } is override"
+                                )
+                            }
+                            transformers[key] = instance
+                        }
+                    }
+                }
             }
         }
 
