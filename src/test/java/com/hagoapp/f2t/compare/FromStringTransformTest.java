@@ -9,15 +9,12 @@ package com.hagoapp.f2t.compare;
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
 import com.hagoapp.f2t.Quintet;
-import kotlin.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.time.*;
-import java.time.chrono.ChronoZonedDateTime;
-import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
