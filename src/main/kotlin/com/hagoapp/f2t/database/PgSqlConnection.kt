@@ -10,6 +10,7 @@ import com.hagoapp.f2t.*
 import com.hagoapp.f2t.util.ColumnMatcher
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.sql.ResultSet
 import java.sql.SQLException
 
 /**
@@ -224,28 +225,7 @@ open class PgSqlConnection : DbConnection() {
             val colOrderMap = mutableMapOf<String, MutableList<Int>>()
             st.executeQuery().use { rs ->
                 while (rs.next()) {
-                    val keyName = rs.getString("conname")
-                    val colName = rs.getString("attname")
-                    val attNum = rs.getInt("attnum")
-                    val conKey = rs.getArray("conkey").array
-                    if (conKey !is Array<*>) {
-                        throw UnsupportedOperationException("PostgreSQL attNum err: $conKey")
-                    }
-                    val attNumbers = conKey.map { it!!.toString().toInt() }.toMutableList()
-                    if (!attNumbers.contains(attNum)) {
-                        continue
-                    }
-                    if (!map.contains(keyName)) {
-                        val fields = attNumbers.map { if (attNum == it) colName else "" }.toMutableList()
-                        map[keyName] = fields
-                        colOrderMap[keyName] = attNumbers
-                    } else {
-                        val index = colOrderMap.getValue(keyName).indexOf(attNum)
-                        if (index < 0) {
-                            throw UnsupportedOperationException("PostgreSQL key num error: $colName $attNum in Key $keyName")
-                        }
-                        map.getValue(keyName)[index] = colName
-                    }
+                    processUniqueConstraintRow(rs, map, colOrderMap)
                 }
             }
             val colMatcher = ColumnMatcher.getColumnMatcher(isCaseSensitive())
@@ -253,6 +233,35 @@ open class PgSqlConnection : DbConnection() {
                 val columns = colNames.map { col -> refColumns.first { ref -> colMatcher.invoke(ref.name, col) } }
                 TableUniqueDefinition(constraint, columns, isCaseSensitive())
             }.toSet()
+        }
+    }
+
+    private fun processUniqueConstraintRow(
+        rs: ResultSet,
+        map: MutableMap<String, MutableList<String>>,
+        colOrderMap: MutableMap<String, MutableList<Int>>
+    ) {
+        val keyName = rs.getString("conname")
+        val colName = rs.getString("attname")
+        val attNum = rs.getInt("attnum")
+        val conKey = rs.getArray("conkey").array
+        if (conKey !is Array<*>) {
+            throw UnsupportedOperationException("PostgreSQL attNum err: $conKey")
+        }
+        val attNumbers = conKey.map { it!!.toString().toInt() }.toMutableList()
+        if (!attNumbers.contains(attNum)) {
+            return
+        }
+        if (!map.contains(keyName)) {
+            val fields = attNumbers.map { if (attNum == it) colName else "" }.toMutableList()
+            map[keyName] = fields
+            colOrderMap[keyName] = attNumbers
+        } else {
+            val index = colOrderMap.getValue(keyName).indexOf(attNum)
+            if (index < 0) {
+                throw UnsupportedOperationException("PostgreSQL key num error: $colName $attNum in Key $keyName")
+            }
+            map.getValue(keyName)[index] = colName
         }
     }
 
