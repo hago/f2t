@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**

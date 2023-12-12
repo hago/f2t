@@ -16,8 +16,6 @@ import java.sql.*
 import java.sql.JDBCType.*
 import java.time.ZonedDateTime
 import java.util.*
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.math.log10
 import kotlin.math.pow
