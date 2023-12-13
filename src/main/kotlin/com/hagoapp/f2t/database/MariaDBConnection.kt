@@ -33,6 +33,12 @@ open class MariaDBConnection : DbConnection() {
     override fun getAvailableTables(): Map<String, List<TableName>> {
         val databases = listDatabases()
         val ret = mutableMapOf<String, List<TableName>>()
+        val defaultDb = connection.prepareStatement("select database()").use { stmt ->
+            stmt.executeQuery().use { rs ->
+                rs.next()
+                rs.getString(1)
+            }
+        }
         databases.forEach { database ->
             val tables = mutableListOf<TableName>()
             connection.prepareStatement("use ${normalizeName(database)}").use { it.execute() }
@@ -47,6 +53,7 @@ open class MariaDBConnection : DbConnection() {
             tables.sortBy { it.tableName }
             ret[database] = tables
         }
+        connection.prepareStatement("use $defaultDb").use { it.execute() }
         return ret
     }
 
@@ -261,12 +268,12 @@ open class MariaDBConnection : DbConnection() {
             type == "bit" -> BIT
             type == "boolean" || type == "bool" -> BOOLEAN
             type == "timestamp" || type == "datetime" -> TIMESTAMP_WITH_TIMEZONE
-            type == "text" || type == "longtext" || type == "mediumtext"|| type == "tinytext"-> CLOB
+            type == "text" || type == "longtext" || type == "mediumtext" || type == "tinytext" -> CLOB
             type.startsWith("tinyint") -> TINYINT
             type.startsWith("smallint") -> SMALLINT
-            type.startsWith("int") || type.startsWith("mediumint") || type.startsWith("integer")-> INTEGER
-            type.startsWith("bigint")-> BIGINT
-            type.startsWith("float")|| type.startsWith("real") -> FLOAT
+            type.startsWith("int") || type.startsWith("mediumint") || type.startsWith("integer") -> INTEGER
+            type.startsWith("bigint") -> BIGINT
+            type.startsWith("float") || type.startsWith("real") -> FLOAT
             type.startsWith("double") -> DOUBLE
             type in listOf("decimal", "dec", "numeric", "fixed") -> DECIMAL
             type in listOf("date", "year") -> DATE
