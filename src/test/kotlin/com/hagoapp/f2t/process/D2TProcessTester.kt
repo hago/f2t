@@ -51,7 +51,7 @@ class D2TProcessTester {
         Assertions.assertTrue(dtObserver.succeeded)
 
         dbConfig.createConnection().use { con ->
-            val process = D2TProcess(dtObserver.getDataTable(), con, f2tConfig)
+            val process = D2TProcess(dtObserver.dataTableInfo(), con, f2tConfig)
             val result = process.run()
             logger.debug("D2T result: {}", result)
             Assertions.assertTrue(result.isSucceeded)

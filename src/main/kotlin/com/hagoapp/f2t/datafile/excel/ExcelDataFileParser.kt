@@ -57,7 +57,7 @@ class ExcelDataFileParser {
      *
      * @return excel metadata
      */
-    fun getInfo(): ExcelInfo {
+    fun excelInfo(): ExcelInfo {
         return info
     }
 }

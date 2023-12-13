@@ -63,7 +63,7 @@ class DataTableParserObserver : ParseObserver {
      *
      * @return data table
      */
-    fun getDataTable(): DataTable<FileColumnDefinition> {
+    fun dataTableInfo(): DataTable<FileColumnDefinition> {
         if (!completed) {
             throw F2TException("parsing not completed")
         }

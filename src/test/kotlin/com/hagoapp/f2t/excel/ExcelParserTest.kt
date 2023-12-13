@@ -35,11 +35,11 @@ class ExcelParserTest {
             val config = readConfigFile(configFile)
             FileInputStream(config.fileInfo.filename!!).use {
                 val parser = ExcelDataFileParser(it)
-                Assertions.assertEquals(1, parser.getInfo().sheets.size)
-                Assertions.assertEquals(config.expect.rowCount, parser.getInfo().sheets[0].rowCount - 1)
-                Assertions.assertEquals(config.expect.columnCount, parser.getInfo().sheets[0].columns.size)
+                Assertions.assertEquals(1, parser.excelInfo().sheets.size)
+                Assertions.assertEquals(config.expect.rowCount, parser.excelInfo().sheets[0].rowCount - 1)
+                Assertions.assertEquals(config.expect.columnCount, parser.excelInfo().sheets[0].columns.size)
                 Assertions.assertTrue(
-                    config.expect.types.keys.subtract(parser.getInfo().sheets[0].columns.toSet()).isEmpty()
+                    config.expect.types.keys.subtract(parser.excelInfo().sheets[0].columns.toSet()).isEmpty()
                 )
             }
         }
@@ -50,11 +50,11 @@ class ExcelParserTest {
         for (configFile in testConfigFiles) {
             val config = readConfigFile(configFile)
             val parser = ExcelDataFileParser(config.fileInfo.filename!!)
-            Assertions.assertEquals(1, parser.getInfo().sheets.size)
-            Assertions.assertEquals(config.expect.rowCount, parser.getInfo().sheets[0].rowCount - 1)
-            Assertions.assertEquals(config.expect.columnCount, parser.getInfo().sheets[0].columns.size)
+            Assertions.assertEquals(1, parser.excelInfo().sheets.size)
+            Assertions.assertEquals(config.expect.rowCount, parser.excelInfo().sheets[0].rowCount - 1)
+            Assertions.assertEquals(config.expect.columnCount, parser.excelInfo().sheets[0].columns.size)
             Assertions.assertTrue(
-                config.expect.types.keys.subtract(parser.getInfo().sheets[0].columns.toSet()).isEmpty()
+                config.expect.types.keys.subtract(parser.excelInfo().sheets[0].columns.toSet()).isEmpty()
             )
         }
     }
@@ -64,7 +64,7 @@ class ExcelParserTest {
         val fn = File("./tests/excel/empty.xlsx")
         FileInputStream(fn).use { fis ->
             val p = ExcelDataFileParser(fis)
-            val info = p.getInfo()
+            val info = p.excelInfo()
             Assertions.assertEquals(3, info.sheets.size)
             Assertions.assertTrue(info.sheets[0].columns.isEmpty())
             Assertions.assertFalse(info.sheets[1].columns.isEmpty())
