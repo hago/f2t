@@ -328,7 +328,7 @@ open class MsSqlConnection : DbConnection() {
             val transformer = ColumnComparator.getTransformer(fileCol, dbCol)
             when (dbCol.databaseTypeName) {
                 "datetimeoffset" -> object : DbFieldSetter() {
-                    override fun set(stmt: PreparedStatement, i: Int, value: Any?) {
+                    override fun setValueForFieldIndex(stmt: PreparedStatement, i: Int, value: Any?) {
                         val newValue = this.transformer.transform(value)
                         if (newValue != null) {
                             val st = stmt as SQLServerPreparedStatement

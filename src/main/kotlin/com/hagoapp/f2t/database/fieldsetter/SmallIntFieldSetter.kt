@@ -12,7 +12,7 @@ import java.sql.Types
 
 class SmallIntFieldSetter : DbFieldSetter() {
 
-    override fun set(stmt: PreparedStatement, i: Int, value: Any?) {
+    override fun setValueForFieldIndex(stmt: PreparedStatement, i: Int, value: Any?) {
         val newValue = if (transformer == null) value else transformer.transform(value)
         if (newValue != null) stmt.setShort(i, newValue as Short) else stmt.setNull(i, Types.SMALLINT)
     }

@@ -283,7 +283,7 @@ abstract class DbConnection : Closeable {
                         cell.data,
                         cell.data?.javaClass?.canonicalName
                     )
-                    fieldValueSetter[i].set(stmt, i + 1, cell.data)
+                    fieldValueSetter[i].setValueForFieldIndex(stmt, i + 1, cell.data)
                 }
                 stmt.addBatch()
             }
@@ -324,7 +324,7 @@ abstract class DbConnection : Closeable {
                 createFieldSetter(converter.first) { converter.second.invoke(it) }
             }
         }
-        fieldValueSetters[table]!!.forEachIndexed { i, func ->
+        fieldValueSetters.getValue(table).forEachIndexed { i, func ->
             logger.debug("col {} {} setter: {}", i, sortedColumns[i].name, func::class.java)
         }
     }

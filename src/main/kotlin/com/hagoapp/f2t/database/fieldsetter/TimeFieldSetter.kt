@@ -14,7 +14,7 @@ import java.time.LocalTime
 
 class TimeFieldSetter : DbFieldSetter() {
 
-    override fun set(stmt: PreparedStatement, i: Int, value: Any?) {
+    override fun setValueForFieldIndex(stmt: PreparedStatement, i: Int, value: Any?) {
         val newValue = if (transformer == null) value else transformer.transform(value)
         if (newValue != null) stmt.setTime(i, Time.valueOf(newValue as LocalTime))
         else stmt.setNull(i, Types.TIME_WITH_TIMEZONE)

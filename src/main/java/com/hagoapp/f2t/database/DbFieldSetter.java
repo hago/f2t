@@ -14,7 +14,7 @@ public abstract class DbFieldSetter {
 
     protected DataTransformer transformer = DataTransformer.defaultTransformer;
 
-    public abstract void set(@NotNull PreparedStatement stmt, int i, Object value);
+    public abstract void setValueForFieldIndex(@NotNull PreparedStatement stmt, int i, Object value);
 
     public DbFieldSetter withTransformer(DataTransformer transformer) {
         this.transformer = transformer;

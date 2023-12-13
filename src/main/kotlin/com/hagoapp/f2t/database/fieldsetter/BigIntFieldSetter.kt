@@ -12,7 +12,7 @@ import java.sql.Types
 
 class BigIntFieldSetter : DbFieldSetter() {
 
-    override fun set(stmt: PreparedStatement, i: Int, value: Any?) {
+    override fun setValueForFieldIndex(stmt: PreparedStatement, i: Int, value: Any?) {
         val newValue = if (transformer == null) value else transformer.transform(value)
         if (newValue != null) stmt.setLong(i, newValue as Long) else stmt.setNull(i, Types.BIGINT)
     }
