@@ -65,6 +65,7 @@ class DbConnectionFactory {
          * @return Database implementation instance
          */
         @JvmStatic
+        @JvmOverloads
         fun createDbConnection(connection: Connection, properties: Map<String, Any> = mapOf()): DbConnection {
             val name = DriverManager.getDriver(connection.metaData.url).javaClass.canonicalName.lowercase()
             return when (val clz = typedConnectionMapper[name]) {
