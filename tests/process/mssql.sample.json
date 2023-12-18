@@ -2,7 +2,7 @@
     "dbType": "Microsoft SQL Sever",
     "host": "127.0.0.1",
     "port": 1433,
-    "username": "sa",
+    "username": "f2t",
     "password": "!!abc123",
     "databaseName": "f2tdb",
     "trustServerCertificate": true

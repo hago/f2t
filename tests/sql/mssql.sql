@@ -1,3 +1,20 @@
+CREATE LOGIN f2t with password = '!!abc123'
+go
+
+CREATE database f2tdb
+go
+
+use f2tdb
+
+create user f2t for login f2t
+go
+
+grant all to f2t
+go
+
+grant CONTROL on SCHEMA::dbo to f2t
+go
+
 create table demo (
     uuid uniqueidentifier not null,
     id int identity not null,
