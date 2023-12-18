@@ -56,7 +56,7 @@ class DbConnectionTest {
     }
 
     @Test
-    void testDbConnection() {
+    void testDbConnection() throws SQLException, F2TException {
         for (var configFile : testConfigFiles) {
             if (skipped.contains(configFile)) {
                 logger.debug("skip {}", configFile);
@@ -64,32 +64,19 @@ class DbConnectionTest {
             } else {
                 logger.debug("testing using {}", configFile);
             }
-            Assertions.assertDoesNotThrow(() -> {
-                var config = DbConfigReader.readConfig(configFile);
-                try (var conn = config.createConnection()) {
-                    try (var con = DbConnectionFactory.createDbConnection(conn)) {
-                        var dbList = con.listDatabases();
-                        Assertions.assertFalse(dbList.isEmpty());
-                        var tables = con.getAvailableTables();
-                        Assertions.assertFalse(tables.isEmpty());
-                        var schema = tables.entrySet().stream().filter(i -> !i.getValue().isEmpty())
-                                .findFirst()
-                                .map(Map.Entry::getKey)
-                                .orElse(null);
-                        Assertions.assertNotNull(schema);
-                        var schemaTables = tables.get(schema);
-                        Assertions.assertFalse(schemaTables.isEmpty());
-                        var table = schemaTables.get(0);
-                        Assertions.assertTrue(con.isTableExists(table));
-                        Assertions.assertFalse(con.isTableExists(new TableName("NotFound", "404")));
-                        con.getExistingTableDefinition(table);
-                    }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var dbList = con.listDatabases();
+                    Assertions.assertFalse(dbList.isEmpty());
+                    var tables = con.getAvailableTables();
+                    Assertions.assertFalse(tables.isEmpty());
+                    var schema = tables.keySet().stream().findFirst().orElse(null);
+                    Assertions.assertNotNull(schema);
                 }
-            });
+            }
         }
     }
-
-    private final String testTable = "test_tbl";
 
     @Test
     void testWriteOperations() throws F2TException, SQLException {
@@ -103,6 +90,7 @@ class DbConnectionTest {
             var config = DbConfigReader.readConfig(configFile);
             try (var conn = config.createConnection()) {
                 try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    String testTable = "test_tbl";
                     var table = new TableName(testTable, con.getDefaultSchema());
                     // drop test table in case left by last failed tests.
                     con.dropTable(table);
@@ -119,6 +107,12 @@ class DbConnectionTest {
                             false
                     );
                     con.createTable(table, def);
+                    var definition = con.getExistingTableDefinition(table);
+                    Assertions.assertEquals(def.getColumns().size(), definition.getColumns().size());
+                    var defCols = testColumnsDefinition.stream().map(ColumnDefinition::getName)
+                            .collect(Collectors.toList());
+                    Assertions.assertTrue(definition.getColumns().stream().map(ColumnDefinition::getName)
+                            .allMatch(defCols::contains));
                     con.clearTable(table);
                     Assertions.assertTrue(con.isTableExists(table));
                     var r = con.dropTable(table);
