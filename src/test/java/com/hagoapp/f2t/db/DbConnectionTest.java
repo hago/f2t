@@ -56,6 +56,8 @@ class DbConnectionTest {
                 var config = DbConfigReader.readConfig(configFile);
                 try (var conn = config.createConnection()) {
                     try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                        var dbList = con.listDatabases();
+                        Assertions.assertFalse(dbList.isEmpty());
                         var tables = con.getAvailableTables();
                         Assertions.assertFalse(tables.isEmpty());
                         var schema = tables.entrySet().stream().filter(i -> !i.getValue().isEmpty())
