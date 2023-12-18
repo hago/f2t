@@ -1,3 +1,9 @@
+create user 'f2t'@'127.0.0.1' identified by 'f2t';
+
+create database f2tdb character set 'utf8';
+
+grant all on f2tdb.* to 'f2t'@'127.0.0.1';
+
 CREATE OR REPLACE TABLE demo (
     id bigint not null,
     code char(20),
