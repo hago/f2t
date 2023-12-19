@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 class DbConnectionTest {
@@ -41,6 +42,9 @@ class DbConnectionTest {
     private static final List<String> skipped = new ArrayList<>();
     private static final List<ColumnDefinition> testColumnsDefinition = List.of(
             new ColumnDefinition("intCol", JDBCType.INTEGER),
+            new ColumnDefinition("longCol", JDBCType.BIGINT),
+            new ColumnDefinition("floatCol", JDBCType.FLOAT),
+            new ColumnDefinition("doubleCol", JDBCType.DOUBLE),
             new ColumnDefinition("stringCol", JDBCType.CLOB),
             new ColumnDefinition("boolCol", JDBCType.BOOLEAN),
             new ColumnDefinition("timestampCol", JDBCType.TIMESTAMP)
@@ -139,5 +143,78 @@ class DbConnectionTest {
                 }
             }
         }
+    }
+
+    @Test
+    void testCreateTable() throws F2TException, SQLException {
+        for (var configFile : testConfigFiles) {
+            if (skipped.contains(configFile)) {
+                logger.debug("skip {}", configFile);
+                continue;
+            } else {
+                logger.debug("testing using {}", configFile);
+            }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var caseSensitive = con.isCaseSensitive();
+                    var testTable = new TableName("test_tbl", con.getDefaultSchema());
+                    var tableDefinitions = List.of(
+                            createTableDefinition(caseSensitive),
+                            createTableDefinition(caseSensitive, testColumnsDefinition.subList(0, 1).stream()
+                                    .map(ColumnDefinition::getName).collect(Collectors.toList())),
+                            createTableDefinition(
+                                    caseSensitive,
+                                    testColumnsDefinition.subList(0, 2).stream()
+                                            .map(ColumnDefinition::getName).collect(Collectors.toList()),
+                                    List.of(
+                                            testColumnsDefinition.subList(2, 4).stream()
+                                                    .map(ColumnDefinition::getName).collect(Collectors.toList()),
+                                            testColumnsDefinition.subList(6, 7).stream()
+                                                    .map(ColumnDefinition::getName).collect(Collectors.toList())
+                                    )
+                            )
+                    );
+                    for (var def : tableDefinitions) {
+                        con.dropTable(testTable);
+                        con.createTable(testTable, def);
+                        Assertions.assertTrue(con.isTableExists(testTable));
+                        con.dropTable(testTable);
+                    }
+                }
+            }
+        }
+    }
+
+    private TableDefinition<ColumnDefinition> createTableDefinition(boolean caseSensitive) {
+        return new TableDefinition<>(testColumnsDefinition, caseSensitive, null, false);
+    }
+
+    private TableDefinition<ColumnDefinition> createTableDefinition(boolean caseSensitive, List<String> primaryKeyColumns) {
+        return createTableDefinition(caseSensitive, primaryKeyColumns, null);
+    }
+
+    private TableDefinition<ColumnDefinition> createTableDefinition(
+            boolean caseSensitive, List<String> primaryKeyColumns, List<List<String>> uniques) {
+        BiFunction<String, String, Boolean> colMatcher = caseSensitive ? String::equals : String::equalsIgnoreCase;
+        var primaryKey = new TableUniqueDefinition<>("primaryKey_unit_test", primaryKeyColumns.stream()
+                .map(colName ->
+                        testColumnsDefinition.stream().filter(col -> colMatcher.apply(col.getName(), colName))
+                                .findFirst().orElse(null)
+                ).collect(Collectors.toList()), caseSensitive);
+        primaryKey.getColumns().forEach(col -> col.getTypeModifier().setNullable(false));
+        var tblDef = new TableDefinition<>(testColumnsDefinition, caseSensitive, primaryKey, false);
+        if (uniques != null) {
+            var uniqueDef = uniques.stream().map(unique -> {
+                var uniqueCols = unique.stream().map(colName ->
+                        testColumnsDefinition.stream().filter(col -> colMatcher.apply(col.getName(), colName))
+                                .findFirst().orElse(null)
+                ).collect(Collectors.toList());
+                var name = "unique_" + String.join("_", unique);
+                return new TableUniqueDefinition<>(name, uniqueCols, caseSensitive);
+            }).collect(Collectors.toSet());
+            tblDef.setUniqueConstraints(uniqueDef);
+        }
+        return tblDef;
     }
 }
