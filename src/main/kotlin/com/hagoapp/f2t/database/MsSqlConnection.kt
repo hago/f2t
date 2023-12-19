@@ -157,7 +157,7 @@ open class MsSqlConnection : DbConnection() {
         } else {
             tableDefinition.uniqueConstraints.joinToString(",") {
                 val head = "CONSTRAINT ${normalizeName(it.name)} unique "
-                val uniqueCols = it.columns.joinToString(",") { col -> normalizeName(col.name) }
+                val uniqueCols = "(${it.columns.joinToString(",") { col -> normalizeName(col.name) }})"
                 head + uniqueCols
             }
         }
