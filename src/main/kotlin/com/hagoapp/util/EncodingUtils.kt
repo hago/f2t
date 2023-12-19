@@ -17,7 +17,6 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.time.Instant
-import javax.xml.bind.annotation.XmlType.DEFAULT
 
 /**
  * A utility class to deal with encodings.
