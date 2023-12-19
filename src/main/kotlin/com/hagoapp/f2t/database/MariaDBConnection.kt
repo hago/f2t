@@ -118,23 +118,20 @@ open class MariaDBConnection : DbConnection() {
         }
         val engine = extraProperties[MariaDbConfig.STORE_ENGINE_NAME]?.toString()
             ?: MariaDbConfig.DEFAULT_STORE_ENGINE_INNODB
-        val wrapper = getWrapperCharacter()
         val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
             null
         } else {
             val p = tableDefinition.primaryKey!!
-            "constraint ${wrapper.first}${escapeNameString(p.name)}${wrapper.second} primary key (${
-                p.columns.joinToString(
-                    ", "
-                ) { "${wrapper.first}${escapeNameString(it.name)}${wrapper.second}" }
+            "constraint ${normalizeName(p.name)} primary key (${
+                p.columns.joinToString(", ") { normalizeName(it.name) }
             })"
         }
         val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
             null
         } else {
             tableDefinition.uniqueConstraints.joinToString(",") {
-                val head = "CONSTRAINT ${wrapper.first}${escapeNameString(it.name)}${wrapper.second} unique "
-                val uniqueCols = it.columns.joinToString(",") { col -> col.name }
+                val head = "CONSTRAINT ${normalizeName(it.name)} unique "
+                val uniqueCols = it.columns.joinToString(",") { col -> normalizeName(col.name) }
                 head + uniqueCols
             }
         }

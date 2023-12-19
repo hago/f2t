@@ -117,9 +117,8 @@ open class PgSqlConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         val tableFullName = getFullTableName(table)
-        val wrapper = getWrapperCharacter()
         val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
-            val colLine = "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second}" + " ${
+            val colLine = "${normalizeName(colDef.name)} ${
                 convertJDBCTypeToDBNativeType(
                     colDef.dataType,
                     colDef.typeModifier
@@ -132,18 +131,16 @@ open class PgSqlConnection : DbConnection() {
             null
         } else {
             val p = tableDefinition.primaryKey!!
-            "constraint ${wrapper.first}${escapeNameString(p.name)}${wrapper.second} primary key (${
-                p.columns.joinToString(
-                    ", "
-                ) { "${wrapper.first}${escapeNameString(it.name)}${wrapper.second}" }
+            "constraint ${normalizeName(p.name)} primary key (${
+                p.columns.joinToString(", ") { normalizeName(it.name) }
             })"
         }
         val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
             null
         } else {
             tableDefinition.uniqueConstraints.joinToString(",") {
-                val head = "CONSTRAINT ${wrapper.first}${escapeNameString(it.name)}${wrapper.second} unique "
-                val uniqueCols = it.columns.joinToString(",") { col -> col.name }
+                val head = "CONSTRAINT ${normalizeName(it.name)} unique "
+                val uniqueCols = it.columns.joinToString(",") { col -> normalizeName(col.name) }
                 head + uniqueCols
             }
         }
