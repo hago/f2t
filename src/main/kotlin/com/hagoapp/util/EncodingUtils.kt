@@ -15,6 +15,9 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.time.Instant
+import javax.xml.bind.annotation.XmlType.DEFAULT
 
 /**
  * A utility class to deal with encodings.
@@ -33,6 +36,7 @@ class EncodingUtils {
          * @param stream input stream which should be text
          * @return the name of character set being used
          */
+        @JvmStatic
         fun guessEncoding(stream: InputStream): String {
             val det = UniversalDetector(null)
             ByteArrayOutputStream().use {
@@ -62,6 +66,7 @@ class EncodingUtils {
          * @param file input file object which should be text
          * @return the name of character set being used
          */
+        @JvmStatic
         fun guessEncoding(file: File): String {
             FileInputStream(file).use {
                 return guessEncoding(it)
@@ -74,6 +79,7 @@ class EncodingUtils {
          * @param fileName input file name which should be text
          * @return the name of character set being used
          */
+        @JvmStatic
         fun guessEncoding(fileName: String): String {
             FileInputStream(fileName).use {
                 return guessEncoding(it)
@@ -86,12 +92,14 @@ class EncodingUtils {
          * @param enc   input encoding name
          * @return Java encoding name, or UTF-8 if attempts for input are failed
          */
+        @JvmStatic
         fun normalizeEncoding(enc: String?): String {
             val allCharSets = Charset.availableCharsets().keys
             return when {
                 enc == null -> StandardCharsets.UTF_8.displayName()
                 allCharSets.any { it.compareTo(enc, true) == 0 } ->
                     mapDetectorEnc2JavaEnc(enc, StandardCharsets.UTF_8.displayName())!!
+
                 else -> StandardCharsets.UTF_8.displayName()
             }
         }
@@ -103,6 +111,7 @@ class EncodingUtils {
          * @param enc   mozilla encoding name
          * @return Java encoding name
          */
+        @JvmStatic
         fun mapDetectorEnc2JavaEnc(enc: String): String? {
             return mapDetectorEnc2JavaEnc(enc, null)
         }
@@ -115,6 +124,7 @@ class EncodingUtils {
          * @param default   failsafe encoding name
          * @return Java encoding name
          */
+        @JvmStatic
         fun mapDetectorEnc2JavaEnc(enc: String, default: String?): String? {
             return when (val enc0 = enc.uppercase()) {
                 "ISO-2022-JP",
@@ -140,6 +150,7 @@ class EncodingUtils {
                 "UTF-16LE",
                 "UTF-32BE",
                 "UTF-32LE" -> enc0
+
                 "BIG-5" -> "Big5"
                 "EUC-TW" -> "x-EUC-TW"
                 "HZ-GB-2312" -> "GB18030"
@@ -157,6 +168,7 @@ class EncodingUtils {
          * @param s input text
          * @return true if none of any non-ascii character exists, otherwise false
          */
+        @JvmStatic
         fun isAsciiText(s: String?): Boolean {
             if (s == null) {
                 return true
@@ -169,6 +181,19 @@ class EncodingUtils {
             } catch (e: CharacterCodingException) {
                 false
             }
+        }
+
+        const val DEFAULT_CANDIDATE_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        const val LETTERS_ONLY_CANDIDATE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+        @JvmStatic
+        @JvmOverloads
+        fun createRandomString(size: Int, candidateChars: String = DEFAULT_CANDIDATE_CHARS): String {
+            val seed = Instant.now().toEpochMilli()
+            val random = SecureRandom(ByteArray(8) { i -> seed.shr(i).and(0x000000ff).toByte() })
+            return String(CharArray(size) { _ ->
+                candidateChars[random.nextInt(candidateChars.length)]
+            })
         }
     }
 
