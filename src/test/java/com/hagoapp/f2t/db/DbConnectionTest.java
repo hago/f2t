@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 class DbConnectionTest {
@@ -42,9 +41,9 @@ class DbConnectionTest {
     private static final List<String> skipped = new ArrayList<>();
     private static final List<ColumnDefinition> testColumnsDefinition = List.of(
             new ColumnDefinition("intCol", JDBCType.INTEGER),
-            new ColumnDefinition("intString", JDBCType.CLOB),
-            new ColumnDefinition("intBool", JDBCType.BOOLEAN),
-            new ColumnDefinition("intTimestamp", JDBCType.TIMESTAMP)
+            new ColumnDefinition("stringCol", JDBCType.CLOB),
+            new ColumnDefinition("boolCol", JDBCType.BOOLEAN),
+            new ColumnDefinition("timestampCol", JDBCType.TIMESTAMP)
     );
 
     @BeforeAll
@@ -96,17 +95,7 @@ class DbConnectionTest {
                     // drop test table in case left by last failed tests.
                     con.dropTable(table);
                     var caseSensitive = con.isCaseSensitive();
-                    var primaryKeyDef = new TableUniqueDefinition<>(
-                            "pkey_unit_test",
-                            testColumnsDefinition.subList(0, 1),
-                            caseSensitive
-                    );
-                    var def = new TableDefinition<>(
-                            testColumnsDefinition,
-                            caseSensitive,
-                            primaryKeyDef,
-                            false
-                    );
+                    var def = new TableDefinition<>(testColumnsDefinition, caseSensitive, null, false);
                     con.createTable(table, def);
                     var definition = con.getExistingTableDefinition(table);
                     Assertions.assertEquals(def.getColumns().size(), definition.getColumns().size());
