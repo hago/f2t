@@ -184,7 +184,8 @@ open class MsSqlConnection : DbConnection() {
             """.trimIndent()
         connection.prepareStatement(sql).use { stmt ->
             stmt.setString(1, table.tableName)
-            stmt.setString(2, table.schema.ifBlank { getDefaultSchema() })
+            val schema = table.schema.ifBlank { getDefaultSchema() }
+            stmt.setString(2, schema)
             stmt.executeQuery().use { rs ->
                 val tblColDef = mutableListOf<ColumnDefinition>()
                 while (rs.next()) {
@@ -199,6 +200,11 @@ open class MsSqlConnection : DbConnection() {
                     colDef.typeModifier.collation = rs.getString("collation_name")
                     colDef.typeModifier.isNullable = rs.getBoolean("is_nullable")
                     tblColDef.add(colDef)
+                }
+                if (tblColDef.isEmpty()) {
+                    throw SQLException(
+                        "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
+                    )
                 }
                 val ret = TableDefinition(tblColDef, isCaseSensitive())
                 val uqKeys = findPrimaryKeyAndUniques(table, ret.columns)

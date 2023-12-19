@@ -98,7 +98,7 @@ open class PgSqlConnection : DbConnection() {
 
     override fun dropTable(tableName: String): Pair<Boolean, String?> {
         try {
-            connection.prepareStatement("drop table if exists $tableName").use { st ->
+            connection.prepareStatement("drop table $tableName").use { st ->
                 st.execute()
                 return Pair(true, null)
             }
@@ -174,7 +174,7 @@ open class PgSqlConnection : DbConnection() {
                     tblColDef.add(colDef)
                 }
                 if (tblColDef.isEmpty()) {
-                    throw F2TException(
+                    throw SQLException(
                         "Column definition of table ${getFullTableName(schema, table.tableName)} not found"
                     )
                 }
