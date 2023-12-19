@@ -13,6 +13,7 @@ import com.hagoapp.f2t.TableUniqueDefinition;
 import com.hagoapp.f2t.database.DbConnectionFactory;
 import com.hagoapp.f2t.database.TableName;
 import com.hagoapp.f2t.database.config.DbConfigReader;
+import com.hagoapp.util.EncodingUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,33 @@ class DbConnectionTest {
                     logger.debug("drop message: {}", r.getSecond());
                     Assertions.assertTrue(r.getFirst());
                     Assertions.assertFalse(con.isTableExists(table));
+                }
+            }
+        }
+    }
+
+
+    @Test
+    void testNotExistedTable() throws F2TException, SQLException {
+        var tbl = "t" + EncodingUtils.createRandomString(32, EncodingUtils.LETTERS_ONLY_CANDIDATE_CHARS);
+        var schema = "s" + EncodingUtils.createRandomString(16, EncodingUtils.DEFAULT_CANDIDATE_CHARS);
+        var table = new TableName(tbl, schema);
+        for (var configFile : testConfigFiles) {
+            if (skipped.contains(configFile)) {
+                logger.debug("skip {}", configFile);
+                continue;
+            } else {
+                logger.debug("testing using {}", configFile);
+            }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    Assertions.assertFalse(con.isTableExists(table));
+                    Assertions.assertThrows(SQLException.class, () -> con.getExistingTableDefinition(table));
+                    var r = con.clearTable(table);
+                    Assertions.assertFalse(r.getFirst());
+                    r = con.dropTable(table);
+                    Assertions.assertFalse(r.getFirst());
                 }
             }
         }

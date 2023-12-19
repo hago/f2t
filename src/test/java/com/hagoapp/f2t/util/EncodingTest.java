@@ -24,4 +24,13 @@ class EncodingTest {
         ).forEach((text, result) -> Assertions.assertEquals(
                 EncodingUtils.Companion.isAsciiText(text), result));
     }
+
+    @Test
+    void testCreateRandomString() {
+        var len = 17;
+        var s = EncodingUtils.createRandomString(len);
+        Assertions.assertEquals(len, s.length());
+        s = EncodingUtils.createRandomString(3, "x");
+        Assertions.assertEquals("xxx", s);
+    }
 }
