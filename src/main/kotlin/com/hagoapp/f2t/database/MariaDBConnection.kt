@@ -111,11 +111,37 @@ open class MariaDBConnection : DbConnection() {
     }
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
-        val content = tableDefinition.columns.joinToString(", ") { col ->
-            "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)} null"
+        var content = tableDefinition.columns.joinToString(", ") { col ->
+            val colDef = "${normalizeName(col.name)} ${convertJDBCTypeToDBNativeType(col.dataType!!, col.typeModifier)}"
+            val nullable = if (col.typeModifier.isNullable) "null" else "not null"
+            "$colDef $nullable"
         }
         val engine = extraProperties[MariaDbConfig.STORE_ENGINE_NAME]?.toString()
             ?: MariaDbConfig.DEFAULT_STORE_ENGINE_INNODB
+        val wrapper = getWrapperCharacter()
+        val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
+            null
+        } else {
+            val p = tableDefinition.primaryKey!!
+            "constraint ${wrapper.first}${escapeNameString(p.name)}${wrapper.second} primary key (${
+                p.columns.joinToString(
+                    ", "
+                ) { "${wrapper.first}${escapeNameString(it.name)}${wrapper.second}" }
+            })"
+        }
+        val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
+            null
+        } else {
+            tableDefinition.uniqueConstraints.joinToString(",") {
+                val head = "CONSTRAINT ${wrapper.first}${escapeNameString(it.name)}${wrapper.second} unique "
+                val uniqueCols = it.columns.joinToString(",") { col -> col.name }
+                head + uniqueCols
+            }
+        }
+        content = if (primaryKeyDef == null) content else "$content, $primaryKeyDef"
+        if (uniqueDef != null) {
+            content += ", $uniqueDef"
+        }
         val sql = """
             create table ${getFullTableName(table)} ($content) 
             engine = $engine

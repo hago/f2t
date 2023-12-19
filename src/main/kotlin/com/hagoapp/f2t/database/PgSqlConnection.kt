@@ -119,14 +119,39 @@ open class PgSqlConnection : DbConnection() {
         val tableFullName = getFullTableName(table)
         val wrapper = getWrapperCharacter()
         val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
-            "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second}" + " ${
+            val colLine = "${wrapper.first}${escapeNameString(colDef.name)}${wrapper.second}" + " ${
                 convertJDBCTypeToDBNativeType(
                     colDef.dataType,
                     colDef.typeModifier
                 )
             }"
+            val nullable = if (colDef.typeModifier.isNullable) "null" else "not null"
+            "$colLine $nullable"
         }
-        val sql = "create table $tableFullName ($defStr)"
+        val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
+            null
+        } else {
+            val p = tableDefinition.primaryKey!!
+            "constraint ${wrapper.first}${escapeNameString(p.name)}${wrapper.second} primary key (${
+                p.columns.joinToString(
+                    ", "
+                ) { "${wrapper.first}${escapeNameString(it.name)}${wrapper.second}" }
+            })"
+        }
+        val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
+            null
+        } else {
+            tableDefinition.uniqueConstraints.joinToString(",") {
+                val head = "CONSTRAINT ${wrapper.first}${escapeNameString(it.name)}${wrapper.second} unique "
+                val uniqueCols = it.columns.joinToString(",") { col -> col.name }
+                head + uniqueCols
+            }
+        }
+        var body = if (primaryKeyDef == null) defStr else "$defStr, $primaryKeyDef"
+        if (uniqueDef != null) {
+            body += ", $uniqueDef"
+        }
+        val sql = "create table $tableFullName ($body)"
         logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
     }
@@ -337,7 +362,7 @@ open class PgSqlConnection : DbConnection() {
         connection.prepareStatement(sql).use { stmt ->
             stmt.setInt(1, limit)
             stmt.executeQuery().use { rs ->
-                var ret = mutableListOf<List<Any?>>()
+                val ret = mutableListOf<List<Any?>>()
                 while (rs.next()) {
                     val line: MutableList<Any?> = columns.indices.map { null }.toMutableList()
                     for (i in columns.indices) {
