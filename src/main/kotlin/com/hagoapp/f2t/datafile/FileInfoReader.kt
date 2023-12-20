@@ -47,6 +47,7 @@ class FileInfoReader {
          * @param stream stream containing file information
          * @return data file information
          */
+        @JvmStatic
         fun createFileInfo(stream: InputStream): FileInfo {
             return createFileInfo(stream.readAllBytes())
         }
@@ -57,6 +58,7 @@ class FileInfoReader {
          * @param content bytes containing file information
          * @return data file information
          */
+        @JvmStatic
         fun createFileInfo(content: ByteArray): FileInfo {
             return json2FileInfo(String(content))
         }
@@ -67,6 +69,7 @@ class FileInfoReader {
          * @param filename json file containing file information
          * @return data file information
          */
+        @JvmStatic
         fun createFileInfo(filename: String): FileInfo {
             try {
                 FileInputStream(filename).use {
@@ -83,6 +86,7 @@ class FileInfoReader {
          * @param content json containing file information
          * @return data file information
          */
+        @JvmStatic
         fun json2FileInfo(content: String): FileInfo {
             val gson = GsonBuilder().create()
             val base = gson.fromJson(content, FileInfo::class.java)
@@ -99,6 +103,7 @@ class FileInfoReader {
          * @param content json containing file information
          * @return data file information
          */
+        @JvmStatic
         fun json2FileInfo(content: Map<String, Any?>): FileInfo {
             return json2FileInfo(GsonBuilder().create().toJson(content))
         }
