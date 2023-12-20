@@ -22,11 +22,10 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class DbConnectionTest {
 
@@ -159,31 +158,141 @@ class DbConnectionTest {
                 try (var con = DbConnectionFactory.createDbConnection(conn)) {
                     var caseSensitive = con.isCaseSensitive();
                     var testTable = new TableName("test_tbl", con.getDefaultSchema());
-                    var tableDefinitions = List.of(
-                            createTableDefinition(caseSensitive),
-                            createTableDefinition(caseSensitive, testColumnsDefinition.subList(0, 1).stream()
-                                    .map(ColumnDefinition::getName).collect(Collectors.toList())),
-                            createTableDefinition(
-                                    caseSensitive,
-                                    testColumnsDefinition.subList(0, 2).stream()
-                                            .map(ColumnDefinition::getName).collect(Collectors.toList()),
-                                    List.of(
-                                            testColumnsDefinition.subList(2, 4).stream()
-                                                    .map(ColumnDefinition::getName).collect(Collectors.toList()),
-                                            testColumnsDefinition.subList(6, 7).stream()
-                                                    .map(ColumnDefinition::getName).collect(Collectors.toList())
-                                    )
-                            )
-                    );
-                    for (var def : tableDefinitions) {
-                        con.dropTable(testTable);
-                        con.createTable(testTable, def);
-                        Assertions.assertTrue(con.isTableExists(testTable));
-                        con.dropTable(testTable);
-                    }
+                    var tableDefinitions = createTableDefinition(caseSensitive);
+                    con.dropTable(testTable);
+                    con.createTable(testTable, tableDefinitions);
+                    Assertions.assertTrue(con.isTableExists(testTable));
+                    var def = con.getExistingTableDefinition(testTable);
+                    Assertions.assertTrue(areTableColumnNamesEqual(tableDefinitions, def, caseSensitive));
+                    Assertions.assertNull(def.getPrimaryKey());
+                    Assertions.assertTrue(def.getUniqueConstraints().isEmpty());
+                    con.dropTable(testTable);
                 }
             }
         }
+    }
+
+    @Test
+    void testCreateTableWithPrimaryKey() throws F2TException, SQLException {
+        for (var configFile : testConfigFiles) {
+            if (skipped.contains(configFile)) {
+                logger.debug("skip {}", configFile);
+                continue;
+            } else {
+                logger.debug("testing using {}", configFile);
+            }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var caseSensitive = con.isCaseSensitive();
+                    var testTable = new TableName("test_tbl", con.getDefaultSchema());
+                    var tableDefinitions = createTableDefinition(caseSensitive, testColumnsDefinition.subList(0, 1).stream()
+                            .map(ColumnDefinition::getName).collect(Collectors.toList()));
+                    con.dropTable(testTable);
+                    con.createTable(testTable, tableDefinitions);
+                    Assertions.assertTrue(con.isTableExists(testTable));
+                    var def = con.getExistingTableDefinition(testTable);
+                    Assertions.assertTrue(areTableColumnNamesEqual(tableDefinitions, def, caseSensitive));
+                    Assertions.assertNotNull(def.getPrimaryKey());
+                    Assertions.assertNotNull(def.getPrimaryKey().getColumns());
+                    Assertions.assertTrue(isPrimaryKeyEqual(tableDefinitions, def, caseSensitive));
+                    Assertions.assertTrue(def.getUniqueConstraints().isEmpty());
+                    con.dropTable(testTable);
+                }
+            }
+        }
+    }
+
+    @Test
+    void testCreateTableWithPrimaryKeyAndUnique() throws F2TException, SQLException {
+        for (var configFile : testConfigFiles) {
+            if (skipped.contains(configFile)) {
+                logger.debug("skip {}", configFile);
+                continue;
+            } else {
+                logger.debug("testing using {}", configFile);
+            }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var caseSensitive = con.isCaseSensitive();
+                    var testTable = new TableName("test_tbl", con.getDefaultSchema());
+                    var tableDefinitions = createTableDefinition(
+                            caseSensitive,
+                            testColumnsDefinition.subList(0, 2).stream()
+                                    .map(ColumnDefinition::getName).collect(Collectors.toList()),
+                            List.of(
+                                    testColumnsDefinition.subList(2, 4).stream()
+                                            .map(ColumnDefinition::getName).collect(Collectors.toList()),
+                                    testColumnsDefinition.subList(6, 7).stream()
+                                            .map(ColumnDefinition::getName).collect(Collectors.toList())
+                            )
+                    );
+                    con.dropTable(testTable);
+                    con.createTable(testTable, tableDefinitions);
+                    Assertions.assertTrue(con.isTableExists(testTable));
+                    var def = con.getExistingTableDefinition(testTable);
+                    Assertions.assertTrue(areTableColumnNamesEqual(tableDefinitions, def, caseSensitive));
+                    Assertions.assertNotNull(def.getPrimaryKey());
+                    Assertions.assertNotNull(def.getPrimaryKey().getColumns());
+                    Assertions.assertTrue(isPrimaryKeyEqual(tableDefinitions, def, caseSensitive));
+                    Assertions.assertFalse(def.getUniqueConstraints().isEmpty());
+                    Assertions.assertEquals(tableDefinitions.getUniqueConstraints().size(), def.getUniqueConstraints().size());
+                    Assertions.assertTrue(areUniqueConstraintsEqual(
+                            tableDefinitions.getUniqueConstraints(), def.getUniqueConstraints(), caseSensitive));
+                    con.dropTable(testTable);
+                }
+            }
+        }
+    }
+
+    private boolean areTableColumnNamesEqual(
+            TableDefinition<? extends ColumnDefinition> t1,
+            TableDefinition<? extends ColumnDefinition> t2, boolean caseSensitive) {
+        var cols1 = t1.getColumns();
+        var cols2 = t2.getColumns();
+        return areColumnsEqual(cols1, cols2, caseSensitive);
+    }
+
+    private boolean areColumnsEqual(
+            List<? extends ColumnDefinition> cols1,
+            List<? extends ColumnDefinition> cols2, boolean caseSensitive) {
+        BiFunction<String, String, Boolean> colMatcher = caseSensitive ? String::equals : String::equalsIgnoreCase;
+        return cols1.size() == cols2.size() &&
+                IntStream.range(0, cols1.size()).allMatch(i -> colMatcher.apply(cols1.get(i).getName(), cols2.get(i).getName()));
+    }
+
+    private boolean isPrimaryKeyEqual(
+            TableDefinition<? extends ColumnDefinition> t1,
+            TableDefinition<? extends ColumnDefinition> t2, boolean caseSensitive) {
+        var p1 = t1.getPrimaryKey();
+        var p2 = t2.getPrimaryKey();
+        if ((p1 == null) && (p2 == null)) {
+            return true;
+        } else if ((p1 == null) || (p2 == null)) {
+            return false;
+        } else {
+            return areColumnsEqual(p1.getColumns(), p2.getColumns(), caseSensitive);
+        }
+    }
+
+    private boolean areUniqueConstraintsEqual(
+            Set<TableUniqueDefinition<ColumnDefinition>> ul1,
+            Set<? extends TableUniqueDefinition<? super ColumnDefinition>> ul2, boolean caseSensitive
+    ) {
+        BiFunction<String, String, Boolean> colMatcher = caseSensitive ? String::equals : String::equalsIgnoreCase;
+        for (var u1: ul1) {
+            var u2 = ul2.stream().filter(unique -> colMatcher.apply(unique.getName(), u1.getName())).findFirst()
+                    .orElse(null);
+            if (u2 == null) {
+                return false;
+            } else {
+                if (!areColumnsEqual(u1.getColumns(), u2.getColumns(), caseSensitive)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private TableDefinition<ColumnDefinition> createTableDefinition(boolean caseSensitive) {
