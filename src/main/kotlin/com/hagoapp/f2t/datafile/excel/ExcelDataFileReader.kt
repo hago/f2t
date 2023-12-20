@@ -60,6 +60,11 @@ class ExcelDataFileReader : Reader {
     }
 
     private fun doInitColumns(sampleRowCount: Long) {
+        if (sheet.firstRowNum < 0) {
+            logger.warn("Empty excel!")
+            columns = mapOf()
+            return
+        }
         columns = sheet.getRow(sheet.firstRowNum).mapIndexed { i, cell ->
             val def = FileColumnDefinition(cellToString(cell), i)
             Pair(i, def)
