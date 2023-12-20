@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.JDBCType;
 import java.util.List;
 
 class ExcelDataFileReaderTest {
@@ -55,6 +56,26 @@ class ExcelDataFileReaderTest {
                 var columns1 = reader.findColumns();
                 Assertions.assertFalse(columns1.isEmpty());
                 logger.debug("columns: {}", columns1);
+            }
+        }
+    }
+
+    @Test
+    void testOpenExcelSkipTypeInfer() {
+        for (var excel : TEST_EXCEL_FILES) {
+            logger.debug("test Excel reading with {}", excel);
+            var info = excel.endsWith("xlsx") ? new FileInfoExcelX() : new FileInfoExcel();
+            info.setSheetIndex(0);
+            info.setFilename(excel);
+            try (var reader = new ExcelDataFileReader()) {
+                reader.skipTypeInfer();
+                reader.open(info);
+                var columns = reader.inferColumnTypes(-1);
+                Assertions.assertFalse(columns.isEmpty());
+                var columns1 = reader.findColumns();
+                Assertions.assertFalse(columns1.isEmpty());
+                logger.debug("columns: {}", columns1);
+                Assertions.assertTrue(columns1.stream().allMatch(col -> col.getDataType() == JDBCType.VARCHAR));
             }
         }
     }
