@@ -24,6 +24,7 @@ class TableDefinitionComparator {
          * @param dbTableDefinition database table definition
          * @return compare result
          */
+        @JvmStatic
         fun compare(
             fileTableDefinition: TableDefinition<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
@@ -38,6 +39,7 @@ class TableDefinitionComparator {
          * @param dbTableDefinition database table definition
          * @return compare result
          */
+        @JvmStatic
         fun compare(
             fileColumnDefinitions: List<FileColumnDefinition>,
             dbTableDefinition: TableDefinition<ColumnDefinition>
@@ -83,6 +85,7 @@ class TableDefinitionComparator {
          * @param uniqueDefinition  unique constraint
          * @return conflicts compare result
          */
+        @JvmStatic
         fun isCompliantWithConstraint(
             data: DataTable<FileColumnDefinition>,
             uniqueDefinition: TableUniqueDefinition<ColumnDefinition>
@@ -118,6 +121,7 @@ class TableDefinitionComparator {
          * @return a pair, the first element is boolean indicating whether data satisfies all constraints, while second
          * is empty if no conflicts or list of conflict information is any.
          */
+        @JvmStatic
         fun isCompliantWithConstraints(
             data: DataTable<FileColumnDefinition>,
             uniqueDefinitions: List<TableUniqueDefinition<ColumnDefinition>>

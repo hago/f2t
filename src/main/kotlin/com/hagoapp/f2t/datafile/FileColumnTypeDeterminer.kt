@@ -25,6 +25,7 @@ fun interface FileColumnTypeDeterminer {
          * A default implementation that attempts to use a most "large" JDBC type that can contain maximum
          * of the same type of data.
          */
+        @JvmStatic
         val MostTypeDeterminer = object : FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
@@ -86,6 +87,7 @@ fun interface FileColumnTypeDeterminer {
         /**
          * A default implementation that attempts to use a most "narrow" JDBC type that just fits existing data.
          */
+        @JvmStatic
         val LeastTypeDeterminer = object : FileColumnTypeDeterminer {
             override fun determineType(fileColumnDefinition: FileColumnDefinition): JDBCType {
                 val types = fileColumnDefinition.possibleTypes
