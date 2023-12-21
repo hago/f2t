@@ -41,7 +41,7 @@ class FromTimestampComparator : TypedColumnComparator {
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(TIMESTAMP_WITH_TIMEZONE)
+        return setOf(TIMESTAMP_WITH_TIMEZONE, TIMESTAMP)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
