@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.JDBCType;
 import java.util.Set;
 
-class ColumnCompareTest {
+class Float2FloatComparatorTest {
 
     private static class TestCase {
         private final FileColumnDefinition fileColumn;
@@ -44,12 +44,6 @@ class ColumnCompareTest {
     }
 
     private static final TestCase[] cases = new TestCase[]{
-            new TestCase(
-                    new FileColumnDefinition("", Set.of(), JDBCType.DATE),
-                    new ColumnDefinition("", JDBCType.DATE),
-                    new CompareColumnResult(true, true),
-                    null, null
-            ),
             new TestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.FLOAT),
@@ -106,7 +100,7 @@ class ColumnCompareTest {
             )
     };
 
-    private final Logger logger = LoggerFactory.getLogger(ColumnCompareTest.class);
+    private final Logger logger = LoggerFactory.getLogger(Float2FloatComparatorTest.class);
 
     @Test
     void testComparison() {
