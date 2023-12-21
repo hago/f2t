@@ -28,8 +28,8 @@ class Float2FloatComparator : TypedColumnComparator {
         return CompareColumnResult(
             isTypeMatched = true,
             when (fileColumnDefinition.dataType) {
-                FLOAT -> true
-                DOUBLE -> dbColumnDefinition.dataType != FLOAT
+                FLOAT -> dbColumnDefinition.dataType != DECIMAL
+                DOUBLE -> dbColumnDefinition.dataType == DOUBLE
                 else -> true
             }
         )
