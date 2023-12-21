@@ -20,79 +20,56 @@ import java.util.Set;
 
 class Float2FloatComparatorTest {
 
-    private static class TestCase {
-        private final FileColumnDefinition fileColumn;
-        private final ColumnDefinition dbColumn;
-        private final CompareColumnResult result;
-
-        public TestCase(
-                @NotNull FileColumnDefinition fileColumn,
-                @NotNull ColumnDefinition dbColumn,
-                @NotNull CompareColumnResult result,
-                ColumnTypeModifier fileTypeModifier,
-                ColumnTypeModifier dbTypeModifier) {
-            this.fileColumn = fileColumn;
-            this.dbColumn = dbColumn;
-            this.result = result;
-            if (fileTypeModifier != null) {
-                this.fileColumn.setTypeModifier(fileTypeModifier);
-            }
-            if (dbTypeModifier != null) {
-                this.dbColumn.setTypeModifier(dbTypeModifier);
-            }
-        }
-    }
-
-    private static final TestCase[] cases = new TestCase[]{
-            new TestCase(
+    private static final ComparatorTestCase[] cases = new ComparatorTestCase[]{
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new TestCase(
+            new ComparatorTestCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, true),
@@ -100,14 +77,8 @@ class Float2FloatComparatorTest {
             )
     };
 
-    private final Logger logger = LoggerFactory.getLogger(Float2FloatComparatorTest.class);
-
     @Test
     void testComparison() {
-        for (var c : cases) {
-            logger.debug("test {} -> {}", c.fileColumn.getDataType(), c.dbColumn.getDataType());
-            var r = ColumnComparator.compare(c.fileColumn, c.dbColumn);
-            Assertions.assertEquals(c.result, r);
-        }
+        ComparatorTestCase.runCases(cases);
     }
 }
