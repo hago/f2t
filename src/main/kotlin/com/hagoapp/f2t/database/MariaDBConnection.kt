@@ -69,18 +69,6 @@ open class MariaDBConnection : DbConnection() {
         return databases
     }
 
-    override fun dropTable(tableName: String): Pair<Boolean, String?> {
-        return try {
-            connection.prepareStatement("drop table ${normalizeName(tableName)};").use { stmt ->
-                stmt.execute()
-                connection.commit()
-            }
-            Pair(true, null)
-        } catch (ex: SQLException) {
-            Pair(false, ex.message)
-        }
-    }
-
     override fun escapeNameString(name: String): String {
         return name.replace("`", "``")
     }

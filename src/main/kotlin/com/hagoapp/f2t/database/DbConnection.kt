@@ -101,7 +101,16 @@ abstract class DbConnection : Closeable {
      * @return a pair, first element is true if clearance is successful with second element is null; otherwise, first
      * element is false and second is the error message
      */
-    abstract fun dropTable(tableName: String): Pair<Boolean, String?>
+    open fun dropTable(tableName: String): Pair<Boolean, String?> {
+        try {
+            connection.prepareStatement("drop table $tableName").use { st ->
+                st.execute()
+                return Pair(true, null)
+            }
+        } catch (ex: SQLException) {
+            return Pair(false, ex.message)
+        }
+    }
 
     /**
      * Drop given table.

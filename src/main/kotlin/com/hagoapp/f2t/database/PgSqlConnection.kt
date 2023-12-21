@@ -86,17 +86,6 @@ open class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun dropTable(tableName: String): Pair<Boolean, String?> {
-        try {
-            connection.prepareStatement("drop table $tableName").use { st ->
-                st.execute()
-                return Pair(true, null)
-            }
-        } catch (ex: SQLException) {
-            return Pair(false, ex.message)
-        }
-    }
-
     override fun getWrapperCharacter(): Pair<String, String> {
         return Pair("\"", "\"")
     }
