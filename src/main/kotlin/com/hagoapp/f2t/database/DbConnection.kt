@@ -17,6 +17,7 @@ import java.io.Closeable
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.sql.SQLException
 
 /**
  * Interface of database operations required to insert a set of 2-dimensional data into it.
@@ -81,7 +82,17 @@ abstract class DbConnection : Closeable {
      * @return a pair, first element is true if clearance is successful with second element is null; otherwise, first
      * element is false and second is the error message
      */
-    abstract fun clearTable(table: TableName): Pair<Boolean, String?>
+    open fun clearTable(table: TableName): Pair<Boolean, String?> {
+        return try {
+            connection.prepareStatement("truncate table ${getFullTableName(table)};").use { stmt ->
+                stmt.execute()
+                connection.commit()
+            }
+            Pair(true, null)
+        } catch (ex: SQLException) {
+            Pair(false, ex.message)
+        }
+    }
 
     /**
      * Drop given table, descendant class should implement the operation.

@@ -86,16 +86,6 @@ open class PgSqlConnection : DbConnection() {
         }
     }
 
-    override fun clearTable(table: TableName): Pair<Boolean, String?> {
-        try {
-            connection.prepareStatement("truncate table ${getFullTableName(table)}").use { st ->
-                return Pair(st.execute(), null)
-            }
-        } catch (ex: SQLException) {
-            return Pair(false, ex.message)
-        }
-    }
-
     override fun dropTable(tableName: String): Pair<Boolean, String?> {
         try {
             connection.prepareStatement("drop table $tableName").use { st ->
