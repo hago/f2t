@@ -16,6 +16,7 @@ import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
 import com.hagoapp.f2t.TableDefinition;
 import com.hagoapp.f2t.compare.TableDefinitionComparator;
+import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +72,7 @@ class TableDefinitionComparatorTest {
                 INT_FILE_COL, BIGINT_FILE_COL, FLOAT_FILE_COL, DOUBLE_FILE_COL, STRING_FILE_COL, BOOLEAN_FILE_COL,
                 TIMESTAMP_FILE_COL
         );
+        fileColumns.forEach(col -> col.setDataType(FileColumnTypeDeterminer.getMostTypeDeterminer().determineType(col)));
         var tblDef = new TableDefinition<>(dbColumns, true, null, false);
         var fileDef = new TableDefinition<>(fileColumns, false, null, false);
         var x = TableDefinitionComparator.compare(fileDef, tblDef);
