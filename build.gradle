@@ -48,6 +48,7 @@ dependencies {
 
     testImplementation group:'org.postgresql',name:'postgresql',version:'42.6.0'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.10'
+    testImplementation group: 'org.apache.derby', name: 'derby', version: '10.17.1.0'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
     testRuntimeOnly fileTree('libs') { include '*.jar' }
