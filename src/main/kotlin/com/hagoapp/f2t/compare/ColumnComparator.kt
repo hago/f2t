@@ -36,6 +36,7 @@ class ColumnComparator {
          *
          * @param packageNames  the package name to search for implementations.
          */
+        @JvmStatic
         fun registerComparatorsAndConverters(vararg packageNames: String) {
             registerComparators(*packageNames)
             registerTransformers(*packageNames)
@@ -130,6 +131,7 @@ class ColumnComparator {
          * @param dbColumnDefinition    database column definition
          * @return compare result
          */
+        @JvmStatic
         fun compare(
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition
@@ -165,6 +167,7 @@ class ColumnComparator {
          * @param dbColumnDefinition    database column definition
          * @return  transformer instance
          */
+        @JvmStatic
         fun getTransformer(
             fileColumnDefinition: FileColumnDefinition,
             dbColumnDefinition: ColumnDefinition
@@ -187,6 +190,7 @@ class ColumnComparator {
          * @param extra additional parameters
          * @return transformed value
          */
+        @JvmStatic
         fun transform(
             src: Any?,
             fileColumnDefinition: FileColumnDefinition,
