@@ -19,13 +19,14 @@ import java.sql.JDBCType.*
  * @author Chaojun Sun
  * @since 0.6
  */
-class Float2IntComparator: TypedColumnComparator {
+class Float2IntComparator : TypedColumnComparator {
     private val ranges = mapOf(
-        TINYINT to Pair(127, -128),
-        SMALLINT to Pair(32767, -32768),
-        INTEGER to Pair(Int.MAX_VALUE, Int.MIN_VALUE),
+        TINYINT to Pair(127L, -128L),
+        SMALLINT to Pair(32767L, -32768L),
+        INTEGER to Pair(Int.MAX_VALUE.toLong(), Int.MIN_VALUE.toLong()),
         BIGINT to Pair(Long.MAX_VALUE, Long.MIN_VALUE)
     )
+
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,

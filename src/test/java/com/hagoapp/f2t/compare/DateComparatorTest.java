@@ -8,6 +8,7 @@ package com.hagoapp.f2t.compare;
 
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.sql.JDBCType;
@@ -15,8 +16,8 @@ import java.util.Set;
 
 class DateComparatorTest {
 
-    private static final ComparatorTestCase[] cases = new ComparatorTestCase[]{
-            new ComparatorTestCase(
+    private static final ComparatorCase[] cases = new ComparatorCase[]{
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DATE),
                     new ColumnDefinition("", JDBCType.DATE),
                     new CompareColumnResult(true, true),
@@ -26,6 +27,6 @@ class DateComparatorTest {
 
     @Test
     void testComparison() {
-        ComparatorTestCase.runCases(cases);
+        Assertions.assertDoesNotThrow(() -> ComparatorCase.runCases(cases));
     }
 }

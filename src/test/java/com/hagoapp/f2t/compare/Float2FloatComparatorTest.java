@@ -7,69 +7,65 @@
 package com.hagoapp.f2t.compare;
 
 import com.hagoapp.f2t.ColumnDefinition;
-import com.hagoapp.f2t.ColumnTypeModifier;
 import com.hagoapp.f2t.FileColumnDefinition;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.JDBCType;
 import java.util.Set;
 
 class Float2FloatComparatorTest {
 
-    private static final ComparatorTestCase[] cases = new ComparatorTestCase[]{
-            new ComparatorTestCase(
+    private static final ComparatorCase[] cases = new ComparatorCase[]{
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.FLOAT),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DOUBLE),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, false),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.FLOAT),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.DOUBLE),
                     new CompareColumnResult(true, true),
                     null, null
             ),
-            new ComparatorTestCase(
+            new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DECIMAL),
                     new ColumnDefinition("", JDBCType.DECIMAL),
                     new CompareColumnResult(true, true),
@@ -79,6 +75,6 @@ class Float2FloatComparatorTest {
 
     @Test
     void testComparison() {
-        ComparatorTestCase.runCases(cases);
+        Assertions.assertDoesNotThrow(() -> ComparatorCase.runCases(cases));
     }
 }

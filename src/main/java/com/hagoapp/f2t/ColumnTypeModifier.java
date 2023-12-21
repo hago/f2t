@@ -128,6 +128,21 @@ public class ColumnTypeModifier {
         this.nullable = nullable;
     }
 
+    public ColumnTypeModifier() {
+        //
+    }
+
+    public ColumnTypeModifier(
+            int maxLength, int precision, int scale, String collation, boolean containsNonAscii, boolean nullable
+    ) {
+        this.maxLength = maxLength;
+        this.precision = precision;
+        this.scale = scale;
+        this.collation = collation;
+        this.containsNonAscii = containsNonAscii;
+        this.nullable = nullable;
+    }
+
     @Override
     public String toString() {
         return "ColumnTypeModifier{" +

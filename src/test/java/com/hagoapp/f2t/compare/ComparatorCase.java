@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-class ComparatorTestCase {
+class ComparatorCase {
     private final FileColumnDefinition fileColumn;
     private final ColumnDefinition dbColumn;
     private final CompareColumnResult result;
@@ -33,7 +33,7 @@ class ComparatorTestCase {
         return result;
     }
 
-    public ComparatorTestCase(
+    public ComparatorCase(
             @NotNull FileColumnDefinition fileColumn,
             @NotNull ColumnDefinition dbColumn,
             @NotNull CompareColumnResult result,
@@ -50,13 +50,13 @@ class ComparatorTestCase {
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(ComparatorTestCase.class);
+    private static final Logger logger = LoggerFactory.getLogger(ComparatorCase.class);
 
-    public static void runCases(List<ComparatorTestCase> cases) {
-        runCases(cases.toArray(ComparatorTestCase[]::new));
+    public static void runCases(List<ComparatorCase> cases) {
+        runCases(cases.toArray(ComparatorCase[]::new));
     }
 
-    public static void runCases(ComparatorTestCase[] cases) {
+    public static void runCases(ComparatorCase[] cases) {
         for (var c : cases) {
             logger.debug("test {} -> {}", c.getFileColumn().getDataType(), c.getDbColumn().getDataType());
             var r = ColumnComparator.compare(c.getFileColumn(), c.getDbColumn());
