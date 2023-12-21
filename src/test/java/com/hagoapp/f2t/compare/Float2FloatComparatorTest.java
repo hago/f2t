@@ -109,7 +109,7 @@ class ColumnCompareTest {
     private final Logger logger = LoggerFactory.getLogger(ColumnCompareTest.class);
 
     @Test
-    void testAll() {
+    void testComparison() {
         for (var c : cases) {
             logger.debug("test {} -> {}", c.fileColumn.getDataType(), c.dbColumn.getDataType());
             var r = ColumnComparator.compare(c.fileColumn, c.dbColumn);
