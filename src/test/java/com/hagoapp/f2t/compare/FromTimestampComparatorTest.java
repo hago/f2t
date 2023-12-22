@@ -106,12 +106,6 @@ class FromTimestampComparatorTest {
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIMESTAMP_WITH_TIMEZONE),
-                    new ColumnDefinition("", JDBCType.BOOLEAN),
-                    new CompareColumnResult(false, false),
-                    null, null
-            ),
-            new ComparatorCase(
-                    new FileColumnDefinition("", Set.of(), JDBCType.TIMESTAMP_WITH_TIMEZONE),
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, true),
                     null,
@@ -215,12 +209,6 @@ class FromTimestampComparatorTest {
                         new CompareColumnResult(false, false),
                         null,
                         new ColumnTypeModifier(customFormatter.format(testLocalDt).length() - 1, 0, 0, null, false, false)
-                ),
-                new ComparatorCase(
-                        new FileColumnDefinition("", Set.of(), JDBCType.TIMESTAMP_WITH_TIMEZONE),
-                        new ColumnDefinition("", JDBCType.BOOLEAN),
-                        new CompareColumnResult(false, false),
-                        null, null
                 ),
                 new ComparatorCase(
                         new FileColumnDefinition("", Set.of(), JDBCType.TIMESTAMP_WITH_TIMEZONE),

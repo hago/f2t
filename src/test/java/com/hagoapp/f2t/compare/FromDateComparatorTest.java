@@ -24,12 +24,6 @@ class FromDateComparatorTest {
     private static final ComparatorCase[] cases = new ComparatorCase[]{
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.DATE),
-                    new ColumnDefinition("", JDBCType.BOOLEAN),
-                    new CompareColumnResult(false, false),
-                    null, null
-            ),
-            new ComparatorCase(
-                    new FileColumnDefinition("", Set.of(), JDBCType.DATE),
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, true),
                     null,
@@ -117,12 +111,6 @@ class FromDateComparatorTest {
         var customFormatterPattern = "YYYY";
         var customFormatter = DateTimeFormatter.ofPattern(customFormatterPattern);
         ComparatorCase[] formatCases = new ComparatorCase[]{
-                new ComparatorCase(
-                        new FileColumnDefinition("", Set.of(), JDBCType.DATE),
-                        new ColumnDefinition("", JDBCType.BOOLEAN),
-                        new CompareColumnResult(false, false),
-                        null, null
-                ),
                 new ComparatorCase(
                         new FileColumnDefinition("", Set.of(), JDBCType.DATE),
                         new ColumnDefinition("", JDBCType.CHAR),

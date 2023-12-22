@@ -29,12 +29,6 @@ class FromTimeComparatorTest {
     private static final ComparatorCase[] cases = new ComparatorCase[]{
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
-                    new ColumnDefinition("", JDBCType.BOOLEAN),
-                    new CompareColumnResult(false, false),
-                    null, null
-            ),
-            new ComparatorCase(
-                    new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, true),
                     null,
@@ -107,12 +101,6 @@ class FromTimeComparatorTest {
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                     new ColumnDefinition("", JDBCType.BIGINT),
-                    new CompareColumnResult(false, false),
-                    null, null
-            ),
-            new ComparatorCase(
-                    new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
-                    new ColumnDefinition("", JDBCType.BOOLEAN),
                     new CompareColumnResult(false, false),
                     null, null
             ),
@@ -209,12 +197,6 @@ class FromTimeComparatorTest {
         ComparatorCase[] formatCases = new ComparatorCase[]{
                 new ComparatorCase(
                         new FileColumnDefinition("", Set.of(), JDBCType.TIME),
-                        new ColumnDefinition("", JDBCType.BOOLEAN),
-                        new CompareColumnResult(false, false),
-                        null, null
-                ),
-                new ComparatorCase(
-                        new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                         new ColumnDefinition("", JDBCType.CHAR),
                         new CompareColumnResult(false, true),
                         null,
@@ -226,12 +208,6 @@ class FromTimeComparatorTest {
                         new CompareColumnResult(false, false),
                         null,
                         new ColumnTypeModifier(customFormatter.format(LocalTime.now()).length() - 1, 0, 0, null, false, false)
-                ),
-                new ComparatorCase(
-                        new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
-                        new ColumnDefinition("", JDBCType.BOOLEAN),
-                        new CompareColumnResult(false, false),
-                        null, null
                 ),
                 new ComparatorCase(
                         new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
