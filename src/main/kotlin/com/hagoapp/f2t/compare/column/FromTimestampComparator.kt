@@ -12,7 +12,7 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
-import java.time.Instant
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -22,6 +22,12 @@ import java.time.format.DateTimeFormatter
  * @since 0.6
  */
 class FromTimestampComparator : TypedColumnComparator {
+
+    companion object {
+        @JvmField
+        val DEFAULT_TIMESTAMP_FORMATTER: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
+    }
+
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
@@ -29,13 +35,18 @@ class FromTimestampComparator : TypedColumnComparator {
     ): CompareColumnResult {
         val formatter = if (extra.isEmpty()) DateTimeFormatter.ISO_DATE_TIME
         else DateTimeFormatter.ofPattern(extra[0])
+        val possibleMaxLen = formatter.format(
+            LocalDateTime.of(2000, 1, 1, 1, 1, 1, 111111111)
+        ).length
         return when (dbColumnDefinition.dataType) {
-            TIMESTAMP -> CompareColumnResult(isTypeMatched = true, true)
+            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> CompareColumnResult(isTypeMatched = true, true)
             CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
             CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
                 isTypeMatched = false,
-                formatter.format(Instant.now()).length <= dbColumnDefinition.typeModifier.maxLength
+                (if (fileColumnDefinition.dataType == TIMESTAMP) possibleMaxLen
+                else possibleMaxLen + 5) <= dbColumnDefinition.typeModifier.maxLength
             )
+
             else -> CompareColumnResult(isTypeMatched = false, false)
         }
     }
