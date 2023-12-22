@@ -4,11 +4,19 @@
  *  file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.compare;
+/*
+ *  This Source Code Form is subject to the terms of the Mozilla Public
+ *  License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+package com.hagoapp.f2t.compare.column;
 
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.ColumnTypeModifier;
 import com.hagoapp.f2t.FileColumnDefinition;
+import com.hagoapp.f2t.compare.ColumnComparator;
+import com.hagoapp.f2t.compare.CompareColumnResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
@@ -16,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-class ComparatorCase {
+public class ComparatorCase {
     private final FileColumnDefinition fileColumn;
     private final ColumnDefinition dbColumn;
     private final CompareColumnResult result;
