@@ -35,12 +35,14 @@ class FromTimeComparator : TypedColumnComparator {
     ): CompareColumnResult {
         val formatter = if (extra.isEmpty()) DEFAULT_TIME_FORMATTER
         else DateTimeFormatter.ofPattern(extra[0])
+        val possibleMaxLen = formatter.format(LocalTime.of(1, 1, 1, 111111111)).length
         return when (dbColumnDefinition.dataType) {
             TIME -> CompareColumnResult(isTypeMatched = true, true)
             CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
             CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
                 false,
-                formatter.format(LocalTime.now()).length <= dbColumnDefinition.typeModifier.maxLength
+                (if (fileColumnDefinition.dataType == TIME) possibleMaxLen
+                else possibleMaxLen + 5) <= dbColumnDefinition.typeModifier.maxLength
             )
 
             else -> CompareColumnResult(isTypeMatched = false, false)

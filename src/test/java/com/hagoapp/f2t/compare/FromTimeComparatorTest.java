@@ -22,6 +22,9 @@ import java.util.Set;
 class FromTimeComparatorTest {
 
     private static final DateTimeFormatter formatter = FromTimeComparator.DEFAULT_TIME_FORMATTER;
+    private static final int DEFAULT_MAX_LENGTH = formatter.format(
+            LocalTime.of(1, 1, 1, 111111111)).length();
+    private static final int DEFAULT_MAX_LENGTH_WITH_TIME_ZONE = DEFAULT_MAX_LENGTH + 5;
     private static final ComparatorCase[] cases = new ComparatorCase[]{
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
@@ -34,21 +37,21 @@ class FromTimeComparatorTest {
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, false),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length() - 1, 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH - 1, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                     new ColumnDefinition("", JDBCType.VARCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
@@ -61,14 +64,14 @@ class FromTimeComparatorTest {
                     new ColumnDefinition("", JDBCType.NCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
                     new ColumnDefinition("", JDBCType.NVARCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME),
@@ -117,21 +120,21 @@ class FromTimeComparatorTest {
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH_WITH_TIME_ZONE, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
                     new ColumnDefinition("", JDBCType.CHAR),
                     new CompareColumnResult(false, false),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length() - 1, 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH_WITH_TIME_ZONE - 1, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
                     new ColumnDefinition("", JDBCType.VARCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH_WITH_TIME_ZONE, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
@@ -144,14 +147,14 @@ class FromTimeComparatorTest {
                     new ColumnDefinition("", JDBCType.NCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH_WITH_TIME_ZONE, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
                     new ColumnDefinition("", JDBCType.NVARCHAR),
                     new CompareColumnResult(false, true),
                     null,
-                    new ColumnTypeModifier(formatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                    new ColumnTypeModifier(DEFAULT_MAX_LENGTH_WITH_TIME_ZONE, 0, 0, null, false, false)
             ),
             new ComparatorCase(
                     new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
