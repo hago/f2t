@@ -38,7 +38,8 @@ class ToBooleanComparator : TypedColumnComparator {
             CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB,
             SMALLINT, TINYINT, INTEGER, BIGINT,
             FLOAT, DOUBLE, DECIMAL,
-            TIMESTAMP_WITH_TIMEZONE
+            TIMESTAMP_WITH_TIMEZONE, TIMESTAMP,
+            DATE, TIME, TIME_WITH_TIMEZONE
         )
     }
 
