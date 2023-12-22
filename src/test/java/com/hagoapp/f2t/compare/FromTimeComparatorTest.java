@@ -9,10 +9,11 @@ package com.hagoapp.f2t.compare;
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.ColumnTypeModifier;
 import com.hagoapp.f2t.FileColumnDefinition;
-import com.hagoapp.f2t.compare.column.FromDateComparator;
 import com.hagoapp.f2t.compare.column.FromTimeComparator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.JDBCType;
 import java.time.LocalTime;
@@ -199,9 +200,11 @@ class FromTimeComparatorTest {
         Assertions.assertDoesNotThrow(() -> ComparatorCase.runCases(cases));
     }
 
+    private final Logger logger = LoggerFactory.getLogger(FromTimeComparatorTest.class);
+
     @Test
-    void testFromDateComparatorWithCustomDateFormatter() {
-        var customFormatterPattern = "Hms";
+    void testFromTimeComparatorWithCustomDateFormatter() {
+        var customFormatterPattern = "HHmmss";
         var customFormatter = DateTimeFormatter.ofPattern(customFormatterPattern);
         ComparatorCase[] formatCases = new ComparatorCase[]{
                 new ComparatorCase(
@@ -235,18 +238,19 @@ class FromTimeComparatorTest {
                         new ColumnDefinition("", JDBCType.CHAR),
                         new CompareColumnResult(false, true),
                         null,
-                        new ColumnTypeModifier(customFormatter.format(LocalTime.now()).length(), 0, 0, null, false, false)
+                        new ColumnTypeModifier(customFormatter.format(LocalTime.now()).length() + 5, 0, 0, null, false, false)
                 ),
                 new ComparatorCase(
                         new FileColumnDefinition("", Set.of(), JDBCType.TIME_WITH_TIMEZONE),
                         new ColumnDefinition("", JDBCType.CHAR),
                         new CompareColumnResult(false, false),
                         null,
-                        new ColumnTypeModifier(customFormatter.format(LocalTime.now()).length() - 1, 0, 0, null, false, false)
+                        new ColumnTypeModifier(customFormatter.format(LocalTime.now()).length() + 4, 0, 0, null, false, false)
                 ),
         };
-        var comparator = new FromDateComparator();
+        var comparator = new FromTimeComparator();
         for (var c : formatCases) {
+            logger.debug("test {} -> {}", c.getFileColumn().getDataType(), c.getDbColumn().getDataType());
             var r = comparator.dataCanLoadFrom(c.getFileColumn(), c.getDbColumn(), customFormatterPattern);
             Assertions.assertEquals(c.getResult().isTypeMatched(), r.isTypeMatched());
             Assertions.assertEquals(c.getResult().getCanLoadDataFrom(), r.getCanLoadDataFrom());
