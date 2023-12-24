@@ -12,7 +12,7 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
-import java.time.Instant
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -22,18 +22,26 @@ import java.time.format.DateTimeFormatter
  * @since 0.6
  */
 class FromDateComparator : TypedColumnComparator {
+
+    companion object {
+        @JvmField
+        val DEFAULT_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ISO_DATE
+    }
+
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        val formatter = if (extra.isEmpty()) DateTimeFormatter.ISO_DATE
+        val formatter = if (extra.isEmpty()) DEFAULT_DATE_FORMATTER
         else DateTimeFormatter.ofPattern(extra[0])
         return when (dbColumnDefinition.dataType) {
-            CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB -> CompareColumnResult(
+            CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
+            CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
                 isTypeMatched = false,
-                formatter.format(Instant.now()).length <= dbColumnDefinition.typeModifier.maxLength
+                formatter.format(ZonedDateTime.now()).length <= dbColumnDefinition.typeModifier.maxLength
             )
+
             else -> CompareColumnResult(isTypeMatched = false, false)
         }
     }

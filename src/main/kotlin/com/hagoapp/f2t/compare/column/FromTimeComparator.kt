@@ -12,6 +12,8 @@ import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Compare time with any other types.
@@ -20,23 +22,35 @@ import java.sql.JDBCType.*
  * @since 0.6
  */
 class FromTimeComparator : TypedColumnComparator {
+
+    companion object {
+        @JvmField
+        val DEFAULT_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ISO_TIME
+    }
+
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): CompareColumnResult {
-        return CompareColumnResult(
-            isTypeMatched = true,
-            when (dbColumnDefinition.dataType) {
-                TIME,
-                CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB -> true
-                else -> false
-            }
-        )
+        val formatter = if (extra.isEmpty()) DEFAULT_TIME_FORMATTER
+        else DateTimeFormatter.ofPattern(extra[0])
+        val possibleMaxLen = formatter.format(LocalTime.of(1, 1, 1, 111111111)).length
+        return when (dbColumnDefinition.dataType) {
+            TIME -> CompareColumnResult(isTypeMatched = true, true)
+            CLOB, NCLOB -> CompareColumnResult(isTypeMatched = false, true)
+            CHAR, VARCHAR, NCHAR, NVARCHAR -> CompareColumnResult(
+                false,
+                (if (fileColumnDefinition.dataType == TIME) possibleMaxLen
+                else possibleMaxLen + 5) <= dbColumnDefinition.typeModifier.maxLength
+            )
+
+            else -> CompareColumnResult(isTypeMatched = false, false)
+        }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
-        return setOf(TIME)
+        return setOf(TIME, TIME_WITH_TIMEZONE)
     }
 
     override fun supportDestinationTypes(): Set<JDBCType> {
