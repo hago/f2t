@@ -1,0 +1,23 @@
+create table demo (
+    id int,
+    "name" varchar(100),
+    code char(10),
+    "description" clob,
+    "age" smallint,
+    number int,
+    long bigint,
+    floatnumber real,
+    doublenumber double precision,
+    decimaldefault decimal,
+    decimalnumber decimal(20,5),
+    ts timestamp,
+    dt date,
+    tm time,
+    bin char(10) for bit data,
+    varbin varchar(100) for bit data,
+    text clob,
+    buffer blob,
+    primary key(id, "name"),
+    unique("name", "age"),
+    unique(number, "age", long)
+);
