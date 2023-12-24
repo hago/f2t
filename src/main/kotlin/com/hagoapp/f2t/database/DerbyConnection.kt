@@ -73,7 +73,37 @@ class DerbyConnection : DbConnection() {
     }
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
-        TODO("Not yet implemented")
+        return when (aType) {
+            JDBCType.BIGINT -> "BIGINT"
+            JDBCType.BINARY, JDBCType.VARBINARY, JDBCType.LONGVARBINARY, JDBCType.CHAR,
+            JDBCType.VARCHAR, JDBCType.LONGVARCHAR -> convertCharBinaryTypes(aType, modifier)
+
+            JDBCType.BLOB -> "BLOB" + if (modifier.maxLength > 0) "(${modifier.maxLength}" else ""
+            JDBCType.CLOB -> "CLOB" + if (modifier.maxLength > 0) "(${modifier.maxLength}" else ""
+            JDBCType.DECIMAL -> "DECIMAL(${modifier.precision}, ${modifier.scale})"
+            JDBCType.FLOAT -> "REAL"
+            JDBCType.DOUBLE -> "DOUBLE"
+            JDBCType.SMALLINT -> "SMALLINT"
+            JDBCType.INTEGER -> "INT"
+            JDBCType.TIME, JDBCType.TIME_WITH_TIMEZONE -> "TIME"
+            JDBCType.TIMESTAMP, JDBCType.TIMESTAMP_WITH_TIMEZONE -> "TIMESTAMP"
+            JDBCType.DATE -> "DATE"
+            else -> {
+                logger.error("type {} is not implemented, treat as text", aType)
+                return "CLOB"
+            }
+        }
+    }
+
+    private fun convertCharBinaryTypes(aType: JDBCType, modifier: ColumnTypeModifier): String {
+        val len = if (modifier.maxLength > 0) modifier.maxLength.toString() else "1"
+        return when (aType) {
+            JDBCType.BINARY -> "CHAR($len) FOR BIT DATA"
+            JDBCType.VARBINARY, JDBCType.LONGVARBINARY -> "VARCHAR($len) FOR BIT DATA"
+            JDBCType.CHAR -> "CHAR($len)"
+            //JDBCType.VARCHAR, JDBCType.LONGVARCHAR
+            else -> "VARCHAR($len)"
+        }
     }
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition> {
@@ -95,7 +125,31 @@ class DerbyConnection : DbConnection() {
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
-        TODO("Not yet implemented")
+        return when (typeName) {
+            "INTEGER" -> JDBCType.INTEGER
+            "SMALLINT" -> JDBCType.SMALLINT
+            "BIGINT" -> JDBCType.BIGINT
+            "REAL", "DOUBLE" -> JDBCType.DOUBLE
+            "DATE" -> JDBCType.DATE
+            "TIME" -> JDBCType.TIME
+            "TIMESTAMP" -> JDBCType.TIMESTAMP
+            "CLOB" -> JDBCType.CLOB
+            "BLOB" -> JDBCType.BLOB
+            "CHAR" -> JDBCType.CHAR
+            "VARCHAR" -> JDBCType.VARCHAR
+            else -> mapBitTypesAndOther(typeName)
+        }
+    }
+
+    private fun mapBitTypesAndOther(typeName: String): JDBCType {
+        return when {
+            typeName.startsWith("CHAR ()") -> JDBCType.BINARY
+            typeName.startsWith("VARCHAR ()") -> JDBCType.VARBINARY
+            else -> {
+                logger.error("typeName {} unknown, use CLOB for it", typeName)
+                JDBCType.CLOB
+            }
+        }
     }
 
     override fun isCaseSensitive(): Boolean {
