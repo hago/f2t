@@ -42,6 +42,17 @@ public class FileColumnDefinition extends ColumnDefinition {
         this.possibleTypes = possibleTypes;
     }
 
+    public FileColumnDefinition(
+            String name, Set<JDBCType> possibleTypes,
+            JDBCType candidate0, BigDecimal minimum, BigDecimal maximum, boolean containsEmpty
+    ) {
+        super(name, candidate0);
+        this.possibleTypes = possibleTypes;
+        this.minimum = minimum;
+        this.maximum = maximum;
+        this.containsEmpty = containsEmpty;
+    }
+
     private Set<JDBCType> possibleTypes = new HashSet<>();
     private int order;
     private BigDecimal minimum;
