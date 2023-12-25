@@ -44,6 +44,16 @@ public class FileColumnDefinition extends ColumnDefinition {
 
     public FileColumnDefinition(
             String name, Set<JDBCType> possibleTypes,
+            JDBCType candidate0, BigDecimal minimum, BigDecimal maximum
+    ) {
+        super(name, candidate0);
+        this.possibleTypes = possibleTypes;
+        this.minimum = minimum;
+        this.maximum = maximum;
+    }
+
+    public FileColumnDefinition(
+            String name, Set<JDBCType> possibleTypes,
             JDBCType candidate0, BigDecimal minimum, BigDecimal maximum, boolean containsEmpty
     ) {
         super(name, candidate0);
