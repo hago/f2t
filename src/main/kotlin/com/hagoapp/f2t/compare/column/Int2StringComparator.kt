@@ -10,7 +10,6 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
-import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet.SMALL
 import org.slf4j.LoggerFactory
 import java.sql.JDBCType
 import java.sql.JDBCType.*
