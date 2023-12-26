@@ -2,6 +2,7 @@ package com.hagoapp.f2t.compare.column
 
 
 import com.hagoapp.f2t.ColumnDefinition
+import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
@@ -70,6 +71,71 @@ class String2FloatComparatorTest {
             CompareColumnResult(isTypeMatched = false, false),
             null,
             null
+        ),
+        ComparatorCase(
+            FileColumnDefinition(
+                "",
+                setOf(),
+                JDBCType.CLOB,
+                Double.MIN_VALUE.toBigDecimal(),
+                Double.MAX_VALUE.toBigDecimal().plus(BigDecimal.ONE)
+            ),
+            ColumnDefinition("", JDBCType.DECIMAL),
+            CompareColumnResult(isTypeMatched = false, true),
+            null,
+            null,
+        ),
+        ComparatorCase(
+            FileColumnDefinition(
+                "",
+                setOf(),
+                JDBCType.CLOB,
+                Double.MIN_VALUE.toBigDecimal(),
+                Double.MAX_VALUE.toBigDecimal().plus(BigDecimal.ONE)
+            ),
+            ColumnDefinition("", JDBCType.DECIMAL),
+            CompareColumnResult(isTypeMatched = false, true),
+            ColumnTypeModifier(0, 3, 3, null, false, false),
+            ColumnTypeModifier(0, 3, 3, null, false, false)
+        ),
+        ComparatorCase(
+            FileColumnDefinition(
+                "",
+                setOf(),
+                JDBCType.CLOB,
+                Double.MIN_VALUE.toBigDecimal(),
+                Double.MAX_VALUE.toBigDecimal().plus(BigDecimal.ONE)
+            ),
+            ColumnDefinition("", JDBCType.DECIMAL),
+            CompareColumnResult(isTypeMatched = false, false),
+            ColumnTypeModifier(0, 4, 3, null, false, false),
+            ColumnTypeModifier(0, 3, 3, null, false, false)
+        ),
+        ComparatorCase(
+            FileColumnDefinition(
+                "",
+                setOf(),
+                JDBCType.CLOB,
+                Double.MIN_VALUE.toBigDecimal(),
+                Double.MAX_VALUE.toBigDecimal().plus(BigDecimal.ONE)
+            ),
+            ColumnDefinition("", JDBCType.DECIMAL),
+            CompareColumnResult(isTypeMatched = false, false),
+            ColumnTypeModifier(0, 3, 5, null, false, false),
+            ColumnTypeModifier(0, 3, 3, null, false, false)
+        ),
+        ComparatorCase(
+            FileColumnDefinition(
+                "",
+                setOf(),
+                JDBCType.CLOB,
+                Double.MIN_VALUE.toBigDecimal(),
+                Double.MAX_VALUE.toBigDecimal().plus(BigDecimal.ONE)
+            ),
+            ColumnDefinition("", JDBCType.DECIMAL),
+            CompareColumnResult(isTypeMatched = false, false),
+            ColumnTypeModifier(0, 4, 4, null, false, false),
+            ColumnTypeModifier(0, 3, 3, null, false, false)
         ),
     )
 
