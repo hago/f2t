@@ -42,32 +42,32 @@ class String2IntComparator : TypedColumnComparator {
     private fun isInRange(fileColumnDefinition: FileColumnDefinition, dbJDBCType: JDBCType): Boolean {
         return when {
             fileColumnDefinition.minimum == null && fileColumnDefinition.maximum == null -> false
-            fileColumnDefinition.maximum == null -> isGreaterThanLowerLimit(
+            fileColumnDefinition.maximum == null -> isGreaterThanOrEqualsLowerLimit(
                 fileColumnDefinition,
                 intRanges.getValue(dbJDBCType).second
             )
-            fileColumnDefinition.minimum == null -> isLessThanUpperLimit(
+            fileColumnDefinition.minimum == null -> isLessThanOrEqualsUpperLimit(
                 fileColumnDefinition,
                 intRanges.getValue(dbJDBCType).first
             )
-            else -> isGreaterThanLowerLimit(
+            else -> isGreaterThanOrEqualsLowerLimit(
                 fileColumnDefinition,
                 intRanges.getValue(dbJDBCType).second
-            ) && isLessThanUpperLimit(
+            ) && isLessThanOrEqualsUpperLimit(
                 fileColumnDefinition,
                 intRanges.getValue(dbJDBCType).first
             )
         }
     }
 
-    private fun isLessThanUpperLimit(fileColumnDefinition: FileColumnDefinition, limit: Long): Boolean {
-        return NumericUtils.isDecimalLongValue(fileColumnDefinition.minimum) &&
-                fileColumnDefinition.maximum.toLong() < limit
+    private fun isLessThanOrEqualsUpperLimit(fileColumnDefinition: FileColumnDefinition, limit: Long): Boolean {
+        return NumericUtils.isDecimalLongValue(fileColumnDefinition.maximum) &&
+                fileColumnDefinition.maximum.toLong() <= limit
     }
 
-    private fun isGreaterThanLowerLimit(fileColumnDefinition: FileColumnDefinition, limit: Long): Boolean {
+    private fun isGreaterThanOrEqualsLowerLimit(fileColumnDefinition: FileColumnDefinition, limit: Long): Boolean {
         return NumericUtils.isDecimalLongValue(fileColumnDefinition.minimum) &&
-                fileColumnDefinition.minimum.toLong() > limit
+                fileColumnDefinition.minimum.toLong() >= limit
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {
