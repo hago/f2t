@@ -1,6 +1,5 @@
 package com.hagoapp.f2t.compare.column
 
-
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.FileColumnDefinition
