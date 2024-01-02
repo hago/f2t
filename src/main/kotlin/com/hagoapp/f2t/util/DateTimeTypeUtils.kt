@@ -82,12 +82,11 @@ class DateTimeTypeUtils {
             for (dtFmt in dateTimeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = ZonedDateTime.ofInstant(Instant.from(dtFmt.parse(input)), ZoneId.systemDefault())
-                    logger.debug("stringToDateTimeOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
-                } catch (ex: DateTimeParseException) {
-                    logger.warn("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
-                } catch (ex: DateTimeException) {
-                    logger.warn("stringToDateTimeOrNull parsing error DateTimeException $ex using $dtFmt")
+                } catch (ignore: DateTimeParseException) {
+                    //
+                } catch (ignore: DateTimeException) {
+                    //
                 }
             }
             return d
@@ -119,14 +118,13 @@ class DateTimeTypeUtils {
             for (dtFmt in dateFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalDate.from(dtFmt.parse(input))
-                    logger.debug("stringToDateOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
-                } catch (ex: DateTimeParseException) {
-                    logger.error("stringToDateOrNull parsing error DateTimeParseException $ex using $dtFmt")
-                } catch (ex: IllegalArgumentException) {
-                    logger.error("stringToDateOrNull parsing error IllegalArgumentException $ex using $dtFmt")
-                } catch (ex: DateTimeException) {
-                    logger.error("stringToDateOrNull parsing error DateTimeException $ex using $dtFmt")
+                } catch (ignored: DateTimeParseException) {
+                    //
+                } catch (ignored: IllegalArgumentException) {
+                    //
+                } catch (ignored: DateTimeException) {
+                    //
                 }
             }
             return d
@@ -158,14 +156,13 @@ class DateTimeTypeUtils {
             for (dtFmt in timeFormatters.plus(extraFormats.map { DateTimeFormatter.ofPattern(it) })) {
                 try {
                     d = LocalTime.from(dtFmt.parse(input))
-                    logger.debug("stringToTimeOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
                 } catch (ex: DateTimeParseException) {
-                    logger.error("stringToTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
+                    //
                 } catch (ex: IllegalArgumentException) {
-                    logger.error("stringToTimeOrNull parsing error IllegalArgumentException $ex using $dtFmt")
+                    //
                 } catch (ex: DateTimeException) {
-                    logger.error("stringToTimeOrNull parsing error DateTimeException $ex using $dtFmt")
+                    //
                 }
             }
             return d
