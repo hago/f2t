@@ -421,4 +421,16 @@ abstract class DbConnection : Closeable {
             else -> DbDataGetter.StringDataGetter
         }
     }
+
+    fun queryTableSize(tableName: TableName): Long {
+        val sql = "select count(1) from ${getFullTableName(tableName)}"
+        connection.prepareStatement(sql).use { st ->
+            st.executeQuery().use { rs ->
+                if (!rs.next()) {
+                    throw F2TException("table ${getFullTableName(tableName)} not existed or access denied")
+                }
+                return rs.getLong(1)
+            }
+        }
+    }
 }
