@@ -42,6 +42,14 @@ public class TransformCase {
         return expect;
     }
 
+    public Object getSrc() {
+        return src;
+    }
+
+    public String[] getExtra() {
+        return extra;
+    }
+
     public TransformCase(
             @NotNull FileColumnDefinition fileColumn,
             @NotNull ColumnDefinition dbColumn,
