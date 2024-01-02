@@ -85,9 +85,9 @@ class DateTimeTypeUtils {
                     logger.debug("stringToDateTimeOrNull parsing successfully using {} for {}", dtFmt, input)
                     break
                 } catch (ex: DateTimeParseException) {
-                    logger.error("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
+                    logger.warn("stringToDateTimeOrNull parsing error DateTimeParseException $ex using $dtFmt")
                 } catch (ex: DateTimeException) {
-                    logger.error("stringToDateTimeOrNull parsing error DateTimeException $ex using $dtFmt")
+                    logger.warn("stringToDateTimeOrNull parsing error DateTimeException $ex using $dtFmt")
                 }
             }
             return d
