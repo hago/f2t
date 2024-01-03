@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 
 class MemoryParquetReadTest {
     private static final List<Triple<String, FileColumnTypeDeterminer, String>> testConfigFiles = List.of(
-            //new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
+            new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
@@ -53,7 +53,7 @@ class MemoryParquetReadTest {
     }
 
     @BeforeAll
-    static void testParquetDataTableWriter() throws IOException, F2TException {
+    static void createTestParquetFile() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
