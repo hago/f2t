@@ -53,7 +53,7 @@ class MemoryParquetReadTest {
     }
 
     @BeforeAll
-    static void testWriteParquet() throws IOException, F2TException {
+    static void testParquetDataTableWriter() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
@@ -63,7 +63,7 @@ class MemoryParquetReadTest {
                 parser.setDeterminer(new FileTypeDeterminer(item.getSecond()));
                 var data = parser.extractData();
                 var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", item.getThird());
-                new ParquetWriter(data, pwConfig).write();
+                new ParquetDataTableWriter(data, pwConfig).write();
             }
         }
     }
