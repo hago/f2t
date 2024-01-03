@@ -308,7 +308,7 @@ abstract class DbConnection : Closeable {
                 stmt.addBatch()
             }
             stmt.executeBatch()
-            logger.trace("${rows.size} row${if (rows.size > 1) "s" else ""} inserted into table ${table}.")
+            logger.trace("{} row{} inserted into table {}", rows.size, if (rows.size > 1) "s" else "", table)
         }
         rows.clear()
     }
