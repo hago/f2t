@@ -328,26 +328,4 @@ open class PgSqlConnection : DbConnection() {
         return "public"
     }
 
-    override fun readData(table: TableName, columns: List<ColumnDefinition>, limit: Int): List<List<Any?>> {
-        val sql = """
-            select
-            ${columns.joinToString(",") { normalizeName(it.name) }}
-            from
-            ${getFullTableName(table)} limit ?
-        """
-        connection.prepareStatement(sql).use { stmt ->
-            stmt.setInt(1, limit)
-            stmt.executeQuery().use { rs ->
-                val ret = mutableListOf<List<Any?>>()
-                while (rs.next()) {
-                    val line: MutableList<Any?> = columns.indices.map { null }.toMutableList()
-                    for (i in columns.indices) {
-                        line[i] = if (rs.wasNull()) null else rs.getObject(i)
-                    }
-                    ret.add(line)
-                }
-                return ret
-            }
-        }
-    }
 }
