@@ -14,32 +14,33 @@ import com.hagoapp.f2t.datafile.FileColumnTypeDeterminer;
 import com.hagoapp.f2t.datafile.FileTypeDeterminer;
 import com.hagoapp.f2t.datafile.csv.CSVDataReader;
 import com.hagoapp.f2t.datafile.csv.FileInfoCsv;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DbInsertionTest {
-    private final List<String> testConfigFiles = List.of(
+    private static final List<String> TEST_CONFIG_FILES = List.of(
             "tests/process/pgsql.sample.json",
             "tests/process/mariadb.sample.json",
             "tests/process/mssql.sample.json"
     );
 
-    private final Logger logger = LoggerFactory.getLogger(DbConnectionTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(DbConnectionTest.class);
 
     private static final String SKIP_TEST_DB_TYPE = "f2t.dbtests.skip";
     private static final String TEST_FILE = "tests/csv/shuihudata.csv";
     private static final String TEST_TABLE_NAME = "test_INSERT_Shuihu_data";
     private static final List<String> skipped = new ArrayList<>();
     private static List<FileColumnDefinition> fileColumnDefinitions;
+    private static List<String> testConfigFiles;
     private static final List<DataRow> rows = new ArrayList<>();
 
     @BeforeAll
@@ -49,6 +50,7 @@ public class DbInsertionTest {
                     .collect(Collectors.toList());
             skipped.addAll(parts);
         }
+        testConfigFiles = TEST_CONFIG_FILES.stream().filter(tf -> !skipped.contains(tf)).collect(Collectors.toList());
         var info = new FileInfoCsv();
         info.setFilename(TEST_FILE);
         try (var reader = new CSVDataReader()) {
@@ -59,17 +61,38 @@ public class DbInsertionTest {
                 rows.add(reader.next());
             }
         }
+        cleanTestTable();
+    }
+
+    @AfterAll
+    public static void clean() {
+        //cleanTestTable();
+    }
+
+    private static void cleanTestTable() {
+        try {
+            for (var cfgFile : testConfigFiles) {
+                var cfg = DbConfigReader.readConfig(cfgFile);
+                try (var conn = cfg.createConnection()) {
+                    try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                        var testTable = new TableName(TEST_TABLE_NAME, con.getDefaultSchema());
+                        con.dropTable(testTable);
+                    }
+                }
+            }
+        } catch (SQLException | F2TException e) {
+            logger.error("clean table error: {}", e.getMessage());
+        }
     }
 
     @Test
+    @Order(1)
     void testWriteRows() throws F2TException, SQLException {
-        var configFiles = testConfigFiles.stream().filter(tf -> !skipped.contains(tf)).collect(Collectors.toList());
-        for (var cfgFile : configFiles) {
+        for (var cfgFile : testConfigFiles) {
             var cfg = DbConfigReader.readConfig(cfgFile);
             try (var conn = cfg.createConnection()) {
                 try (var con = DbConnectionFactory.createDbConnection(conn)) {
                     var testTable = new TableName(TEST_TABLE_NAME, con.getDefaultSchema());
-                    con.dropTable(testTable);
                     var tableDef = new TableDefinition<>(
                             fileColumnDefinitions.stream().map(fileCol -> {
                                 var dbCol = new ColumnDefinition(
@@ -94,9 +117,49 @@ public class DbInsertionTest {
                     var size = con.queryTableSize(testTable);
                     logger.debug("queried size of {} is {}", fullName, size);
                     Assertions.assertEquals(rows.size(), size);
-                    con.dropTable(testTable);
                 }
             }
         }
+    }
+
+    @Test
+    @Order(2)
+    void readData() throws F2TException, SQLException {
+        for (var cfgFile : testConfigFiles) {
+            var cfg = DbConfigReader.readConfig(cfgFile);
+            try (var conn = cfg.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var testTable = new TableName(TEST_TABLE_NAME, con.getDefaultSchema());
+                    logger.debug("read data with all default");
+                    var rows = con.readData(testTable);
+                    Assertions.assertTrue(!rows.isEmpty() && rows.size() <= 100);
+                    var limitedRowCount = 13;
+                    var def = con.getExistingTableDefinition(testTable);
+                    logger.debug("read data with limit {}", limitedRowCount);
+                    rows = con.readData(testTable, def.getColumns(), limitedRowCount);
+                    Assertions.assertEquals(limitedRowCount, rows.size());
+                    var cols = pickRandomColumns(def.getColumns());
+                    logger.debug("read data of columns: {}", cols);
+                    rows = con.readData(testTable, cols);
+                    Assertions.assertTrue(!rows.isEmpty() && rows.size() <= 100);
+                    Assertions.assertEquals(cols.size(), rows.get(0).size());
+                    logger.debug("read data of columns: {} and limit {}", cols, limitedRowCount);
+                    rows = con.readData(testTable, cols, limitedRowCount);
+                    Assertions.assertEquals(limitedRowCount, rows.size());
+                    Assertions.assertEquals(cols.size(), rows.get(0).size());
+                }
+            }
+        }
+    }
+
+    private List<ColumnDefinition> pickRandomColumns(List<? extends ColumnDefinition> allColumns) {
+        var random = new SecureRandom();
+        var colCount = random.nextInt(allColumns.size() - 1) + 1;
+        var colPool = new ArrayList<>(allColumns);
+        var ret = new ArrayList<ColumnDefinition>();
+        for (var i = 0; i < colCount; i++) {
+            ret.add(colPool.get(random.nextInt(colPool.size())));
+        }
+        return ret;
     }
 }
