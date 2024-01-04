@@ -12,6 +12,7 @@ import com.hagoapp.f2t.compare.TypedColumnTransformer
 import com.hagoapp.f2t.util.DateTimeTypeUtils
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.time.format.DateTimeFormatter
 import java.time.temporal.Temporal
 
 /**
@@ -27,22 +28,31 @@ class ToStringTransformer : TypedColumnTransformer {
         dbColumnDefinition: ColumnDefinition,
         vararg extra: String
     ): Any? {
-        return when (dbColumnDefinition.dataType) {
+        return when (fileColumnDefinition.dataType) {
             DATE -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
                 DateTimeTypeUtils.getDateFormatter(fmt).format(src)
             }
+
             TIME -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
                 DateTimeTypeUtils.getDTimeFormatter(fmt).format(src)
             }
-            TIMESTAMP, TIMESTAMP_WITH_TIMEZONE -> {
+
+            TIMESTAMP -> {
+                src as Temporal? ?: return null
+                if (extra.isNotEmpty()) DateTimeTypeUtils.getDateTimeFormatter(extra[0]).format(src)
+                else DateTimeFormatter.ISO_DATE_TIME.format(src)
+            }
+
+            TIMESTAMP_WITH_TIMEZONE -> {
                 src as Temporal? ?: return null
                 val fmt = if (extra.isNotEmpty()) extra[0] else null
                 DateTimeTypeUtils.getDateTimeFormatter(fmt).format(src)
             }
+
             else -> src?.toString()
         }
     }
