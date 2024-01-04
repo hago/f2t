@@ -25,19 +25,20 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
     SeekableInputStream() {
 
     companion object {
-        private const val MEM_SLOT_SIZE = Int.MAX_VALUE / 2
+        private const val DEFAULT_MEM_SLOT_SIZE = Int.MAX_VALUE / 2
         private var logger = LoggerFactory.getLogger(LargeSeekableMemoryInputStream::class.java)
     }
 
     private val memSlots: Array<ByteArray>
     private var position = -1L
+    var memSlotSize = DEFAULT_MEM_SLOT_SIZE
 
     init {
-        val slotNum = ((length - 1) / MEM_SLOT_SIZE + 1).toInt()
+        val slotNum = ((length - 1) / memSlotSize + 1).toInt()
         memSlots = Array(slotNum) { i ->
             when (i) {
-                slotNum - 1 -> ByteArray((length - MEM_SLOT_SIZE * (slotNum - 1)).toInt())
-                else -> ByteArray(MEM_SLOT_SIZE)
+                slotNum - 1 -> ByteArray((length - memSlotSize * (slotNum - 1)).toInt())
+                else -> ByteArray(memSlotSize)
             }
         }
         var slotIndex = 0
@@ -84,8 +85,8 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
         var numToCopy = len
         var targetOffset = targetStart
         while (numToCopy > 0) {
-            val slotIndex = (position / MEM_SLOT_SIZE).toInt()
-            val slotPos = (position - MEM_SLOT_SIZE * slotIndex).toInt()
+            val slotIndex = (position / memSlotSize).toInt()
+            val slotPos = (position - memSlotSize * slotIndex).toInt()
             val slotRemain = memSlots[slotIndex].size - slotPos
             val numToCopyInSlot = numToCopy.coerceAtMost(slotRemain)
             System.arraycopy(memSlots[slotIndex], slotPos, target, targetOffset, numToCopyInSlot)
@@ -99,8 +100,8 @@ class LargeSeekableMemoryInputStream(inputStream: InputStream, private val lengt
         if (position >= length) {
             return -1
         }
-        val slotIndex = (position / MEM_SLOT_SIZE).toInt()
-        val slotPosition = (position - MEM_SLOT_SIZE * slotIndex).toInt()
+        val slotIndex = (position / memSlotSize).toInt()
+        val slotPosition = (position - memSlotSize * slotIndex).toInt()
         val data = memSlots[slotIndex][slotPosition].toUByte()
         position += 1
         logger.trace("read() $pos return $data")

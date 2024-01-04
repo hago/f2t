@@ -102,8 +102,7 @@ class MemoryParquetReadTest {
                 csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
             }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetReader.create(bytes)) {
+                try (var ps = MemoryParquetReader.create(fis, new File(config.getThird()).length())) {
                     var rowCount = csvConfig.getExpect().getRowCount();
                     var skipCount = random.nextInt(rowCount);
                     ps.skip(skipCount);
