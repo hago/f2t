@@ -131,18 +131,16 @@ class ToStringTransformTest {
             srcTm.setNullable(fileCol.getFifth());
             fileColDef.setPossibleTypes(item.getThird());
 
-            var destCol = item.getFourth();
-            var destColDef = new ColumnDefinition();
-            destColDef.setDataType(destCol.getFirst());
-            var destTm = destColDef.getTypeModifier();
-            destTm.setMaxLength(destCol.getSecond());
-            destTm.setPrecision(destCol.getThird());
-            destTm.setScale(destCol.getFourth());
-            destTm.setNullable(destCol.getFifth());
+            var targetCol = item.getFourth();
+            var targetColDef = new ColumnDefinition();
+            targetColDef.setDataType(targetCol.getFirst());
+            var targetTm = targetColDef.getTypeModifier();
+            targetTm.setMaxLength(targetCol.getSecond());
+            targetTm.setPrecision(targetCol.getThird());
+            targetTm.setScale(targetCol.getFourth());
+            targetTm.setNullable(targetCol.getFifth());
 
-            var result = ColumnComparator.Companion.transform(src, fileColDef, destColDef);
-            System.out.println(item.getFifth());
-            System.out.println(result);
+            var result = ColumnComparator.transform(src, fileColDef, targetColDef);
             Assertions.assertEquals(item.getFifth(), result);
         }
     }
