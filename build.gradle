@@ -80,8 +80,8 @@ compileTestKotlin {
 
 test {
     // uncomment following 2 lines for large file test
-    // minHeapSize = "8192M"
-    // maxHeapSize = "16384M"
+    minHeapSize = "8192M"
+    maxHeapSize = "16384M"
     useJUnitPlatform()
     systemProperties = System.properties as Map<String, ?>
 }
