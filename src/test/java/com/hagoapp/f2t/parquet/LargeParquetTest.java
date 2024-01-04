@@ -74,7 +74,7 @@ class LargeParquetTest {
 
     @AfterAll
     public static void clean() {
-        //deleteLargeParquet();
+        deleteLargeParquet();
     }
 
     private static void deleteLargeParquet() {
