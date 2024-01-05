@@ -83,7 +83,7 @@ public interface ParseObserver {
      *
      * @param rowCount count of rows.
      */
-    default void onRowCountDetermined(int rowCount) {
+    default void onRowCountDetermined(long rowCount) {
     }
 
     /**
