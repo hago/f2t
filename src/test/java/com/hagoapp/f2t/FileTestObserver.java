@@ -15,6 +15,7 @@ package com.hagoapp.f2t;
 
 import com.hagoapp.f2t.datafile.FileInfo;
 import com.hagoapp.f2t.datafile.ParseResult;
+import com.hagoapp.util.StackTraceWriter;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -27,12 +28,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FileTestObserver implements ParseObserver {
-    private int rowCount;
+    private long rowCount;
     private final Map<String, Pair<FileColumnDefinition, Integer>> columns = new HashMap<>();
     private boolean rowDetail = false;
     private final Logger logger = LoggerFactory.getLogger(FileTestObserver.class);
 
-    public int getRowCount() {
+    public long getRowCount() {
         logger.debug("getRowCount {}", rowCount);
         return rowCount;
     }
@@ -93,12 +94,12 @@ public class FileTestObserver implements ParseObserver {
     @Override
     public boolean onRowError(@NotNull Throwable e) {
         logger.error("error occurs: {}", e.getMessage());
-        e.printStackTrace();
+        StackTraceWriter.writeToLogger(e, logger);
         throw new RuntimeException(e);
     }
 
     @Override
-    public void onRowCountDetermined(int rowCount) {
+    public void onRowCountDetermined(long rowCount) {
         logger.info("row count determined: {}", rowCount);
         this.rowCount = rowCount;
     }
