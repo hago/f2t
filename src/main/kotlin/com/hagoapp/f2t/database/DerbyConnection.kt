@@ -13,28 +13,65 @@ import com.hagoapp.f2t.database.config.DerbyConfig
 import java.sql.JDBCType
 
 class DerbyConnection : DbConnection() {
+
+    companion object {
+        const val DERBY_TABLE_TYPE_USER_TABLE = 'T'
+    }
+
     override fun getDriverName(): String {
         return DerbyConfig.JDBC_DRIVER_APACHE_DERBY;
     }
 
+    private data class SchemaResult(
+        val schemaId: String,
+        val schemaName: String,
+        val authorizationId: String
+    )
+
+    private data class TableResult(
+        val tableId: String,
+        val tableName: String,
+        val tableType: Char,
+        val schemaId: String,
+        val lockGranularity: Char
+    )
+
     override fun getAvailableTables(): Map<String, List<TableName>> {
-        val ret = mutableMapOf<String, MutableList<TableName>>()
-        connection.prepareStatement("show schemas").use { stmt ->
+        val schemas = mutableListOf<SchemaResult>()
+        connection.prepareStatement("SELECT * FROM SYS.SYSSCHEMAS").use { stmt ->
             stmt.executeQuery().use { rs ->
                 while (rs.next()) {
-                    ret[rs.getString(1)] = mutableListOf()
+                    schemas.add(
+                        SchemaResult(
+                            rs.getString("SCHEMAID"),
+                            rs.getString("SCHEMANAME"),
+                            rs.getString("AUTHORIZATIONID")
+                        )
+                    )
                 }
             }
         }
-        connection.prepareStatement("show tables").use { st ->
+        val tables = mutableListOf<TableResult>()
+        connection.prepareStatement("SELECT * FROM SYS.SYSTABLES WHERE TABLETYPE = ?").use { st ->
+            st.setString(1, DERBY_TABLE_TYPE_USER_TABLE.toString())
             st.executeQuery().use { rs ->
                 while (rs.next()) {
-                    val schema = rs.getString(1)
-                    ret.getValue(schema).add(TableName(rs.getString(2), schema))
+                    tables.add(
+                        TableResult(
+                            rs.getString("TABLEID"),
+                            rs.getString("TABLENAME"),
+                            DERBY_TABLE_TYPE_USER_TABLE,
+                            rs.getString("SCHEMAID"),
+                            rs.getString("LOCKGRANULARITY")[0]
+                        )
+                    )
                 }
             }
         }
-        return ret
+        return schemas.associate { s ->
+            Pair(s.schemaName,
+                tables.filter { t -> t.schemaId == s.schemaId }.map { TableName(it.tableName, s.schemaName) })
+        }
     }
 
     override fun listDatabases(): List<String> {
