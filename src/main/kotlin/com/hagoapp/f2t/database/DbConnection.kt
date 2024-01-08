@@ -17,6 +17,7 @@ import java.io.Closeable
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import java.sql.PreparedStatement
 import java.sql.SQLException
 
 /**
@@ -295,11 +296,10 @@ abstract class DbConnection : Closeable {
         connection.prepareStatement(insertionMap.getValue(table)).use { stmt ->
             rows.forEach { row ->
                 row.cells.sortedBy { it.index }.forEachIndexed { i, cell ->
-                    val d = def.columns[i] as ColumnDefinition
-                    logger.debug(
+                    logger.trace(
                         "writing column {} {} with {}:{}",
                         i,
-                        d.name,
+                        (def.columns[i] as ColumnDefinition).name,
                         cell.data,
                         cell.data?.javaClass?.canonicalName
                     )
@@ -308,7 +308,7 @@ abstract class DbConnection : Closeable {
                 stmt.addBatch()
             }
             stmt.executeBatch()
-            logger.info("${rows.size} row${if (rows.size > 1) "s" else ""} inserted into table ${table}.")
+            logger.trace("{} row{} inserted into table {}", rows.size, if (rows.size > 1) "s" else "", table)
         }
         rows.clear()
     }
@@ -327,11 +327,10 @@ abstract class DbConnection : Closeable {
         tableDefinition: TableDefinition<out ColumnDefinition>
     ) {
         val sortedColumns = sortColumnsOnFileOrder(fileDefinition, tableDefinition)
-        val sql = """
+        insertionMap[table] = """
                 insert into ${getFullTableName(table)} (${sortedColumns.joinToString { normalizeName(it.name) }})
                 values (${sortedColumns.joinToString { "?" }})
             """
-        insertionMap[table] = sql
         val colMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
         fieldValueSetters[table] = sortedColumns.map { col ->
             val converter = getTypedDataConverters()[col.dataType]
@@ -389,17 +388,43 @@ abstract class DbConnection : Closeable {
      * @param columns   columns needs to fetch
      * @param limit the most count of fetched rows
      */
+    @JvmOverloads
     open fun readData(
         table: TableName,
         columns: List<ColumnDefinition> = listOf(),
         limit: Int = 100
     ): List<List<Any?>> {
-        throw UnsupportedOperationException(
-            """
-            method "readData(table: TableName, columns: List<String> = listOf(), limit: Int = 100): List<List<Any?>>"
-            not implemented in ${this::class.java.canonicalName}
-            """
-        )
+        val actualColumns = columns.ifEmpty {
+            getExistingTableDefinition(table).columns.map { it as ColumnDefinition }
+        }
+        prepareSelect(table, actualColumns, limit).use { stmt ->
+            stmt.executeQuery().use { rs ->
+                val ret = mutableListOf<List<Any?>>()
+                while (rs.next()) {
+                    val row = actualColumns.map { col ->
+                        createDataGetter(col.dataType).getTypedValue(rs, col.name)
+                    }
+                    ret.add(row)
+                }
+                return ret
+            }
+        }
+    }
+
+    protected open fun prepareSelect(
+        table: TableName,
+        columns: List<ColumnDefinition>,
+        limit: Int = 100
+    ): PreparedStatement {
+        val sql = """
+            select
+            ${columns.joinToString(",") { normalizeName(it.name) }}
+            from
+            ${getFullTableName(table)} limit ?
+        """
+        val st = connection.prepareStatement(sql)
+        st.setInt(1, limit)
+        return st;
     }
 
     protected open fun createDataGetter(jdbcType: JDBCType): DbDataGetter<*> {
@@ -419,6 +444,18 @@ abstract class DbConnection : Closeable {
             TIME, TIME_WITH_TIMEZONE -> DbDataGetter.TimeDataGetter
             BINARY, VARBINARY -> DbDataGetter.BINARYDataGetter
             else -> DbDataGetter.StringDataGetter
+        }
+    }
+
+    fun queryTableSize(tableName: TableName): Long {
+        val sql = "select count(1) from ${getFullTableName(tableName)}"
+        connection.prepareStatement(sql).use { st ->
+            st.executeQuery().use { rs ->
+                if (!rs.next()) {
+                    throw F2TException("table ${getFullTableName(tableName)} not existed or access denied")
+                }
+                return rs.getLong(1)
+            }
         }
     }
 }

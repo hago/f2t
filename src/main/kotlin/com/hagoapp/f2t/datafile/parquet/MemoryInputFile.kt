@@ -19,27 +19,12 @@ import java.io.InputStream
  */
 class MemoryInputFile private constructor() : InputFile {
 
-    private lateinit var inputBytes: ByteArray
     private lateinit var inputStream: InputStream
     private var length: Long = -1
 
-    constructor(input: ByteArray) : this() {
-        loadBytes(input)
-    }
-
-    private fun loadBytes(input: ByteArray) {
-        this.inputBytes = input
-        this.length = input.size.toLong()
-
-    }
-
     constructor(inputStream: InputStream, length: Long) : this() {
-        if (length < Int.MAX_VALUE - 10) {
-            this.loadBytes(inputStream.readAllBytes())
-        } else {
-            this.inputStream = inputStream
-            this.length = length
-        }
+        this.inputStream = inputStream
+        this.length = length
     }
 
     override fun getLength(): Long {
@@ -47,9 +32,7 @@ class MemoryInputFile private constructor() : InputFile {
     }
 
     override fun newStream(): SeekableInputStream {
-        return if (this::inputBytes.isInitialized) {
-            SeekableMemoryInputStream(inputBytes)
-        } else if (this::inputStream.isInitialized) {
+        return if (this::inputStream.isInitialized) {
             LargeSeekableMemoryInputStream(inputStream, length)
         } else {
             throw IOException("No content")

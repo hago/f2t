@@ -10,7 +10,6 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
-import com.hagoapp.util.NumericUtils
 import java.math.BigDecimal
 import java.sql.JDBCType
 import java.sql.JDBCType.*
@@ -25,7 +24,7 @@ class String2FloatComparator : TypedColumnComparator {
     companion object {
         private val floatRanges = mapOf(
             FLOAT to Pair(Float.MAX_VALUE.toBigDecimal(), Float.MIN_VALUE.toBigDecimal()),
-            BIGINT to Pair(Double.MAX_VALUE.toBigDecimal(), Double.MIN_VALUE.toBigDecimal())
+            DOUBLE to Pair(Double.MAX_VALUE.toBigDecimal(), Double.MIN_VALUE.toBigDecimal())
         )
     }
 
@@ -42,33 +41,37 @@ class String2FloatComparator : TypedColumnComparator {
             dbColumnDefinition.dataType == DECIMAL ->
                 fileColumnDefinition.typeModifier.precision <= dbColumnDefinition.typeModifier.precision &&
                         fileColumnDefinition.typeModifier.scale <= dbColumnDefinition.typeModifier.scale
+
             fileColumnDefinition.minimum == null && fileColumnDefinition.maximum == null -> false
-            fileColumnDefinition.maximum == null -> isGreaterThanLowerLimit(
+            fileColumnDefinition.maximum == null -> isGreaterThanOrEqualsLowerLimit(
                 fileColumnDefinition,
                 floatRanges.getValue(dbColumnDefinition.dataType).second
             )
-            fileColumnDefinition.minimum == null -> isLessThanUpperLimit(
+
+            fileColumnDefinition.minimum == null -> isLessThanOrEqualsUpperLimit(
                 fileColumnDefinition,
                 floatRanges.getValue(dbColumnDefinition.dataType).first
             )
-            else -> isGreaterThanLowerLimit(
+
+            else -> isGreaterThanOrEqualsLowerLimit(
                 fileColumnDefinition,
                 floatRanges.getValue(dbColumnDefinition.dataType).second
-            ) && isLessThanUpperLimit(
+            ) && isLessThanOrEqualsUpperLimit(
                 fileColumnDefinition,
                 floatRanges.getValue(dbColumnDefinition.dataType).first
             )
         }
     }
 
-    private fun isLessThanUpperLimit(fileColumnDefinition: FileColumnDefinition, limit: BigDecimal): Boolean {
-        return NumericUtils.isDecimalLongValue(fileColumnDefinition.minimum) &&
-                fileColumnDefinition.maximum < limit
+    private fun isLessThanOrEqualsUpperLimit(fileColumnDefinition: FileColumnDefinition, limit: BigDecimal): Boolean {
+        return fileColumnDefinition.maximum <= limit
     }
 
-    private fun isGreaterThanLowerLimit(fileColumnDefinition: FileColumnDefinition, limit: BigDecimal): Boolean {
-        return NumericUtils.isDecimalLongValue(fileColumnDefinition.minimum) &&
-                fileColumnDefinition.minimum > limit
+    private fun isGreaterThanOrEqualsLowerLimit(
+        fileColumnDefinition: FileColumnDefinition,
+        limit: BigDecimal
+    ): Boolean {
+        return fileColumnDefinition.minimum >= limit
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {

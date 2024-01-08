@@ -63,7 +63,7 @@ class ExcelReadTest {
             parser.determiner = FileTypeDeterminer(determiner)
             parser.addObserver(observer)
             parser.parse()
-            Assertions.assertEquals(testConfig.expect.rowCount, observer.rowCount)
+            Assertions.assertEquals(testConfig.expect.rowCount.toLong(), observer.rowCount)
             Assertions.assertEquals(testConfig.expect.columnCount, observer.columns.size)
             Assertions.assertEquals(
                 testConfig.expect.types,

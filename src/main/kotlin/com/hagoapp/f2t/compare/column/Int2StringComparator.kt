@@ -10,8 +10,10 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.FileColumnDefinition
 import com.hagoapp.f2t.compare.CompareColumnResult
 import com.hagoapp.f2t.compare.TypedColumnComparator
+import org.slf4j.LoggerFactory
 import java.sql.JDBCType
 import java.sql.JDBCType.*
+import kotlin.math.pow
 
 /**
  * Compare int with string.
@@ -20,6 +22,9 @@ import java.sql.JDBCType.*
  * @since 0.6
  */
 class Int2StringComparator : TypedColumnComparator {
+
+    private val logger = LoggerFactory.getLogger(Int2StringComparator::class.java)
+
     override fun dataCanLoadFrom(
         fileColumnDefinition: FileColumnDefinition,
         dbColumnDefinition: ColumnDefinition,
@@ -30,8 +35,21 @@ class Int2StringComparator : TypedColumnComparator {
         }
         return CompareColumnResult(
             isTypeMatched = false,
-            canLoadDataFrom = fileColumnDefinition.typeModifier.maxLength - dbColumnDefinition.typeModifier.maxLength >= 0
+            canLoadDataFrom = maxLength(fileColumnDefinition.dataType) <= dbColumnDefinition.typeModifier.maxLength
         )
+    }
+
+    private fun maxLength(type: JDBCType): Int {
+        return when (type) {
+            TINYINT -> Byte.MIN_VALUE.toString().length
+            SMALLINT -> 2.0.pow(16).toInt().toString().length + 1
+            INTEGER -> Int.MIN_VALUE.toString().length
+            BIGINT -> Long.MIN_VALUE.toString().length
+            else -> {
+                logger.error("{} shoud not be here, treat as long", type)
+                Long.MIN_VALUE.toString().length
+            }
+        }
     }
 
     override fun supportSourceTypes(): Set<JDBCType> {

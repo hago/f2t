@@ -26,7 +26,8 @@ class ToTimestampComparator : TypedColumnComparator {
         vararg extra: String
     ): CompareColumnResult {
         return when (fileColumnDefinition.dataType) {
-            DATE, TIME, TIMESTAMP -> CompareColumnResult(isTypeMatched = false, true)
+            TIMESTAMP -> CompareColumnResult(isTypeMatched = true, true)
+            DATE, TIME -> CompareColumnResult(isTypeMatched = false, true)
             else -> CompareColumnResult(isTypeMatched = false, false)
         }
     }

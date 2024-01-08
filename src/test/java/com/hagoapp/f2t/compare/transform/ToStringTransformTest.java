@@ -5,12 +5,18 @@
  */
 
 /*
+ *  This Source Code Form is subject to the terms of the Mozilla Public
+ *  License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/*
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.hagoapp.f2t.transform;
+package com.hagoapp.f2t.compare.transform;
 
 import com.hagoapp.f2t.ColumnDefinition;
 import com.hagoapp.f2t.FileColumnDefinition;
@@ -18,11 +24,11 @@ import com.hagoapp.f2t.Quintet;
 import com.hagoapp.f2t.compare.ColumnComparator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.JDBCType;
-import java.sql.Time;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.Set;
 
@@ -85,22 +91,28 @@ class ToStringTransformTest {
                     new Quintet<>(TIMESTAMP_WITH_TIMEZONE, 0, 0, 0, true),
                     Set.of(TIMESTAMP_WITH_TIMEZONE),
                     new Quintet<>(NVARCHAR, 2, 0, 0, true),
-                    "2021-03-15T14:42:53.000001234Z[UTC]"
+                    "2021-03-15T14:42:53.000001234Z"
             ),
             new Quintet<>(
-                    ZonedDateTime.of(2021, 3, 15,
-                            14, 42, 53, 1234, ZoneId.of("UTC")).toLocalDate(),
+                    LocalDateTime.of(2021, 3, 15, 14, 42, 53, 1234),
+                    new Quintet<>(TIMESTAMP, 0, 0, 0, true),
+                    Set.of(TIMESTAMP),
+                    new Quintet<>(NVARCHAR, 2, 0, 0, true),
+                    "2021-03-15T14:42:53.000001234"
+            ),
+            new Quintet<>(
+                    LocalDate.of(2021, 3, 15),
                     new Quintet<>(DATE, 0, 0, 0, true),
                     Set.of(DATE),
                     new Quintet<>(NVARCHAR, 2, 0, 0, true),
                     "2021-03-15"
             ),
             new Quintet<>(
-                    new Time(1234L + 23 * 60 * 1000L + 2 * 3600 * 1000L),
+                    LocalTime.of(10, 23, 1, 567),
                     new Quintet<>(TIME, 0, 0, 0, true),
                     Set.of(TIME),
                     new Quintet<>(NVARCHAR, 2, 0, 0, true),
-                    "10:23:01"
+                    "10:23:01.000000567"
             ),
             new Quintet<>(
                     null,
@@ -110,6 +122,8 @@ class ToStringTransformTest {
                     null
             )
     );
+
+    private final Logger logger = LoggerFactory.getLogger(ToStringTransformTest.class);
 
     @Test
     void testTransform() {
@@ -125,18 +139,17 @@ class ToStringTransformTest {
             srcTm.setNullable(fileCol.getFifth());
             fileColDef.setPossibleTypes(item.getThird());
 
-            var destCol = item.getFourth();
-            var destColDef = new ColumnDefinition();
-            destColDef.setDataType(destCol.getFirst());
-            var destTm = destColDef.getTypeModifier();
-            destTm.setMaxLength(destCol.getSecond());
-            destTm.setPrecision(destCol.getThird());
-            destTm.setScale(destCol.getFourth());
-            destTm.setNullable(destCol.getFifth());
+            var targetCol = item.getFourth();
+            var targetColDef = new ColumnDefinition();
+            targetColDef.setDataType(targetCol.getFirst());
+            var targetTm = targetColDef.getTypeModifier();
+            targetTm.setMaxLength(targetCol.getSecond());
+            targetTm.setPrecision(targetCol.getThird());
+            targetTm.setScale(targetCol.getFourth());
+            targetTm.setNullable(targetCol.getFifth());
 
-            var result = ColumnComparator.Companion.transform(src, fileColDef, destColDef);
-            System.out.println(item.getFifth());
-            System.out.println(result);
+            logger.debug("test {} -> {}", fileCol.getFirst(), targetCol.getFirst());
+            var result = ColumnComparator.transform(src, fileColDef, targetColDef);
             Assertions.assertEquals(item.getFifth(), result);
         }
     }

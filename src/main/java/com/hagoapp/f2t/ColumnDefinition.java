@@ -7,6 +7,7 @@
 package com.hagoapp.f2t;
 
 import java.sql.JDBCType;
+import java.util.Objects;
 
 /**
  * A Column definition for database table.
@@ -63,6 +64,28 @@ public class ColumnDefinition {
     public ColumnDefinition(String name, JDBCType type) {
         this.name = name;
         this.dataType = type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ColumnDefinition that = (ColumnDefinition) o;
+
+        if (!name.equals(that.name)) return false;
+        if (dataType != that.dataType) return false;
+        if (!Objects.equals(typeModifier, that.typeModifier)) return false;
+        return Objects.equals(databaseTypeName, that.databaseTypeName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + dataType.hashCode();
+        result = 31 * result + (typeModifier != null ? typeModifier.hashCode() : 0);
+        result = 31 * result + (databaseTypeName != null ? databaseTypeName.hashCode() : 0);
+        return result;
     }
 
     @Override

@@ -8,6 +8,8 @@ package com.hagoapp.f2t.process
 
 import com.google.gson.Gson
 import com.hagoapp.f2t.*
+import com.hagoapp.f2t.database.DbConnectionFactory
+import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfigReader
 import com.hagoapp.f2t.datafile.FileInfoReader
 import org.junit.jupiter.api.Assertions
@@ -45,22 +47,61 @@ class ProcessTester {
         EnabledIfSystemProperty(named = Constants.DATABASE_CONFIG_FILE, matches = ".+"),
         EnabledIfSystemProperty(named = Constants.FILE_CONFIG_FILE, matches = ".+")
     )
-    fun run() {
-        val fileInfo = FileInfoReader.createFileInfo(fileConfigFile)
+    fun testCustomCase() {
+        val result = runCase(dbConfigFile, processConfigFile, fileConfigFile)
+        Assertions.assertTrue(result.succeeded())
+    }
+
+    private fun runCase(dbCfgFile: String, processCfgFile: String, srcCfgFile: String): F2TResult {
+        val fileInfo = FileInfoReader.createFileInfo(srcCfgFile)
         fileInfo.filename = File(System.getProperty("user.dir"), fileInfo.filename!!).absolutePath
-        val dbConfig = DbConfigReader.readConfig(dbConfigFile)
-        val f2tConfig = Gson().fromJson(Files.readString(Path.of(processConfigFile)), F2TConfig::class.java)
+        val dbConfig = DbConfigReader.readConfig(dbCfgFile)
+        val f2tConfig = Gson().fromJson(Files.readString(Path.of(processCfgFile)), F2TConfig::class.java)
         val parser = FileParser(fileInfo)
-        parser.addObserver(FileTestObserver())
+        val observer = FileTestObserver()
+        parser.addObserver(observer)
         dbConfig.createConnection().use { con ->
+            val targetTable = TableName(f2tConfig.targetTable, f2tConfig.targetSchema ?: "")
+            DbConnectionFactory.createDbConnection(con).use { it.dropTable(targetTable) }
             val process = F2TProcess(parser, con, f2tConfig)
             process.run()
-            println(process.result)
-            Assertions.assertTrue(process.result.succeeded())
+            logger.debug("result: {}", process.result)
+            val fileRowCount = observer.rowCount
+            val fileCols = observer.columns.keys
+            DbConnectionFactory.createDbConnection(con).use {
+                val rowCount = it.queryTableSize(targetTable)
+                val cols = it.getExistingTableDefinition(targetTable).columns.map { col -> col as ColumnDefinition }
+                val colMatcher = if (it.isCaseSensitive())
+                    { a: String, b: String -> a.compareTo(b, false) == 0 }
+                else { a: String, b: String -> a.compareTo(b, true) == 0 }
+                it.dropTable(targetTable)
+                Assertions.assertEquals(fileRowCount, rowCount)
+                Assertions.assertEquals(if (!f2tConfig.isAddBatch) fileCols.size else (fileCols.size + 1), cols.size)
+                Assertions.assertTrue(fileCols.all { fileCol ->
+                    cols.any { dbCol ->
+                        colMatcher.invoke(fileCol, dbCol.name)
+                    }
+                })
+            }
+            return process.result
         }
     }
 
     override fun toString(): String {
         return "ProcessTester(dbConfigFile='$dbConfigFile', processConfigFile='$processConfigFile', fileConfigFile='$fileConfigFile')"
+    }
+
+    @Test
+    fun testDefaultCase() {
+        val defaultDbConfigFile = "tests/process/pgsql.sample.json"
+        val defaultProcessConfigFiles = listOf(
+            "tests/process/f2t-batch-new-clear.json",
+            "tests/process/f2t-nobatch-new.json"
+        )
+        val defaultFileConfigFile = "tests/process/shuihucsv.json"
+        for (process in defaultProcessConfigFiles) {
+            val result = runCase(defaultDbConfigFile, process, defaultFileConfigFile)
+            Assertions.assertTrue(result.succeeded())
+        }
     }
 }

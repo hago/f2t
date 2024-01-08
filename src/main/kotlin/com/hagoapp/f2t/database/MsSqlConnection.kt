@@ -330,8 +330,7 @@ open class MsSqlConnection : DbConnection() {
     ) {
         super.prepareInsertion(fileDefinition, table, tableDefinition)
         val columnMatcher = ColumnMatcher.getColumnMatcher(tableDefinition.caseSensitive)
-        val existingSetters = fieldValueSetters.getValue(table)
-        fieldValueSetters[table] = existingSetters.mapIndexed { index, setter ->
+        fieldValueSetters[table] = fieldValueSetters.getValue(table).mapIndexed { index, setter ->
             val fileCol = fileDefinition.columns.first { it.order == index }
             val dbCol = tableDefinition.columns.first { columnMatcher(it.name, fileCol.name) }
             val transformer = ColumnComparator.getTransformer(fileCol, dbCol)
@@ -355,24 +354,15 @@ open class MsSqlConnection : DbConnection() {
         }
     }
 
-    override fun readData(table: TableName, columns: List<ColumnDefinition>, limit: Int): List<List<Any?>> {
+    override fun prepareSelect(
+        table: TableName,
+        columns: List<ColumnDefinition>,
+        limit: Int
+    ): PreparedStatement {
         val sqlBuilder = StringBuilder()
-        val validColumns = columns.ifEmpty { getExistingTableDefinition(table).columns }
-        val columnSelection = validColumns.joinToString(", ") { normalizeName(it.name) }
+        val columnSelection = columns.joinToString(", ") { normalizeName(it.name) }
         sqlBuilder.append("select top $limit ").append(columnSelection).append(" from ").append(getFullTableName(table))
-        val ret = mutableListOf<List<Any?>>()
-        println(sqlBuilder)
-        connection.prepareStatement(sqlBuilder.toString()).use { stmt ->
-            stmt.executeQuery().use { rs ->
-                while (rs.next()) {
-                    val row = validColumns.map { col ->
-                        createDataGetter(col.dataType).getTypedValue(rs, col.name)
-                    }
-                    ret.add(row)
-                }
-                return ret
-            }
-        }
+        return connection.prepareStatement(sqlBuilder.toString())
     }
 
     override fun createDataGetter(jdbcType: JDBCType): DbDataGetter<*> {

@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 
 class MemoryParquetReadTest {
     private static final List<Triple<String, FileColumnTypeDeterminer, String>> testConfigFiles = List.of(
-            //new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
+            new Triple<>("./tests/csv/shuihudata.json", FileColumnTypeDeterminer.Companion.getMostTypeDeterminer(), "shuihu_most.parquet"),
             new Triple<>("./tests/csv/shuihudata_least.json", FileColumnTypeDeterminer.Companion.getLeastTypeDeterminer(), "shuihu_least.parquet")
     );
 
@@ -53,7 +53,7 @@ class MemoryParquetReadTest {
     }
 
     @BeforeAll
-    static void testWriteParquet() throws IOException, F2TException {
+    static void createTestParquetFile() throws IOException, F2TException {
         for (var item : testConfigFiles) {
             var testConfigFile = item.getFirst();
             try (FileInputStream fis = new FileInputStream(testConfigFile)) {
@@ -63,7 +63,7 @@ class MemoryParquetReadTest {
                 parser.setDeterminer(new FileTypeDeterminer(item.getSecond()));
                 var data = parser.extractData();
                 var pwConfig = new ParquetWriterConfig("com.hagoapp.f2t", "shuihu", item.getThird());
-                new ParquetWriter(data, pwConfig).write();
+                new ParquetDataTableWriter(data, pwConfig).write();
             }
         }
     }
@@ -102,8 +102,7 @@ class MemoryParquetReadTest {
                 csvConfig = new Gson().fromJson(json, CsvTestConfig.class);
             }
             try (var fis = new FileInputStream(config.getThird())) {
-                var bytes = fis.readAllBytes();
-                try (var ps = MemoryParquetReader.create(bytes)) {
+                try (var ps = MemoryParquetReader.create(fis, new File(config.getThird()).length())) {
                     var rowCount = csvConfig.getExpect().getRowCount();
                     var skipCount = random.nextInt(rowCount);
                     ps.skip(skipCount);

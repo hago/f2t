@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory
  * @property data  data table containing schema definition and rows to write
  * @property config    configuration file for target parquet file
  */
-class ParquetWriter(private val data: DataTable<out ColumnDefinition>, private val config: ParquetWriterConfig) {
+class ParquetDataTableWriter(
+    private val data: DataTable<out ColumnDefinition>, private val config: ParquetWriterConfig
+) {
 
     private val schemaValue: String
-    private val logger = LoggerFactory.getLogger(ParquetWriter::class.java)
+    private val logger = LoggerFactory.getLogger(ParquetDataTableWriter::class.java)
 
     init {
         val schema = SimpleAvroSchema();

@@ -23,6 +23,7 @@ class BooleanTypeUtils {
          * @param value text
          * @return false if words is "false", "no", "n" or "f", otherwise true
          */
+        @JvmStatic
         fun isPossibleBooleanValue(value: String?): Boolean {
             val x = value?.trim()
             return when {
@@ -39,9 +40,11 @@ class BooleanTypeUtils {
          * @param value input text
          * @return corresponding boolean value
          */
-        fun toBoolean(value: String): Boolean {
-            val x = value.trim()
+        @JvmStatic
+        fun toBoolean(value: String?): Boolean {
+            val x = value?.trim()
             return when {
+                x == null -> false
                 possibleTrueValues.any { it.compareTo(x, true) == 0 } -> true
                 possibleFalseValues.any { it.compareTo(x, true) == 0 } -> false
                 else -> x.toBoolean()

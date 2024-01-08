@@ -9,6 +9,7 @@ package com.hagoapp.f2t;
 import java.math.BigDecimal;
 import java.sql.JDBCType;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -40,6 +41,27 @@ public class FileColumnDefinition extends ColumnDefinition {
     public FileColumnDefinition(String name, Set<JDBCType> possibleTypes, JDBCType candidate0) {
         super(name, candidate0);
         this.possibleTypes = possibleTypes;
+    }
+
+    public FileColumnDefinition(
+            String name, Set<JDBCType> possibleTypes,
+            JDBCType candidate0, BigDecimal minimum, BigDecimal maximum
+    ) {
+        super(name, candidate0);
+        this.possibleTypes = possibleTypes;
+        this.minimum = minimum;
+        this.maximum = maximum;
+    }
+
+    public FileColumnDefinition(
+            String name, Set<JDBCType> possibleTypes,
+            JDBCType candidate0, BigDecimal minimum, BigDecimal maximum, boolean containsEmpty
+    ) {
+        super(name, candidate0);
+        this.possibleTypes = possibleTypes;
+        this.minimum = minimum;
+        this.maximum = maximum;
+        this.containsEmpty = containsEmpty;
     }
 
     private Set<JDBCType> possibleTypes = new HashSet<>();
@@ -148,5 +170,32 @@ public class FileColumnDefinition extends ColumnDefinition {
                 ", containsEmpty=" + containsEmpty +
                 ", parent={" + super.toString() +
                 "}}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        FileColumnDefinition that = (FileColumnDefinition) o;
+
+        if (order != that.order) return false;
+        if (containsEmpty != that.containsEmpty) return false;
+        if (!Objects.equals(possibleTypes, that.possibleTypes))
+            return false;
+        if (!Objects.equals(minimum, that.minimum)) return false;
+        return Objects.equals(maximum, that.maximum);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (possibleTypes != null ? possibleTypes.hashCode() : 0);
+        result = 31 * result + order;
+        result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
+        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
+        result = 31 * result + (containsEmpty ? 1 : 0);
+        return result;
     }
 }

@@ -9,6 +9,8 @@ package com.hagoapp.f2t.datafile.parquet;
 import com.hagoapp.f2t.ColumnDefinition;
 import org.apache.parquet.schema.PrimitiveType;
 
+import java.util.Objects;
+
 /**
  * Definition for a column from parquet.
  *
@@ -35,5 +37,23 @@ public class ParquetColumnDefinition extends ColumnDefinition {
                 ", typeModifier=" + getTypeModifier() +
                 "parquetType=" + parquetType +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        ParquetColumnDefinition that = (ParquetColumnDefinition) o;
+
+        return Objects.equals(parquetType, that.parquetType);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (parquetType != null ? parquetType.hashCode() : 0);
+        return result;
     }
 }

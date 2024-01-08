@@ -45,12 +45,6 @@ class MemoryParquetReader(input: MemoryInputFile) : Closeable {
         private val logger = LoggerFactory.getLogger(MemoryParquetReader::class.java)
 
         @JvmStatic
-        fun create(buffer: ByteArray): MemoryParquetReader {
-            val file = MemoryInputFile(buffer)
-            return MemoryParquetReader(file)
-        }
-
-        @JvmStatic
         fun create(stream: InputStream): MemoryParquetReader {
             val size = stream.available()
             logger.warn("size of stream not specified, {} estimated", size)

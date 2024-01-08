@@ -7,6 +7,7 @@
 package com.hagoapp.util
 
 import java.math.BigDecimal
+import kotlin.math.absoluteValue
 
 /**
  * A set of convenient utilities for numeric values.
@@ -22,14 +23,14 @@ class NumericUtils {
          * @param input the source input
          * @return  a pair of integer, the first one is the count of integral part and the second is for fraction part
          */
+        @JvmStatic
         fun detectPrecision(input: Any): Pair<Int, Int> {
             val s = input.toString()
             return try {
-                s.toDouble()
-                val ss = s.split("\\.").toTypedArray()
+                val ss = s.toDouble().absoluteValue.toString().split(".").toTypedArray()
                 when (ss.size) {
                     1 -> Pair(ss[0].length, 0)
-                    2 -> Pair(ss[0].length, ss[1].length)
+                    2 -> Pair(ss[0].length, if (s.contains(".")) ss[1].length else 0)
                     else -> Pair(0, 0)
                 }
             } catch (ignored: NumberFormatException) {
@@ -43,9 +44,10 @@ class NumericUtils {
          * @param input numeric value in BigDecimal type
          * @return true if within valid ranges of double type, otherwise false
          */
+        @JvmStatic
         fun isDecimalInDoubleRange(input: BigDecimal): Boolean {
-            return input < Double.MAX_VALUE.toBigDecimal() &&
-                    input > Double.MIN_VALUE.toBigDecimal()
+            return input <= Double.MAX_VALUE.toBigDecimal() &&
+                    input >= Double.MIN_VALUE.toBigDecimal()
         }
 
         /**
@@ -54,9 +56,10 @@ class NumericUtils {
          * @param input numeric value in BigDecimal type
          * @return true if within valid ranges of float type, otherwise false
          */
+        @JvmStatic
         fun isDecimalInFloatRange(input: BigDecimal): Boolean {
-            return input < Float.MAX_VALUE.toBigDecimal() &&
-                    input > Float.MIN_VALUE.toBigDecimal()
+            return input <= Float.MAX_VALUE.toBigDecimal() &&
+                    input >= Float.MIN_VALUE.toBigDecimal()
         }
 
         /**
@@ -65,18 +68,20 @@ class NumericUtils {
          * @param input numeric value in BigDecimal type
          * @return true if within valid ranges of Int type, otherwise false
          */
+        @JvmStatic
         fun isDecimalIntegralValue(input: BigDecimal): Boolean {
-            return input == input.toBigInteger().toBigDecimal()
+            return input == input.toInt().toBigDecimal()
         }
 
         /**
-         * Check whether a numeric value in <code>BigDecimal</code> type is in valid ranges of <code>BigInteger</code>.
+         * Check whether a numeric value in <code>BigDecimal</code> type is in valid ranges of <code>Long</code>.
          *
          * @param input numeric value in BigDecimal type
          * @return true if within valid ranges of BigInteger type, otherwise false
          */
+        @JvmStatic
         fun isDecimalLongValue(input: BigDecimal): Boolean {
-            return input == input.toBigInteger().toBigDecimal()
+            return input == input.toLong().toBigDecimal()
         }
     }
 }
