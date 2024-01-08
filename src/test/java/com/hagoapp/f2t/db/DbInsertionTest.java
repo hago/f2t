@@ -93,7 +93,7 @@ public class DbInsertionTest {
             try (var conn = cfg.createConnection()) {
                 try (var con = DbConnectionFactory.createDbConnection(conn)) {
                     var testTable = new TableName(TEST_TABLE_NAME, con.getDefaultSchema());
-                    var tableDef = new TableDefinition<>(
+                    TableDefinition<? extends ColumnDefinition> tableDef = new TableDefinition<>(
                             fileColumnDefinitions.stream().map(fileCol -> {
                                 var dbCol = new ColumnDefinition(
                                         fileCol.getName(), fileCol.getDataType()
@@ -105,6 +105,7 @@ public class DbInsertionTest {
                     );
                     con.createTable(testTable, tableDef);
                     var fileDefinition = new TableDefinition<>(fileColumnDefinitions, true, null, false);
+                    tableDef = con.getExistingTableDefinition(testTable);
                     con.prepareInsertion(fileDefinition, testTable, tableDef);
                     long i = 0;
                     var fullName = con.getFullTableName(testTable);
