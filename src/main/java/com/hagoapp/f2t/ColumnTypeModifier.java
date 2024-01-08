@@ -6,6 +6,8 @@
 
 package com.hagoapp.f2t;
 
+import java.util.Objects;
+
 /**
  * Additional information for a column type definition.
  *
@@ -152,5 +154,31 @@ public class ColumnTypeModifier {
                 ", nullable=" + nullable +
                 ", collation='" + collation + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ColumnTypeModifier that = (ColumnTypeModifier) o;
+
+        if (maxLength != that.maxLength) return false;
+        if (precision != that.precision) return false;
+        if (scale != that.scale) return false;
+        if (containsNonAscii != that.containsNonAscii) return false;
+        if (nullable != that.nullable) return false;
+        return Objects.equals(collation, that.collation);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = maxLength;
+        result = 31 * result + precision;
+        result = 31 * result + scale;
+        result = 31 * result + (collation != null ? collation.hashCode() : 0);
+        result = 31 * result + (containsNonAscii ? 1 : 0);
+        result = 31 * result + (nullable ? 1 : 0);
+        return result;
     }
 }
