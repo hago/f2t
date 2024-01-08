@@ -76,4 +76,9 @@ public class TableDefinitionTest {
     void testToString() {
         Assertions.assertDoesNotThrow(() -> dbTableDefinition.toString());
     }
+
+    @Test
+    void testHashCode() {
+        Assertions.assertDoesNotThrow(() -> dbTableDefinition.hashCode());
+    }
 }
