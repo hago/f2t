@@ -63,13 +63,13 @@ public class MsSqlConfig extends DbConfig {
     @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "master" : databaseName;
-        if ((host == null) || (username == null) || (password == null)) {
+        if ((getHost() == null) || (getUsername() == null) || (getPassword() == null)) {
             throw new UnsupportedOperationException("Configuration is incomplete");
         }
-        String conStr = String.format("jdbc:sqlserver://%s:%d;databaseName = %s", host, port, db) +
-                ";trustServerCertificate=" + trustServerCertificate;
+        String conStr = String.format("jdbc:sqlserver://%s:%d;databaseName = %s", getHost(), getPort(), db) +
+                ";trustServerCertificate=" + isTrustServerCertificate();
         var props = new Properties();
-        props.putAll(Map.of("user", username, "password", password));
+        props.putAll(Map.of("user", getUsername(), "password", getPassword()));
         return DriverManager.getConnection(conStr, props);
     }
 }

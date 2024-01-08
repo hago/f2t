@@ -52,12 +52,12 @@ public class PgSqlConfig extends DbConfig {
     @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "postgres" : databaseName;
-        if ((host == null) || (username == null) || (password == null)) {
+        if ((getHost() == null) || (getUsername() == null) || (getPassword() == null)) {
             throw new UnsupportedOperationException("Configuration is incomplete");
         }
-        var conStr = String.format("jdbc:postgresql://%s:%d/%s", host, port, db);
+        var conStr = String.format("jdbc:postgresql://%s:%d/%s", getHost(), getPort(), db);
         var props = new Properties();
-        props.putAll(Map.of("user", username, "password", password));
+        props.putAll(Map.of("user", getUsername(), "password", getPassword()));
         return DriverManager.getConnection(conStr, props);
     }
 }

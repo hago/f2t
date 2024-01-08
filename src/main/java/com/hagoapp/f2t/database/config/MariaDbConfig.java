@@ -73,17 +73,18 @@ public class MariaDbConfig extends DbConfig {
     @Override
     public Connection createConnection() throws SQLException {
         var db = ((databaseName == null) || databaseName.isBlank()) ? "information_schema" : databaseName;
-        if ((host == null) || (username == null) || (password == null)) {
+        if ((getHost() == null) || (getUsername() == null) || (getPassword() == null)) {
             throw new UnsupportedOperationException("Configuration is incomplete");
         }
-        var conStr = String.format("jdbc:mariadb://%s:%d/%s", host, port, db);
+        var conStr = String.format("jdbc:mariadb://%s:%d/%s", getHost(), getPort(), db);
         var props = new Properties();
-        props.putAll(Map.of("user", username, "password", password));
+        props.putAll(Map.of("user", getUsername(), "password", getPassword()));
+        props.putAll(getProperties());
         return DriverManager.getConnection(conStr, props);
     }
 
     @Override
     public Map<String, Object> getProperties() {
-        return Map.of(STORE_ENGINE_NAME, storeEngine);
+        return Map.of(STORE_ENGINE_NAME, getStoreEngine());
     }
 }
