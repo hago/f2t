@@ -46,11 +46,11 @@ class DbConnectionFactory {
                         val driver = template.getDriverName()
                         try {
                             Class.forName(driver)
-                            typedConnectionMapper[driver.lowercase()] = t
-                            logger.info("DbConnection ${template.getDriverName()} registered")
                         } catch (e: ClassNotFoundException) {
-                            logger.warn("Driver $driver for ${t.canonicalName} not found, skipped")
+                            logger.warn("Loading driver $driver for ${t.canonicalName} failed, skipped")
                         }
+                        typedConnectionMapper[driver.lowercase()] = t
+                        logger.info("DbConnection ${template.getDriverName()} registered")
                     } catch (e: Exception) {
                         logger.error("Instantiation of class ${t.canonicalName} failed: ${e.message}, skipped")
                     }
