@@ -15,6 +15,7 @@ import java.util.Properties;
 public class DerbyConfig extends DbConfig {
 
     private static final String DATABASE_TYPE_APACHE_DERBY = "Apache Derby";
+    public static final String JDBC_DRIVER_APACHE_DERBY = "org.apache.derby.iapi.jdbc.AutoLoadedDriver";
     private boolean create = true;
     private String bootPassword;
 
@@ -36,7 +37,7 @@ public class DerbyConfig extends DbConfig {
 
     @Override
     public String getDriverName() {
-        return "org.apache.derby.jdbc.EmbeddedDriver";
+        return JDBC_DRIVER_APACHE_DERBY;
     }
 
     @Override
@@ -51,7 +52,9 @@ public class DerbyConfig extends DbConfig {
         }
         var conStr = String.format("jdbc:derby:%s;create=%b", databaseName, create);
         var props = new Properties();
-        props.putAll(Map.of("user", username, "password", password));
+        if (getUsername() != null) {
+            props.putAll(Map.of("user", getUsername(), "password", getPassword()));
+        }
         if (bootPassword != null) {
             props.put("bootPassword", bootPassword);
         }

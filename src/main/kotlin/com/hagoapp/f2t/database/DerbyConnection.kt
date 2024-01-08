@@ -9,11 +9,12 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.TableDefinition
+import com.hagoapp.f2t.database.config.DerbyConfig
 import java.sql.JDBCType
 
 class DerbyConnection : DbConnection() {
     override fun getDriverName(): String {
-        return "org.apache.derby.jdbc.EmbeddedDriver"
+        return DerbyConfig.JDBC_DRIVER_APACHE_DERBY;
     }
 
     override fun getAvailableTables(): Map<String, List<TableName>> {
@@ -69,7 +70,41 @@ class DerbyConnection : DbConnection() {
     }
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
-        TODO("Not yet implemented")
+        val tableFullName = getFullTableName(table)
+        val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
+            val colLine = "${normalizeName(colDef.name)} ${
+                convertJDBCTypeToDBNativeType(
+                    colDef.dataType,
+                    colDef.typeModifier
+                )
+            }"
+            val nullable = if (colDef.typeModifier.isNullable) "null" else "not null"
+            "$colLine $nullable"
+        }
+        val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
+            null
+        } else {
+            val p = tableDefinition.primaryKey!!
+            "constraint ${normalizeName(p.name)} primary key (${
+                p.columns.joinToString(", ") { normalizeName(it.name) }
+            })"
+        }
+        val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
+            null
+        } else {
+            tableDefinition.uniqueConstraints.joinToString(",") {
+                val head = "CONSTRAINT ${normalizeName(it.name)} unique "
+                val uniqueCols = "(${it.columns.joinToString(",") { col -> normalizeName(col.name) }})"
+                head + uniqueCols
+            }
+        }
+        var body = if (primaryKeyDef == null) defStr else "$defStr, $primaryKeyDef"
+        if (uniqueDef != null) {
+            body += ", $uniqueDef"
+        }
+        val sql = "create table $tableFullName ($body)"
+        logger.debug("create table $tableFullName using: $sql")
+        connection.prepareStatement(sql).use { it.execute() }
     }
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
