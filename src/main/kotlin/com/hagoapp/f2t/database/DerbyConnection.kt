@@ -10,12 +10,28 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.database.config.DerbyConfig
+import java.sql.Connection
 import java.sql.JDBCType
 
 class DerbyConnection : DbConnection() {
 
     companion object {
         const val DERBY_TABLE_TYPE_USER_TABLE = 'T'
+    }
+
+    private var majorVersion: Int = 10
+    private var minorVersion: Int = 0
+
+    override fun open(conn: Connection) {
+        super.open(conn)
+        conn.prepareStatement("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('DataDictionaryVersion')").use { st ->
+            st.executeQuery().use { rs ->
+                rs.next()
+                val parts = rs.getString(1).split(',')
+                majorVersion = parts[0].toInt()
+                minorVersion = if (parts.size > 1) parts[1].toInt() else 0
+            }
+        }
     }
 
     override fun getDriverName(): String {
@@ -115,14 +131,14 @@ class DerbyConnection : DbConnection() {
                     colDef.typeModifier
                 )
             }"
-            val nullable = if (colDef.typeModifier.isNullable) "null" else "not null"
+            val nullable = if (colDef.typeModifier.isNullable) "" else "NOT NULL"
             "$colLine $nullable"
         }
         val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
             null
         } else {
             val p = tableDefinition.primaryKey!!
-            "constraint ${normalizeName(p.name)} primary key (${
+            "CONSTRAINT ${normalizeName(p.name)} PRIMARY KEY (${
                 p.columns.joinToString(", ") { normalizeName(it.name) }
             })"
         }
@@ -130,7 +146,7 @@ class DerbyConnection : DbConnection() {
             null
         } else {
             tableDefinition.uniqueConstraints.joinToString(",") {
-                val head = "CONSTRAINT ${normalizeName(it.name)} unique "
+                val head = "CONSTRAINT ${normalizeName(it.name)} UNIQUE "
                 val uniqueCols = "(${it.columns.joinToString(",") { col -> normalizeName(col.name) }})"
                 head + uniqueCols
             }
@@ -139,7 +155,7 @@ class DerbyConnection : DbConnection() {
         if (uniqueDef != null) {
             body += ", $uniqueDef"
         }
-        val sql = "create table $tableFullName ($body)"
+        val sql = "CREATE TABLE $tableFullName ($body)"
         logger.debug("create table $tableFullName using: $sql")
         connection.prepareStatement(sql).use { it.execute() }
     }
@@ -160,6 +176,7 @@ class DerbyConnection : DbConnection() {
             JDBCType.TIME, JDBCType.TIME_WITH_TIMEZONE -> "TIME"
             JDBCType.TIMESTAMP, JDBCType.TIMESTAMP_WITH_TIMEZONE -> "TIMESTAMP"
             JDBCType.DATE -> "DATE"
+            JDBCType.BOOLEAN -> if (minorVersion < 7) "SMALLINT" else "BOOLEAN"
             else -> {
                 logger.error("type {} is not implemented, treat as text", aType)
                 return "CLOB"
@@ -178,22 +195,46 @@ class DerbyConnection : DbConnection() {
         }
     }
 
+    private data class ColumnResult(
+        val referenceId: String,
+        val columnName: String,
+        val columnNumber: Int,
+        val columnDataType: String
+    )
+
     override fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition> {
-        val tableString = "${table.schema}.${table.tableName}".replace("'", "''")
-        val sql = "describe '$tableString'"
-        val columns = mutableListOf<ColumnDefinition>()
+        val cols = mutableListOf<ColumnResult>()
+        val sql = """
+            SELECT c.* FROM SYS.SYSCOLUMNS AS c
+            INNER JOIN SYS.SYSTABLES AS T ON c.REFERENCEID = T.TABLEID
+            INNER JOIN SYS.SYSSCHEMAS AS S ON S.SCHEMAID = T.SCHEMAID
+            WHERE S.SCHEMANAME = ? AND T.TABLENAME = ? ORDER BY c.COLUMNNUMBER
+        """
         connection.prepareStatement(sql).use { st ->
+            st.setString(1, table.schema)
+            st.setString(2, table.tableName)
             st.executeQuery().use { rs ->
                 while (rs.next()) {
-                    val t = mapDBTypeToJDBCType(rs.getString("TYPE_NAME"))
-                    val col = ColumnDefinition(rs.getString("COLUMN_NAME"), t)
-                    val modifier = ColumnTypeModifier()
-                    col.typeModifier = modifier
-                    columns.add(col)
+                    cols.add(ColumnResult(
+                        rs.getString("REFERENCEID"),
+                        rs.getString("COLUMNNAME"),
+                        rs.getInt("COLUMNNUMBER"),
+                        rs.getString("COLUMNDATATYPE")
+                    ))
                 }
+            }
+            val columns = cols.map { col ->
+                val p = parseType(col.columnDataType)
+                val def = ColumnDefinition(col.columnName, p.first)
+                def.typeModifier = p.second
+                def
             }
             return TableDefinition(columns, isCaseSensitive())
         }
+    }
+
+    private fun parseType(colDataType: String): Pair<JDBCType, ColumnTypeModifier> {
+
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {

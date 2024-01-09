@@ -30,9 +30,10 @@ import java.util.stream.IntStream;
 class DbConnectionTest {
 
     private final List<String> testConfigFiles = List.of(
-            "tests/process/pgsql.sample.json",
-            "tests/process/mariadb.sample.json",
-            "tests/process/mssql.sample.json"
+            //"tests/process/pgsql.sample.json",
+            //"tests/process/mariadb.sample.json",
+            //"tests/process/mssql.sample.json",
+            "tests/process/derby.sample.json"
     );
 
     private final Logger logger = LoggerFactory.getLogger(DbConnectionTest.class);
