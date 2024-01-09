@@ -25,3 +25,5 @@ hs_err_pid*
 build/
 .gradle/
 .idea/
+
+f2t.derby.db/
