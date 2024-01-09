@@ -72,6 +72,11 @@ class DbConnectionTest {
                 sql = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
             }
             try (var con = cfg.createConnection()) {
+                try (var conn = DbConnectionFactory.createDbConnection(con)) {
+                    if (conn.isTableExists(new TableName("demo", conn.getDefaultSchema()))) {
+                        return;
+                    }
+                }
                 try (var st = con.prepareStatement(sql)) {
                     logger.debug("create demo table for Derby");
                     st.execute();
