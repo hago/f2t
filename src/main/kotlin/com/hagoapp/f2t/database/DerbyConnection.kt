@@ -14,6 +14,7 @@ import com.hagoapp.f2t.database.config.DerbyConfig
 import com.hagoapp.f2t.database.derby.TypeParser
 import java.sql.Connection
 import java.sql.JDBCType
+import java.sql.SQLException
 
 /**
  * The implementation for Apache Derby.
@@ -241,6 +242,9 @@ class DerbyConnection : DbConnection() {
                 def.typeModifier = p.second
                 def
             }
+        }
+        if (columns.isEmpty()) {
+            throw SQLException("$table not existed")
         }
         val def = TableDefinition(columns, isCaseSensitive(), findPrimaryKey(table, columns))
         def.uniqueConstraints = findUniqueKeys(table, columns)
