@@ -1,9 +1,11 @@
-create table demo (
+create table "APP"."demo" (
     id int,
     "name" varchar(100),
+    "desc" long varchar,
     code char(10),
     "description" clob,
     "age" smallint,
+    "bool" BOOLEAN,
     number int,
     long bigint,
     floatnumber real,
@@ -15,8 +17,10 @@ create table demo (
     tm time,
     bin char(10) for bit data,
     varbin varchar(100) for bit data,
+    lvarbin long varchar for bit data,
     text clob,
     buffer blob,
+    xmlcontent XML,
     primary key(id, "name"),
     unique("name", "age"),
     unique(number, "age", long)
