@@ -9,6 +9,7 @@ package com.hagoapp.f2t.database
 import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.TableDefinition
+import com.hagoapp.f2t.TableUniqueDefinition
 import com.hagoapp.f2t.database.config.DerbyConfig
 import com.hagoapp.f2t.database.derby.TypeParser
 import java.sql.Connection
@@ -24,6 +25,8 @@ class DerbyConnection : DbConnection() {
 
     companion object {
         const val DERBY_TABLE_TYPE_USER_TABLE = 'T'
+        const val CONSTRAINT_TYPE_PRIMARY_KEY = 'P'
+        const val CONSTRAINT_TYPE_UNIQUE = 'U'
     }
 
     private var majorVersion: Int = 10
@@ -222,12 +225,14 @@ class DerbyConnection : DbConnection() {
             st.setString(2, table.tableName)
             st.executeQuery().use { rs ->
                 while (rs.next()) {
-                    cols.add(ColumnResult(
-                        rs.getString("REFERENCEID"),
-                        rs.getString("COLUMNNAME"),
-                        rs.getInt("COLUMNNUMBER"),
-                        rs.getString("COLUMNDATATYPE")
-                    ))
+                    cols.add(
+                        ColumnResult(
+                            rs.getString("REFERENCEID"),
+                            rs.getString("COLUMNNAME"),
+                            rs.getInt("COLUMNNUMBER"),
+                            rs.getString("COLUMNDATATYPE")
+                        )
+                    )
                 }
             }
             cols.map { col ->
@@ -237,7 +242,82 @@ class DerbyConnection : DbConnection() {
                 def
             }
         }
-        return TableDefinition(columns, isCaseSensitive())
+        val def = TableDefinition(columns, isCaseSensitive(), findPrimaryKey(table, columns))
+        def.uniqueConstraints = findUniqueKeys(table, columns)
+        return def
+    }
+
+    private fun findPrimaryKey(
+        table: TableName,
+        columns: List<ColumnDefinition>
+    ): TableUniqueDefinition<ColumnDefinition>? {
+        return findConstraints(table, columns, 'P').map { c ->
+            TableUniqueDefinition(c.constraintName, c.columns!!, isCaseSensitive())
+        }.firstOrNull()
+    }
+
+    private fun findUniqueKeys(
+        table: TableName,
+        columns: List<ColumnDefinition>
+    ): Set<TableUniqueDefinition<ColumnDefinition>> {
+        val constraints = findConstraints(table, columns, 'U')
+        return constraints.map { c ->
+            TableUniqueDefinition(c.constraintName, c.columns!!, isCaseSensitive())
+        }.toSet()
+    }
+
+    data class ConstraintResult(
+        val descriptor: String,
+        val constraintName: String,
+        var columns: List<ColumnDefinition>? = null
+    )
+
+    /**
+     * Find constraints of primary key or unique type.
+     * @param table table to query
+     * @param constraintType constraint type, P or U
+     */
+    private fun findConstraints(
+        table: TableName,
+        columns: List<ColumnDefinition>,
+        constraintType: Char
+    ): List<ConstraintResult> {
+        val sql = """
+            SELECT c.*, co.DESCRIPTOR FROM SYS.SYSCONSTRAINTS AS c
+            INNER JOIN SYS.SYSTABLES AS t ON c.TABLEID = t.TABLEID
+            INNER JOIN SYS.SYSSCHEMAS AS s ON s.SCHEMAID = t.SCHEMAID
+            INNER JOIN SYS.SYSCONGLOMERATES AS co ON co.CONGLOMERATENAME = c.CONSTRAINTNAME
+            WHERE S.SCHEMANAME = ? AND T.TABLENAME = ? AND c.STATE = 'E' AND c.TYPE = ?
+        """.trimIndent()
+        val constraints = mutableListOf<ConstraintResult>()
+        connection.prepareStatement(sql).use { st ->
+            st.setString(1, table.schema)
+            st.setString(2, table.tableName)
+            st.setString(3, constraintType.toString())
+            st.executeQuery().use { rs ->
+                while (rs.next()) {
+                    constraints.add(
+                        ConstraintResult(
+                            rs.getString("DESCRIPTOR"),
+                            rs.getString("CONSTRAINTNAME")
+                        )
+                    )
+                }
+            }
+        }
+        constraints.forEach { it.columns = parseDescriptor(it.descriptor, columns) }
+        return constraints
+    }
+
+    private fun parseDescriptor(descriptor: String, columns: List<ColumnDefinition>): List<ColumnDefinition> {
+        var r: MatchResult? = Regex("(\\d+)[,)]").find(descriptor)
+            ?: throw UnsupportedOperationException("Unknown descriptor pattern $descriptor")
+        val indexes = mutableListOf<Int>()
+        do {
+            indexes.add(r!!.groupValues[1].toInt())
+            r = r.next()
+        } while (r != null)
+        return indexes.map { columns[it] }
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
