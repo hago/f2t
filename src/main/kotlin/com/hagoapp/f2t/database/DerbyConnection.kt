@@ -286,7 +286,8 @@ class DerbyConnection : DbConnection() {
             SELECT c.*, co.DESCRIPTOR FROM SYS.SYSCONSTRAINTS AS c
             INNER JOIN SYS.SYSTABLES AS t ON c.TABLEID = t.TABLEID
             INNER JOIN SYS.SYSSCHEMAS AS s ON s.SCHEMAID = t.SCHEMAID
-            INNER JOIN SYS.SYSCONGLOMERATES AS co ON co.CONGLOMERATENAME = c.CONSTRAINTNAME
+            INNER JOIN SYS.SYSKEYS AS k ON k.CONSTRAINTID = c.CONSTRAINTID
+            INNER JOIN SYS.SYSCONGLOMERATES AS co ON co.CONGLOMERATEID = k.CONGLOMERATEID
             WHERE S.SCHEMANAME = ? AND T.TABLENAME = ? AND c.STATE = 'E' AND c.TYPE = ?
         """.trimIndent()
         val constraints = mutableListOf<ConstraintResult>()
@@ -317,7 +318,7 @@ class DerbyConnection : DbConnection() {
             indexes.add(r!!.groupValues[1].toInt())
             r = r.next()
         } while (r != null)
-        return indexes.map { columns[it] }
+        return indexes.map { columns[it - 1] }
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
