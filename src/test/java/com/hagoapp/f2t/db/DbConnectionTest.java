@@ -30,9 +30,9 @@ import java.util.stream.IntStream;
 class DbConnectionTest {
 
     private final List<String> testConfigFiles = List.of(
-            //"tests/process/pgsql.sample.json",
-            //"tests/process/mariadb.sample.json",
-            //"tests/process/mssql.sample.json",
+            "tests/process/pgsql.sample.json",
+            "tests/process/mariadb.sample.json",
+            "tests/process/mssql.sample.json",
             "tests/process/derby.sample.json"
     );
 
@@ -77,6 +77,41 @@ class DbConnectionTest {
                     Assertions.assertFalse(tables.isEmpty());
                     var schema = tables.keySet().stream().findFirst().orElse(null);
                     Assertions.assertNotNull(schema);
+                }
+            }
+        }
+    }
+
+    /**
+     * A demo table following from SQL files in tests/sql directory should be created manually before running this test.
+     *
+     * @throws F2TException if DbConnection instance methods fail
+     * @throws SQLException if creating java.sql.connection fails
+     */
+    @Test
+    void testTableDefinition() throws F2TException, SQLException {
+        for (var configFile : testConfigFiles) {
+            if (skipped.contains(configFile)) {
+                logger.debug("skip {}", configFile);
+                continue;
+            } else {
+                logger.debug("testing using {}", configFile);
+            }
+            var config = DbConfigReader.readConfig(configFile);
+            try (var conn = config.createConnection()) {
+                try (var con = DbConnectionFactory.createDbConnection(conn)) {
+                    var tbl = new TableName("demo", con.getDefaultSchema());
+                    var def = con.getExistingTableDefinition(tbl);
+                    Assertions.assertFalse(def.getColumns().isEmpty());
+                    Assertions.assertNotNull(def.getPrimaryKey());
+                    var uniques = def.getUniqueConstraints();
+                    Assertions.assertEquals(2, uniques.size());
+                    var nameAgeUnique = uniques.stream().filter(u -> u.getColumns().size() == 2)
+                            .findFirst().orElse(null);
+                    var numberAgeLongUnique = uniques.stream().filter(u -> u.getColumns().size() == 3)
+                            .findFirst().orElse(null);
+                    Assertions.assertNotNull(nameAgeUnique);
+                    Assertions.assertNotNull(numberAgeLongUnique);
                 }
             }
         }
@@ -282,7 +317,7 @@ class DbConnectionTest {
             Set<? extends TableUniqueDefinition<? super ColumnDefinition>> ul2, boolean caseSensitive
     ) {
         BiFunction<String, String, Boolean> colMatcher = caseSensitive ? String::equals : String::equalsIgnoreCase;
-        for (var u1: ul1) {
+        for (var u1 : ul1) {
             var u2 = ul2.stream().filter(unique -> colMatcher.apply(unique.getName(), u1.getName())).findFirst()
                     .orElse(null);
             if (u2 == null) {
