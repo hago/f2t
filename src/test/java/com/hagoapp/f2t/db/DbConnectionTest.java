@@ -20,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.*;
@@ -59,6 +63,23 @@ class DbConnectionTest {
         }
     }
 
+    private void initDerbyDemoTable() throws F2TException, SQLException, IOException {
+        var derbyConfig = testConfigFiles.stream().filter(fn -> fn.contains("derby")).findFirst().orElse(null);
+        if (derbyConfig != null) {
+            var cfg = DbConfigReader.readConfig(derbyConfig);
+            String sql;
+            try (var fis = new FileInputStream("tests/sql/derby.sql")) {
+                sql = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            try (var con = cfg.createConnection()) {
+                try (var st = con.prepareStatement(sql)) {
+                    logger.debug("create demo table for Derby");
+                    st.execute();
+                }
+            }
+        }
+    }
+
     @Test
     void testDbConnection() throws SQLException, F2TException {
         for (var configFile : testConfigFiles) {
@@ -89,7 +110,8 @@ class DbConnectionTest {
      * @throws SQLException if creating java.sql.connection fails
      */
     @Test
-    void testTableDefinition() throws F2TException, SQLException {
+    void testTableDefinition() throws F2TException, SQLException, IOException {
+        initDerbyDemoTable();
         for (var configFile : testConfigFiles) {
             if (skipped.contains(configFile)) {
                 logger.debug("skip {}", configFile);
