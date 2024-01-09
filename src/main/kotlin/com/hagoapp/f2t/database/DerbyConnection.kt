@@ -10,9 +10,16 @@ import com.hagoapp.f2t.ColumnDefinition
 import com.hagoapp.f2t.ColumnTypeModifier
 import com.hagoapp.f2t.TableDefinition
 import com.hagoapp.f2t.database.config.DerbyConfig
+import com.hagoapp.f2t.database.derby.TypeParser
 import java.sql.Connection
 import java.sql.JDBCType
 
+/**
+ * The implementation for Apache Derby.
+ *
+ * @author suncjs
+ * @since 0.8.5
+ */
 class DerbyConnection : DbConnection() {
 
     companion object {
@@ -27,7 +34,7 @@ class DerbyConnection : DbConnection() {
         conn.prepareStatement("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('DataDictionaryVersion')").use { st ->
             st.executeQuery().use { rs ->
                 rs.next()
-                val parts = rs.getString(1).split(',')
+                val parts = rs.getString(1).split('.')
                 majorVersion = parts[0].toInt()
                 minorVersion = if (parts.size > 1) parts[1].toInt() else 0
             }
@@ -210,7 +217,7 @@ class DerbyConnection : DbConnection() {
             INNER JOIN SYS.SYSSCHEMAS AS S ON S.SCHEMAID = T.SCHEMAID
             WHERE S.SCHEMANAME = ? AND T.TABLENAME = ? ORDER BY c.COLUMNNUMBER
         """
-        connection.prepareStatement(sql).use { st ->
+        val columns = connection.prepareStatement(sql).use { st ->
             st.setString(1, table.schema)
             st.setString(2, table.tableName)
             st.executeQuery().use { rs ->
@@ -223,18 +230,14 @@ class DerbyConnection : DbConnection() {
                     ))
                 }
             }
-            val columns = cols.map { col ->
-                val p = parseType(col.columnDataType)
+            cols.map { col ->
+                val p = TypeParser.parseType(col.columnDataType)
                 val def = ColumnDefinition(col.columnName, p.first)
                 def.typeModifier = p.second
                 def
             }
-            return TableDefinition(columns, isCaseSensitive())
         }
-    }
-
-    private fun parseType(colDataType: String): Pair<JDBCType, ColumnTypeModifier> {
-
+        return TableDefinition(columns, isCaseSensitive())
     }
 
     override fun mapDBTypeToJDBCType(typeName: String): JDBCType {
