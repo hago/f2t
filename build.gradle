@@ -50,6 +50,7 @@ dependencies {
     testImplementation 'org.mariadb.jdbc:mariadb-java-client:3.0.10'
     testImplementation group: 'org.apache.derby', name: 'derby', version: '10.15.2.0'
     testImplementation group: 'org.apache.derby', name: 'derbyshared', version: '10.15.2.0'
+    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.44.1.0'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
     testRuntimeOnly fileTree('libs') { include '*.jar' }
