@@ -33,12 +33,14 @@ class DbConnectionTest {
             "tests/process/pgsql.sample.json",
             "tests/process/mariadb.sample.json",
             "tests/process/mssql.sample.json",
-            "tests/process/derby.sample.json"
+            "tests/process/derby.sample.json",
+            "tests/process/sqlite.sample.json"
     );
 
     private final Logger logger = LoggerFactory.getLogger(DbConnectionTest.class);
 
     private static final String SKIP_TEST_DB_TYPE = "f2t.dbtests.skip";
+    private static final String SELECT_TEST_DB_TYPE = "f2t.dbtests.select";
     private static final List<String> skipped = new ArrayList<>();
     private static final List<ColumnDefinition> testColumnsDefinition = List.of(
             new ColumnDefinition("intCol", JDBCType.INTEGER),
@@ -74,6 +76,7 @@ class DbConnectionTest {
                     var dbList = con.listDatabases();
                     Assertions.assertFalse(dbList.isEmpty());
                     var tables = con.getAvailableTables();
+                    logger.debug("tables: {}", tables);
                     Assertions.assertFalse(tables.isEmpty());
                     var schema = tables.keySet().stream().findFirst().orElse(null);
                     Assertions.assertNotNull(schema);
@@ -275,7 +278,7 @@ class DbConnectionTest {
                     Assertions.assertFalse(def.getUniqueConstraints().isEmpty());
                     Assertions.assertEquals(tableDefinitions.getUniqueConstraints().size(), def.getUniqueConstraints().size());
                     Assertions.assertTrue(areUniqueConstraintsEqual(
-                            tableDefinitions.getUniqueConstraints(), def.getUniqueConstraints(), caseSensitive));
+                            tableDefinitions.getUniqueConstraints(), def.getUniqueConstraints()));
                     con.dropTable(testTable);
                 }
             }
@@ -314,21 +317,11 @@ class DbConnectionTest {
 
     private boolean areUniqueConstraintsEqual(
             Set<TableUniqueDefinition<ColumnDefinition>> ul1,
-            Set<? extends TableUniqueDefinition<? super ColumnDefinition>> ul2, boolean caseSensitive
+            Set<? extends TableUniqueDefinition<? super ColumnDefinition>> ul2
     ) {
-        BiFunction<String, String, Boolean> colMatcher = caseSensitive ? String::equals : String::equalsIgnoreCase;
-        for (var u1 : ul1) {
-            var u2 = ul2.stream().filter(unique -> colMatcher.apply(unique.getName(), u1.getName())).findFirst()
-                    .orElse(null);
-            if (u2 == null) {
-                return false;
-            } else {
-                if (!areColumnsEqual(u1.getColumns(), u2.getColumns(), caseSensitive)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return ul1.stream().allMatch(u1 ->
+                ul2.stream().anyMatch(u2 -> (u1.getCaseSensitive() == u2.getCaseSensitive()) && u2.compareColumns(u1))
+        );
     }
 
     private TableDefinition<ColumnDefinition> createTableDefinition(boolean caseSensitive) {

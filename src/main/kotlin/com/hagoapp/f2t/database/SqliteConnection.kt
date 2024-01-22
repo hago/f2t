@@ -168,8 +168,8 @@ class SqliteConnection : DbConnection() {
     override fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition> {
         val sql = "PRAGMA ${table.schema}.table_info(${normalizeName(table.tableName)})"
         val cols: List<ColumnDefinition>
+        val tl = mutableListOf<PragmaTableInfoResult>()
         connection.prepareStatement(sql).use { st ->
-            val tl = mutableListOf<PragmaTableInfoResult>()
             st.executeQuery().use { rs ->
                 while (rs.next()) {
                     tl.add(
@@ -194,10 +194,16 @@ class SqliteConnection : DbConnection() {
                 col
             }
         }
-        val pk = getPrimaryKey(table, cols)
+        val pk = getPrimaryKey(table, cols) ?: getIntegerPrimaryKey(tl, cols)
         val def = TableDefinition(cols, isCaseSensitive(), pk, false)
         def.uniqueConstraints = getUniqueConstraints(table, cols)
         return def
+    }
+
+    private fun getIntegerPrimaryKey(cols: List<PragmaTableInfoResult>, columns: List<ColumnDefinition>):
+            TableUniqueDefinition<ColumnDefinition>? {
+        val ipk = cols.firstOrNull { it.pk == 1 } ?: return null
+        return TableUniqueDefinition("PK", columns.filter { it.name == ipk.name }, isCaseSensitive())
     }
 
     private fun parseTypeName(type: String): Pair<String, ColumnTypeModifier> {
