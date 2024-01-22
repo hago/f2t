@@ -62,7 +62,7 @@ class SqliteConnection : DbConnection() {
     }
 
     override fun getDriverName(): String {
-        return SqliteConfig.SQLITE_DRIVER_NAME;
+        return SqliteConfig.SQLITE_DRIVER_NAME
     }
 
     override fun getAvailableTables(): Map<String, List<TableName>> {
@@ -106,7 +106,41 @@ class SqliteConnection : DbConnection() {
 
     override fun createTable(table: TableName, tableDefinition: TableDefinition<out ColumnDefinition>) {
         checkSchema(table.schema)
-        TODO("Not yet implemented")
+        val tableFullName = getFullTableName(table)
+        val defStr = tableDefinition.columns.joinToString(", ") { colDef ->
+            val colLine = "${normalizeName(colDef.name)} ${
+                convertJDBCTypeToDBNativeType(
+                    colDef.dataType,
+                    colDef.typeModifier
+                )
+            }"
+            val nullable = if (colDef.typeModifier.isNullable) "" else "NOT NULL"
+            "$colLine $nullable"
+        }
+        val primaryKeyDef = if (tableDefinition.primaryKey?.columns == null) {
+            null
+        } else {
+            val p = tableDefinition.primaryKey!!
+            "PRIMARY KEY (${
+                p.columns.joinToString(", ") { normalizeName(it.name) }
+            })"
+        }
+        val uniqueDef = if (tableDefinition.uniqueConstraints.isEmpty()) {
+            null
+        } else {
+            tableDefinition.uniqueConstraints.joinToString(",") {
+                val head = "UNIQUE "
+                val uniqueCols = "(${it.columns.joinToString(",") { col -> normalizeName(col.name) }})"
+                head + uniqueCols
+            }
+        }
+        var body = if (primaryKeyDef == null) defStr else "$defStr, $primaryKeyDef"
+        if (uniqueDef != null) {
+            body += ", $uniqueDef"
+        }
+        val sql = "CREATE TABLE $tableFullName ($body)"
+        logger.debug("create table $tableFullName using: $sql")
+        connection.prepareStatement(sql).use { it.execute() }
     }
 
     @Throws(SQLException::class)
@@ -117,7 +151,18 @@ class SqliteConnection : DbConnection() {
     }
 
     override fun convertJDBCTypeToDBNativeType(aType: JDBCType, modifier: ColumnTypeModifier): String {
-        TODO("Not yet implemented")
+        return when (aType) {
+            BIGINT, INTEGER, SMALLINT, BOOLEAN -> "INTEGER"
+            BINARY, VARBINARY, LONGVARBINARY, BLOB -> "BLOB"
+            CHAR, VARCHAR, LONGVARCHAR, CLOB -> "TEXT"
+            DECIMAL -> "NUMERIC(${modifier.precision}, ${modifier.scale})"
+            FLOAT, DOUBLE -> "REAL"
+            TIME, TIME_WITH_TIMEZONE, TIMESTAMP, TIMESTAMP_WITH_TIMEZONE, DATE -> "TEXT"
+            else -> {
+                logger.error("type {} is not implemented, treat as text", aType)
+                return "TEXT"
+            }
+        }
     }
 
     override fun getExistingTableDefinition(table: TableName): TableDefinition<in ColumnDefinition> {
