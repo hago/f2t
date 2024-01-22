@@ -1,0 +1,20 @@
+create table if not exists demo (
+    id int not null,
+    "name" varchar(100),
+    "description" text,
+    isdead bool,
+    age smallint,
+    "number" int,
+    long bigint,
+    floatnumber float,
+    doublenumber double precision,
+    decimaldefault decimal,
+    decimalnumber decimal(20,5),
+    tswz timestamp with time zone,
+    tsoz timestamp without time zone,
+    dt date,
+    tm time,
+    primary key(id, "name"),
+    unique("name", age),
+    unique("number", age, long)
+);
