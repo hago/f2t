@@ -14,7 +14,7 @@ jacocoTestReport {
 }
 
 group 'com.hagoapp'
-version '0.8.5'
+version '0.8.6'
 
 repositories {
     mavenCentral()
@@ -41,8 +41,6 @@ dependencies {
 
     implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '12.2.0.jre11'
 
-    runtimeOnly fileTree('libs') { include '*.jar' }
-
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testImplementation group: 'ch.qos.logback', name:'logback-classic', version: '1.4.12'
 
@@ -53,7 +51,6 @@ dependencies {
     testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.44.1.0'
 
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
-    testRuntimeOnly fileTree('libs') { include '*.jar' }
 }
 
 java {
