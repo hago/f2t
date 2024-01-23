@@ -34,4 +34,12 @@ data class TableUniqueDefinition<T : ColumnDefinition>(
     private fun str(): String {
         return columns.sortedBy { if (caseSensitive) it.name else it.name.lowercase() }.joinToString("_")
     }
+
+    fun compareColumns(other: TableUniqueDefinition<out T>?): Boolean {
+        other ?: return false
+        if (columns.size != other.columns.size) {
+            return false
+        }
+        return columns.indices.all { columns[it].name.compareTo(other.columns[it].name, !caseSensitive) == 0 }
+    }
 }
