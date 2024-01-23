@@ -1,3 +1,4 @@
+2024/1/23 v0.8.6 Add implementation of SQLite 3.
 2024/1/9 v0.8.5 Add implementation of Apache Derby; Fix bugs; Unit tests added; coverage improved
 2023/4/18 v0.8 Fix support for PostgreSQL's partition table; add parquet data file reading; fix type inferring defect.
 2022/12/08 v0.7.5 Implement a new parquet reader to read from stream or memory buffer, support file larger than 2G.
