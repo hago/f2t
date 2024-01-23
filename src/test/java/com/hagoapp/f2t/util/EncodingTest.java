@@ -10,10 +10,8 @@ import com.hagoapp.util.EncodingUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -48,6 +46,20 @@ class EncodingTest {
         try (var fis = new FileInputStream(file)) {
             var enc = EncodingUtils.guessEncoding(fis);
             Assertions.assertEquals(expect, enc);
+        }
+    }
+
+    @Test
+    void testGuessEncodingOneChar() throws IOException {
+        var s = "囧";
+        var encoding = StandardCharsets.UTF_8;
+        testEncoded(encoding, s);
+    }
+
+    private void testEncoded(Charset expected, String input) throws IOException {
+        try (var fis = new ByteArrayInputStream(input.getBytes(expected))) {
+            var enc = EncodingUtils.guessEncoding(fis);
+            Assertions.assertEquals(expected.name(), enc);
         }
     }
 }
