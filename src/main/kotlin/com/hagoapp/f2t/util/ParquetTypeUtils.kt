@@ -6,7 +6,6 @@
 
 package com.hagoapp.f2t.util
 
-import org.apache.avro.Schema.Field
 import org.apache.avro.Schema.Type
 import java.sql.JDBCType
 import java.sql.JDBCType.*
@@ -57,55 +56,9 @@ class ParquetTypeUtils {
                 BINARY, VARBINARY -> "bytes"
                 TIME, TIME_WITH_TIMEZONE, DATE, TIMESTAMP_WITH_TIMEZONE, TIMESTAMP,
                 CHAR, VARCHAR, CLOB, NCHAR, NVARCHAR, NCLOB -> "string"
+
                 else -> throw UnsupportedOperationException("unsupported type $input")
             }
         }
-
-        /**
-         * Map avro type to JDBC type.
-         *
-         * @param input avro type
-         * @return JDBC type
-         */
-        fun mapAvroTypeToJDBCType(input: Type): JDBCType {
-            return when (input) {
-                Type.INT -> INTEGER
-                Type.LONG -> BIGINT
-                Type.STRING -> CLOB
-                Type.FLOAT -> FLOAT
-                Type.DOUBLE -> DOUBLE
-                Type.BYTES -> VARBINARY
-                Type.BOOLEAN -> BOOLEAN
-                else -> throw UnsupportedOperationException("unsupported type $input")
-            }
-        }
-
-        /**
-         * Guess all possible JDBC types those can be used to present value in given avro field. It will consider
-         * explicit avro type defined in avro field, then consider the actual value if the avro type is generic
-         * string.
-         *
-         * @param field avro field
-         * @return set of possible JDBC types
-         */
-        fun guessJDBCType(field: Field): Set<JDBCType> {
-            val type = field.schema().type
-            val ret = mutableSetOf<JDBCType>()
-            if (extraMappers.containsKey(type)) {
-                ret.addAll(extraMappers.getValue(type).mapToJDBCTypes())
-            }
-            when (type) {
-                Type.BOOLEAN -> ret.addAll(setOf(BOOLEAN, TINYINT))
-                Type.DOUBLE -> ret.add(DOUBLE)
-                Type.FLOAT -> ret.add(FLOAT)
-                Type.BYTES -> ret.add(VARBINARY)
-                Type.INT -> ret.addAll(setOf(INTEGER, BIGINT))
-                Type.LONG -> ret.add(BIGINT)
-                Type.STRING -> JDBCTypeUtils.guessTypes(field.name())
-                else -> JDBCTypeUtils.guessTypes(field.name())
-            }
-            return ret
-        }
-
     }
 }
