@@ -1,6 +1,7 @@
 package com.hagoapp.f2t
 
 import com.google.gson.Gson
+import com.hagoapp.f2t.database.DbConnection
 import com.hagoapp.f2t.database.DbConnectionFactory
 import com.hagoapp.f2t.database.TableName
 import com.hagoapp.f2t.database.config.DbConfigReader
@@ -58,14 +59,27 @@ class FileDataTableWriterTest {
                     val tbl = TableName(f2TConfig.targetTable, f2TConfig.targetSchema ?: "")
                     con.dropTable(tbl)
                     logger.debug("run config: {}", f2TConfig)
-                    val writer = FileDataTableWriter(con, f2TConfig, cols)
-                    data.rows.forEach { row -> writer.writeRow(row) }
-                    con.flushRows(tbl)
-                    val size = con.queryTableSize(tbl)
-                    assertEquals(data.rows.size, size.toInt())
+                    doWrite(con, f2TConfig, cols, data, tbl)
+                    val size = con.queryTableSize(tbl).toInt()
+                    assertEquals(data.rows.size, size)
+                    f2TConfig.clearTable = false
+                    doWrite(con, f2TConfig, cols, data, tbl)
+                    assertTrue(size * 2 == con.queryTableSize(tbl).toInt())
+                    f2TConfig.clearTable = true
+                    doWrite(con, f2TConfig, cols, data, tbl)
+                    assertTrue(size == con.queryTableSize(tbl).toInt())
                     con.dropTable(tbl)
                 }
             }
         }
+    }
+
+    private fun doWrite(
+        con: DbConnection, f2TConfig: F2TConfig, cols: List<FileColumnDefinition>,
+        data: DataTable<FileColumnDefinition>, tbl: TableName
+    ) {
+        val writer = FileDataTableWriter(con, f2TConfig, cols)
+        data.rows.forEach { row -> writer.writeRow(row) }
+        con.flushRows(tbl)
     }
 }
