@@ -27,3 +27,4 @@ build/
 .idea/
 
 f2t.derby.db/
+f2t.sqlite.db
