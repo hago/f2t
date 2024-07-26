@@ -24,4 +24,4 @@ create table "APP"."demo" (
     primary key(id, "name"),
     unique("name", "age"),
     unique(number, "age", long)
-);
+)
